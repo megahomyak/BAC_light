@@ -1,7 +1,9 @@
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Any, Dict, Tuple, Callable, Type
+from typing import Optional, Any, Tuple, Callable, Type
+
+from orm.db_apis import OrdersManager
 
 
 class ParsingError(Exception):
@@ -54,6 +56,13 @@ class Arg:
     description: Optional[str] = None
 
 
+@dataclass
+class Context:
+
+    orders_manager: OrdersManager
+    vk_message_info: dict
+
+
 class BaseMetadataElement(ABC):
 
     """
@@ -63,7 +72,7 @@ class BaseMetadataElement(ABC):
 
     @staticmethod
     @abstractmethod
-    def get_data_from_context(context: Dict[str, Any]) -> Any:
+    def get_data_from_context(context: Context) -> Any:
         """
         Returns any value, which can depend on the given context.
 
@@ -129,7 +138,7 @@ class Command:
         )
 
     def get_converted_metadata(
-            self, context: Dict[str, Any]) -> Tuple[Any]:
+            self, context: Context) -> Tuple[Any]:
         """
         Takes context, goes through all metadata elements and gets data from
         them.
