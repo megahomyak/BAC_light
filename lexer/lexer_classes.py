@@ -54,7 +54,7 @@ class Arg:
     description: Optional[str] = None
 
 
-class BaseMetadataElement:
+class BaseMetadataElement(ABC):
 
     """
     Class for getting additional arguments to throw in the handler, which will
