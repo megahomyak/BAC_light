@@ -1,3 +1,5 @@
+from typing import Any
+
 from lexer import lexer_classes
 
 
@@ -41,3 +43,24 @@ class StringArgType(lexer_classes.BaseArgType):
 
     def convert(self, arg: str) -> str:
         return arg
+
+
+class OrdersManagerMetadataElement(lexer_classes.BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: lexer_classes.Context) -> Any:
+        return context.orders_manager
+
+
+class VKSenderIDMetadataElement(lexer_classes.BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: lexer_classes.Context) -> Any:
+        return context.vk_message_info["from_id"]
+
+
+class VKPeerIDMetadataElement(lexer_classes.BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: lexer_classes.Context) -> Any:
+        return context.vk_message_info["peer_id"]

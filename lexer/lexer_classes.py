@@ -85,27 +85,6 @@ class BaseMetadataElement(ABC):
         pass
 
 
-class OrdersManagerMetadataElement(BaseMetadataElement):
-
-    @staticmethod
-    def get_data_from_context(context: Context) -> Any:
-        return context.orders_manager
-
-
-class VKSenderIDMetadataElement(BaseMetadataElement):
-
-    @staticmethod
-    def get_data_from_context(context: Context) -> Any:
-        return context.vk_message_info["from_id"]
-
-
-class VKPeerIDMetadataElement(BaseMetadataElement):
-
-    @staticmethod
-    def get_data_from_context(context: Context) -> Any:
-        return context.vk_message_info["peer_id"]
-
-
 @dataclass
 class Command:
 
