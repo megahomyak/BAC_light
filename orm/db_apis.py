@@ -1,8 +1,15 @@
 from typing import Any, List
 
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, Query
 
 from orm import orm_classes
+
+
+def get_sqlalchemy_db_session(path_to_sqlite_db: str) -> Session:
+    sql_engine = create_engine(path_to_sqlite_db)
+    orm_classes.DeclarativeBase.metadata.create_all(sql_engine)
+    return Session(sql_engine)
 
 
 class OrdersManager:
