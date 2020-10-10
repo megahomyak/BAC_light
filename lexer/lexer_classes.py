@@ -111,7 +111,7 @@ class Command:
 
     names: Tuple[str, ...]
     handler: Callable
-    description: Optional[str] = ()
+    description: Optional[str] = None
     metadata: Tuple[Type[BaseMetadataElement], ...] = ()
     arguments: Tuple[Arg, ...] = ()
 
