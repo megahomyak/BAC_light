@@ -6,6 +6,8 @@ DeclarativeBase = declarative_base()
 
 class Order(DeclarativeBase):
 
+    __tablename__ = "orders"
+
     id = Column(Integer, primary_key=True)
 
     creator_vk_id = Column(Integer, nullable=False)
