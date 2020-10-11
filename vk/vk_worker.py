@@ -1,5 +1,5 @@
 import random
-from typing import Optional
+from typing import Optional, Tuple
 
 import aiohttp
 from simple_avk import SimpleAVK
@@ -46,3 +46,12 @@ class VKWorker(SimpleAVK):
             ):
                 if message is not None:
                     await self.reply(message)
+
+    async def get_name_and_surname(self, user_vk_id: int) -> Tuple[str, str]:
+        user_info = await self.call_method(
+            "users.get",
+            {
+                "user_ids": user_vk_id
+            }
+        )
+        return user_info["first_name"], user_info["last_name"]
