@@ -1,33 +1,23 @@
 import random
-from typing import Optional
 
-import aiohttp
 from simple_avk import SimpleAVK
 
+import vk.constants
 from vk.message_classes import Notification, Message
 
 
 class VKWorker(SimpleAVK):
 
-    def __init__(
-            self, aiohttp_session: aiohttp.ClientSession,
-            message_symbols_limit: Optional[int] = 4096) -> None:
-        super().__init__(aiohttp_session)
-        self.message_symbols_limit = message_symbols_limit
-
     async def reply(self, *messages: Message) -> None:
         for message in messages:
-            if self.message_symbols_limit:
-                text_parts = (
-                    message.text[i:i + self.message_symbols_limit]
-                    for i in range(
-                        0,
-                        len(message.text),
-                        self.message_symbols_limit
-                    )
+            text_parts = (
+                message.text[i:i + vk.constants.SYMBOLS_LIMIT]
+                for i in range(
+                    0,
+                    len(message.text),
+                    vk.constants.SYMBOLS_LIMIT
                 )
-            else:
-                text_parts = [message.text]
+            )
             for part in text_parts:
                 await self.call_method(
                     "messages.send",
