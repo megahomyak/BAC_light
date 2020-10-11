@@ -34,7 +34,8 @@ class VKWorker(SimpleAVK):
                     {
                         "peer_id": message.peer_id,
                         "text": part,
-                        "random_id": random.randint(-1_000_000, 1_000_000)
+                        "random_id": random.randint(-1_000_000, 1_000_000),
+                        "disable_mentions": 1
                     }
                 )
 
