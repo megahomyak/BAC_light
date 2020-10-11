@@ -52,7 +52,8 @@ class VKWorker(SimpleAVK):
         user_info = await self.call_method(
             "users.get",
             {
-                "user_ids": user_vk_id
+                "user_ids": user_vk_id,
+                "fields": "sex"
             }
         )
         return user_info
