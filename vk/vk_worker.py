@@ -2,7 +2,7 @@ import random
 
 from simple_avk import SimpleAVK
 
-import vk.constants
+from vk import vk_constants
 from vk.message_classes import Notification, Message
 
 
@@ -11,11 +11,11 @@ class VKWorker(SimpleAVK):
     async def reply(self, *messages: Message) -> None:
         for message in messages:
             text_parts = (
-                message.text[i:i + vk.constants.SYMBOLS_LIMIT]
+                message.text[i:i + vk_constants.SYMBOLS_LIMIT]
                 for i in range(
                     0,
                     len(message.text),
-                    vk.constants.SYMBOLS_LIMIT
+                    vk_constants.SYMBOLS_LIMIT
                 )
             )
             for part in text_parts:
