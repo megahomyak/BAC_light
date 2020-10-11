@@ -72,3 +72,10 @@ class VKPeerIDMetadataElement(lexer_classes.BaseMetadataElement):
     @staticmethod
     def get_data_from_context(context: lexer_classes.Context) -> Any:
         return context.vk_message_info["peer_id"]
+
+
+class EmployeesChatPeerIDMetadataElement(lexer_classes.BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: Context) -> Any:
+        return context.employees_chat_peer_id

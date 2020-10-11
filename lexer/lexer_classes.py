@@ -63,6 +63,7 @@ class Context:
     orders_manager: OrdersManager
     vk_worker: VKWorker
     vk_message_info: dict
+    employees_chat_peer_id: int
 
 
 class BaseMetadataElement(ABC):
