@@ -1,6 +1,7 @@
 from typing import Any
 
 from lexer import lexer_classes
+from lexer.lexer_classes import Context
 
 
 class IntArgType(lexer_classes.BaseArgType):
@@ -57,6 +58,13 @@ class VKSenderIDMetadataElement(lexer_classes.BaseMetadataElement):
     @staticmethod
     def get_data_from_context(context: lexer_classes.Context) -> Any:
         return context.vk_message_info["from_id"]
+
+
+class VKWorkerMetadataElement(lexer_classes.BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: Context) -> Any:
+        return context.vk_worker
 
 
 class VKPeerIDMetadataElement(lexer_classes.BaseMetadataElement):

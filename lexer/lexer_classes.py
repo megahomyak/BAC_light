@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, Any, Tuple, Callable, Type
 
 from orm.db_apis import OrdersManager
+from vk.vk_worker import VKWorker
 
 
 class ParsingError(Exception):
@@ -60,6 +61,7 @@ class Arg:
 class Context:
 
     orders_manager: OrdersManager
+    vk_worker: VKWorker
     vk_message_info: dict
 
 
