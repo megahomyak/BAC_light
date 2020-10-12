@@ -8,7 +8,8 @@ import handlers
 from lexer.lexer_classes import Command, Arg, ParsingError, Context
 from lexer.lexer_implementations import (
     StringArgType, OrdersManagerMetadataElement, VKSenderIDMetadataElement,
-    VKWorkerMetadataElement, EmployeesChatPeerIDMetadataElement
+    VKWorkerMetadataElement, EmployeesChatPeerIDMetadataElement,
+    VKPeerIDMetadataElement
 )
 from orm import db_apis
 from vk import vk_constants
@@ -34,6 +35,7 @@ class MainLogic:
                     OrdersManagerMetadataElement,
                     VKWorkerMetadataElement,
                     VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement,
                     EmployeesChatPeerIDMetadataElement
                 ),
                 (

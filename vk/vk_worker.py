@@ -31,10 +31,17 @@ class VKWorker(SimpleAVK):
 
     async def send_notifications(self, *notifications: Notification) -> None:
         for notification in notifications:
-            for message in (
+            messages = [
                 notification.message_for_client,
                 notification.message_for_employees
+            ]
+            if (
+                notification.message_for_client.peer_id
+                ==
+                notification.message_for_employees.peer_id
             ):
+                messages[0] = None
+            for message in messages:
                 if message is not None:
                     await self.reply(message)
 
