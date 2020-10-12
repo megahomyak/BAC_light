@@ -23,7 +23,7 @@ class OrdersManager:
             .query(orm_classes.Order)
         )
 
-    def get_tasks(self, *filters: Any) -> List[orm_classes.Order]:
+    def get_orders(self, *filters: Any) -> List[orm_classes.Order]:
         return (
             self._get_query()
             .filter(*filters)
@@ -33,7 +33,7 @@ class OrdersManager:
             .all()
         )
 
-    def get_task_by_id(self, task_id: int) -> orm_classes.Order:
+    def get_orders_by_id(self, task_id: int) -> orm_classes.Order:
         return (
             self._get_query()
             .filter_by(id=task_id)
