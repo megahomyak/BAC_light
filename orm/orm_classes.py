@@ -20,3 +20,15 @@ class Order(DeclarativeBase):
 
     earnings = Column(Integer)
     earning_date = Column(DateTime)
+
+    @property
+    def is_taken(self):
+        return self.taker_vk_id is not None
+
+    @property
+    def is_canceled(self):
+        return self.canceler_vk_id is not None
+
+    @property
+    def is_paid(self):
+        return self.earnings is not None
