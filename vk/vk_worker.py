@@ -11,11 +11,11 @@ class VKWorker(SimpleAVK):
     async def reply(self, *messages: Message) -> None:
         for message in messages:
             text_parts = (
-                message.text[i:i + vk_constants.SYMBOLS_LIMIT]
+                message.text[i:i + vk_constants.SYMBOLS_PER_MESSAGE]
                 for i in range(
                     0,
                     len(message.text),
-                    vk_constants.SYMBOLS_LIMIT
+                    vk_constants.SYMBOLS_PER_MESSAGE
                 )
             )
             for part in text_parts:
