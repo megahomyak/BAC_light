@@ -46,4 +46,4 @@ class VKWorker(SimpleAVK):
                 "fields": "sex"
             }
         )
-        return user_info
+        return user_info[0]
