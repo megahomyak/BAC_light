@@ -6,7 +6,8 @@ from vk.vk_worker import VKWorker
 
 async def create_order(
         orders_manager: db_apis.OrdersManager,
-        vk_worker: VKWorker, client_vk_id: int, current_chat_peer_id: int,
+        vk_worker: VKWorker,
+        client_vk_id: int, current_chat_peer_id: int,
         employees_chat_peer_id: int,
         text: str) -> Notification:
     order = orm_classes.Order(
