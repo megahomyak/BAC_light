@@ -33,10 +33,10 @@ class OrdersManager:
             .all()
         )
 
-    def get_order_by_id(self, task_id: int) -> orm_classes.Order:
+    def get_order_by_id(self, order_id: int) -> orm_classes.Order:
         return (
             self._get_query()
-            .filter_by(id=task_id)
+            .filter_by(id=order_id)
             .one()
         )
 
