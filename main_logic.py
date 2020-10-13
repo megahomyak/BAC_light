@@ -9,7 +9,8 @@ import handlers
 from lexer.lexer_classes import Command, Arg, Context
 from lexer.lexer_implementations import (
     StringArgType, OrdersManagerMetadataElement, VKSenderIDMetadataElement,
-    VKWorkerMetadataElement
+    VKWorkerMetadataElement, VKPeerIDMetadataElement, SequenceArgType,
+    IntArgType
 )
 from orm import db_apis
 from vk import vk_constants
@@ -30,7 +31,7 @@ class MainLogic:
             Command(
                 ("заказ", "order", "заказать"),
                 handlers.create_order,
-                "создает новый заказ и отсылает уведомление сотрудникам",
+                "создает новый заказ",
                 (
                     OrdersManagerMetadataElement,
                     VKWorkerMetadataElement,
@@ -43,6 +44,29 @@ class MainLogic:
                     ),
                 )
             ),
+            Command(
+                ("отменить", "отмена", "cancel"),
+                handlers.cancel_order,
+                "отменяет заказ",
+                (
+                    OrdersManagerMetadataElement,
+                    VKWorkerMetadataElement,
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                ),
+                (
+                    Arg(
+                        "ID заказов, которые нужно отменить (через запятую)",
+                        SequenceArgType(
+                            IntArgType()
+                        )
+                    ),
+                    Arg(
+                        "причина отмены",
+                        StringArgType()
+                    )
+                )
+            )
         )
 
     async def handle_command(

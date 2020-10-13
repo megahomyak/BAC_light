@@ -1,10 +1,10 @@
-from typing import Any
+import re
+from typing import Any, Tuple
 
-from lexer import lexer_classes
-from lexer.lexer_classes import Context
+from lexer.lexer_classes import Context, BaseArgType, BaseMetadataElement
 
 
-class IntArgType(lexer_classes.BaseArgType):
+class IntArgType(BaseArgType):
 
     @property
     def name(self) -> str:
@@ -25,7 +25,7 @@ class IntArgType(lexer_classes.BaseArgType):
         return int(arg)
 
 
-class StringArgType(lexer_classes.BaseArgType):
+class StringArgType(BaseArgType):
 
     @property
     def name(self) -> str:
@@ -46,35 +46,67 @@ class StringArgType(lexer_classes.BaseArgType):
         return arg
 
 
-class OrdersManagerMetadataElement(lexer_classes.BaseMetadataElement):
+class SequenceArgType(BaseArgType):
+
+    @property
+    def name(self) -> str:
+        return f"последовательность <{self.element_type.name}>"
+
+    @property
+    def regex(self) -> str:
+        return (
+            f"{self.element_type.regex}"
+            f"(?:{self.separator}{self.element_type.regex})*"
+        )
+
+    @property
+    def description(self) -> str:
+        return (
+            f"От 1 до бесконечности элементов типа '{self.element_type.name}', "
+            f"разделенных через '{self.separator}' (<- регулярное выражение)"
+        )
+
+    def __init__(
+            self, element_type: BaseArgType, separator: str = r" *, *") -> None:
+        self.element_type = element_type
+        self.separator = separator
+
+    def convert(self, arg: str) -> Tuple[Any]:
+        return tuple(
+            self.element_type.convert(element)
+            for element in re.split(self.separator, arg)
+        )
+
+
+class OrdersManagerMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: lexer_classes.Context) -> Any:
+    def get_data_from_context(context: Context) -> Any:
         return context.orders_manager
 
 
-class VKSenderIDMetadataElement(lexer_classes.BaseMetadataElement):
+class VKSenderIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: lexer_classes.Context) -> Any:
+    def get_data_from_context(context: Context) -> Any:
         return context.vk_message_info["from_id"]
 
 
-class VKWorkerMetadataElement(lexer_classes.BaseMetadataElement):
+class VKWorkerMetadataElement(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> Any:
         return context.vk_worker
 
 
-class VKPeerIDMetadataElement(lexer_classes.BaseMetadataElement):
+class VKPeerIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: lexer_classes.Context) -> Any:
+    def get_data_from_context(context: Context) -> Any:
         return context.vk_message_info["peer_id"]
 
 
-class EmployeesChatPeerIDMetadataElement(lexer_classes.BaseMetadataElement):
+class EmployeesChatPeerIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> Any:
