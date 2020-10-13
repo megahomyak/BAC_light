@@ -3,13 +3,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, Any, Tuple, Callable, Type
 
+import exceptions
 from orm.db_apis import OrdersManager
 from vk.vk_worker import VKWorker
-
-
-class ParsingError(Exception):
-
-    pass
 
 
 class BaseArgType(ABC):
@@ -125,7 +121,7 @@ class Command:
             string=command
         )
         if rgx_result is None:
-            raise ParsingError
+            raise exceptions.ParsingError
         # noinspection PyArgumentList
         # because IDK why it thinks that `arg` argument is already filled
         # (like `self`)

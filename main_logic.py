@@ -4,8 +4,9 @@ from typing import NoReturn
 import aiohttp
 import pysimplelog
 
+import exceptions
 import handlers
-from lexer.lexer_classes import Command, Arg, ParsingError, Context
+from lexer.lexer_classes import Command, Arg, Context
 from lexer.lexer_implementations import (
     StringArgType, OrdersManagerMetadataElement, VKSenderIDMetadataElement,
     VKWorkerMetadataElement, EmployeesChatPeerIDMetadataElement,
@@ -53,7 +54,7 @@ class MainLogic:
         for command_ in self.commands:
             try:
                 args = command_.convert_command_to_args(command)
-            except ParsingError:
+            except exceptions.ParsingError:
                 pass
             else:
                 context = Context(
