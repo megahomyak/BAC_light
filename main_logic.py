@@ -9,12 +9,11 @@ import handlers
 from lexer.lexer_classes import Command, Arg, Context
 from lexer.lexer_implementations import (
     StringArgType, OrdersManagerMetadataElement, VKSenderIDMetadataElement,
-    VKWorkerMetadataElement, EmployeesChatPeerIDMetadataElement,
-    VKPeerIDMetadataElement
+    VKWorkerMetadataElement
 )
 from orm import db_apis
 from vk import vk_constants
-from vk.message_classes import Notification, Message
+from vk.message_classes import Notification, Message, NotificationTexts
 from vk.vk_worker import VKWorker
 
 
@@ -35,9 +34,7 @@ class MainLogic:
                 (
                     OrdersManagerMetadataElement,
                     VKWorkerMetadataElement,
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement,
-                    EmployeesChatPeerIDMetadataElement
+                    VKSenderIDMetadataElement
                 ),
                 (
                     Arg(
@@ -51,6 +48,7 @@ class MainLogic:
     async def handle_command(
             self, vk_message_info: dict) -> Notification:
         command = vk_message_info["text"][1:]  # Cutting /
+        current_chat_peer_id = vk_message_info["peer_id"]
         for command_ in self.commands:
             try:
                 args = command_.convert_command_to_args(command)
@@ -63,14 +61,18 @@ class MainLogic:
                     vk_message_info,
                     vk_constants.EMPLOYEES_CHAT_PEER_ID
                 )
-                return await command_.handler(
+                notification_texts: NotificationTexts = await command_.handler(
                     *command_.get_converted_metadata(context),
                     *args
+                )
+                return notification_texts.to_notification(
+                    employees_chat_peer_id=vk_constants.EMPLOYEES_CHAT_PEER_ID,
+                    client_chat_peer_id=current_chat_peer_id
                 )
         return Notification(
             message_for_client=Message(
                 "Что?",
-                vk_message_info["peer_id"]
+                current_chat_peer_id
             )
         )
 
