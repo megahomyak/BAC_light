@@ -1,10 +1,9 @@
 from typing import Any
 
-from lexer import lexer_classes
-from lexer.lexer_classes import Context
+from lexer.lexer_classes import Context, BaseArgType, BaseMetadataElement
 
 
-class IntArgType(lexer_classes.BaseArgType):
+class IntArgType(BaseArgType):
 
     @property
     def name(self) -> str:
@@ -25,7 +24,7 @@ class IntArgType(lexer_classes.BaseArgType):
         return int(arg)
 
 
-class StringArgType(lexer_classes.BaseArgType):
+class StringArgType(BaseArgType):
 
     @property
     def name(self) -> str:
@@ -46,35 +45,35 @@ class StringArgType(lexer_classes.BaseArgType):
         return arg
 
 
-class OrdersManagerMetadataElement(lexer_classes.BaseMetadataElement):
+class OrdersManagerMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: lexer_classes.Context) -> Any:
+    def get_data_from_context(context: Context) -> Any:
         return context.orders_manager
 
 
-class VKSenderIDMetadataElement(lexer_classes.BaseMetadataElement):
+class VKSenderIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: lexer_classes.Context) -> Any:
+    def get_data_from_context(context: Context) -> Any:
         return context.vk_message_info["from_id"]
 
 
-class VKWorkerMetadataElement(lexer_classes.BaseMetadataElement):
+class VKWorkerMetadataElement(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> Any:
         return context.vk_worker
 
 
-class VKPeerIDMetadataElement(lexer_classes.BaseMetadataElement):
+class VKPeerIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: lexer_classes.Context) -> Any:
+    def get_data_from_context(context: Context) -> Any:
         return context.vk_message_info["peer_id"]
 
 
-class EmployeesChatPeerIDMetadataElement(lexer_classes.BaseMetadataElement):
+class EmployeesChatPeerIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> Any:

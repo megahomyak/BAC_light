@@ -31,19 +31,20 @@ class VKWorker(SimpleAVK):
 
     async def send_notifications(self, *notifications: Notification) -> None:
         for notification in notifications:
-            messages = [
-                notification.message_for_client,
-                notification.message_for_employees
-            ]
+            if notification.message_for_client is not None:
+                await self.reply(notification.message_for_client)
             if (
-                notification.message_for_client.peer_id
-                ==
-                notification.message_for_employees.peer_id
+                notification.message_for_employees is not None
+                and
+                (
+                    notification.message_for_client is None
+                    or
+                    notification.message_for_client.peer_id
+                    !=
+                    notification.message_for_employees.peer_id
+                )
             ):
-                messages[0] = None
-            for message in messages:
-                if message is not None:
-                    await self.reply(message)
+                await self.reply(notification.message_for_employees)
 
     async def get_user_info(self, user_vk_id: int) -> dict:
         user_info = await self.call_method(

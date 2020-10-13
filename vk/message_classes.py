@@ -24,15 +24,23 @@ class NotificationTexts:
 
     def to_notification(
             self,
-            employees_chat_peer_id: int,
-            client_chat_peer_id: int) -> Notification:
+            employees_chat_peer_id: Optional[int] = None,
+            client_chat_peer_id: Optional[int] = None) -> Notification:
         return Notification(
-            message_for_employees=Message(
-                self.text_for_employees,
-                employees_chat_peer_id
+            message_for_employees=(
+                None
+                if self.text_for_employees is None else
+                Message(
+                    self.text_for_employees,
+                    employees_chat_peer_id
+                )
             ),
-            message_for_client=Message(
-                self.text_for_client,
-                client_chat_peer_id
+            message_for_client=(
+                None
+                if self.text_for_employees is None else
+                Message(
+                    self.text_for_client,
+                    client_chat_peer_id
+                )
             )
         )
