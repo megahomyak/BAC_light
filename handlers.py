@@ -22,12 +22,11 @@ async def create_order(
     orders_manager.add(order)
     orders_manager.commit()
     client_info = await vk_worker.get_user_info(client_vk_id)
-    client_name = f"{client_info['first_name']} {client_info['last_name']}"
     made_word = "сделал" if client_info["sex"] == 2 else "сделала"
     return NotificationTexts(
         text_for_client=f"Заказ с ID {order.id} создан!",
         text_for_employees=(
-            f"[id{client_vk_id}|Клиент {client_name}] "
+            f"Клиент {utils.get_tag_from_vk_user_info(client_info)} "
             f"{made_word} заказ с ID {order.id}: {order.text}"
         )
     )
@@ -74,9 +73,6 @@ async def cancel_order(
                 order.cancellation_reason = cancellation_reason
                 orders_manager.commit()
                 client_info = await vk_worker.get_user_info(client_vk_id)
-                client_name = (
-                    f"{client_info['first_name']} {client_info['last_name']}"
-                )
                 cancelled_word = (
                     "отменил"
                     if client_info["sex"] == 2 else
@@ -84,7 +80,7 @@ async def cancel_order(
                 )
                 client_output.append(f"Заказ с ID {order.id} отменен!")
                 employees_output.append(
-                    f"[id{client_vk_id}|Клиент {client_name}] "
+                    f"Клиент {utils.get_tag_from_vk_user_info(client_info)} "
                     f"{cancelled_word} заказ с ID {order.id} "
                     f"по причине \"{cancellation_reason}\""
                 )
@@ -185,7 +181,11 @@ async def get_orders(
                 text_for_client="\n\n".join(output)
             )
         client_info = await vk_worker.get_user_info(client_vk_id)
-        order_word = 'заказал' if client_info['sex'] == 2 else 'заказала'
+        order_word = (
+            'заказал'
+            if client_info['sex'] == 2 else
+            'заказала'
+        )
         return NotificationTexts(
             text_for_client=f"Ты еще ничего не {order_word}!"
         )
