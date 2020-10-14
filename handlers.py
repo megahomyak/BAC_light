@@ -2,6 +2,7 @@ from typing import Tuple, List, Optional
 
 from sqlalchemy.orm.exc import NoResultFound
 
+import utils
 from orm import db_apis
 from orm import orm_classes
 from vk import vk_constants
@@ -99,3 +100,92 @@ async def cancel_order(
             None
         )
     )
+
+
+async def get_orders(
+        orders_manager: db_apis.OrdersManager,
+        vk_worker: VKWorker,
+        client_vk_id: int,
+        current_chat_peer_id: int) -> NotificationTexts:
+    if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+        orders = orders_manager.get_orders()
+        if orders:
+            output = []
+            for order in orders:
+                creator_info = await vk_worker.get_user_info(
+                    order.creator_vk_id, "ins"  # Instrumental case
+                )
+                order_contents = [
+                    f"Заказ с ID {order.id}:",
+                    f"Создан {utils.get_tag_from_vk_user_info(creator_info)}."
+                ]
+                if order.is_taken:
+                    taker_info = await vk_worker.get_user_info(
+                        order.creator_vk_id, "ins"  # Instrumental case
+                    )
+                    order_contents.append(
+                        f"Взят {utils.get_tag_from_vk_user_info(taker_info)}."
+                    )
+                if order.is_canceled:
+                    canceler_info = await vk_worker.get_user_info(
+                        order.canceler_vk_id, "ins"  # Instrumental case
+                    )
+                    canceler_tag = utils.get_tag_from_vk_user_info(
+                        canceler_info
+                    )
+                    order_contents.append(
+                        f"Отменен {canceler_tag} по причине "
+                        f"{order.cancellation_reason}."
+                    )
+                elif order.is_paid:
+                    order_contents.append(
+                        f"Оплачен заказчиком {order.earning_date}."
+                    )
+                order_contents.append(f"Текст заказа: {order.text}.")
+                output.append("\n".join(order_contents))
+            return NotificationTexts(
+                text_for_client="\n\n".join(output)
+            )
+        return NotificationTexts(
+            text_for_client="Заказов еще нет!"
+        )
+    else:
+        orders = orders_manager.get_orders(
+            orm_classes.Order.creator_vk_id == client_vk_id
+        )
+        if orders:
+            output = []
+            for order in orders:
+                order_contents = [f"Заказ с ID {order.id}:"]
+                if order.is_taken:
+                    taker_info = await vk_worker.get_user_info(
+                        order.creator_vk_id, "ins"  # Instrumental case
+                    )
+                    order_contents.append(
+                        f"Взят {utils.get_tag_from_vk_user_info(taker_info)}."
+                    )
+                if order.is_canceled:
+                    canceler_info = await vk_worker.get_user_info(
+                        order.canceler_vk_id, "ins"  # Instrumental case
+                    )
+                    canceler_tag = utils.get_tag_from_vk_user_info(
+                        canceler_info
+                    )
+                    order_contents.append(
+                        f"Отменен {canceler_tag} по причине "
+                        f"{order.cancellation_reason}."
+                    )
+                elif order.is_paid:
+                    order_contents.append(
+                        f"Оплачен заказчиком {order.earning_date}."
+                    )
+                order_contents.append(f"Текст заказа: {order.text}.")
+                output.append("\n".join(order_contents))
+            return NotificationTexts(
+                text_for_client="\n\n".join(output)
+            )
+        client_info = await vk_worker.get_user_info(client_vk_id)
+        order_word = 'заказал' if client_info['sex'] == 2 else 'заказала'
+        return NotificationTexts(
+            text_for_client=f"Ты еще ничего не {order_word}!"
+        )

@@ -70,6 +70,20 @@ class MainLogic:
                         StringArgType()
                     )
                 )
+            ),
+            Command(
+                ("заказы", "orders"),
+                handlers.get_orders,
+                (
+                    "показывает все заказы (если спрашивает клиент - "
+                    "только заказы этого же клиента)"
+                ),
+                (
+                    OrdersManagerMetadataElement,
+                    VKWorkerMetadataElement,
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                )
             )
         )
 
