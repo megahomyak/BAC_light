@@ -47,7 +47,11 @@ class MainLogic:
             Command(
                 ("отменить", "отмена", "cancel"),
                 handlers.cancel_order,
-                "отменяет заказ",
+                (
+                    "отменяет заказ (клиентам нельзя отменять чужие заказы; "
+                    "сотрудникам нельзя отменять заказы, взятые другим "
+                    "сотрудником; всем нельзя отменять оплаченные заказы)"
+                ),
                 (
                     OrdersManagerMetadataElement,
                     VKWorkerMetadataElement,
