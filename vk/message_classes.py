@@ -37,7 +37,7 @@ class NotificationTexts:
             ),
             message_for_client=(
                 None
-                if self.text_for_employees is None else
+                if self.text_for_client is None else
                 Message(
                     self.text_for_client,
                     client_chat_peer_id
