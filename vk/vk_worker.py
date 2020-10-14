@@ -46,12 +46,14 @@ class VKWorker(SimpleAVK):
             ):
                 await self.reply(notification.message_for_employees)
 
-    async def get_user_info(self, user_vk_id: int) -> dict:
+    async def get_user_info(
+            self, user_vk_id: int, name_case: str = "nom") -> dict:
         user_info = await self.call_method(
             "users.get",
             {
                 "user_ids": user_vk_id,
-                "fields": "sex"
+                "fields": "sex",
+                "name_case": name_case
             }
         )
         return user_info[0]
