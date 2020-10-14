@@ -9,7 +9,7 @@ TOKEN = _secret_config["SECRETS"]["token"]
 GROUP_ID = int(_secret_config["SECRETS"]["group_id"])
 
 
-SYMBOLS_PER_MESSAGE = int(_secret_config["COMMON"]["symbols_per_message"])
+SYMBOLS_PER_MESSAGE = 4096
 EMPLOYEES_CHAT_PEER_ID = int(
     _secret_config["EMPLOYEES"]["employees_chat_peer_id"]
 )
