@@ -27,7 +27,7 @@ async def create_order(
         text_for_client=f"Заказ с ID {order.id} создан!",
         text_for_employees=(
             f"Клиент {helpers.get_tag_from_vk_user_info(client_info)} "
-            f"{made_word} заказ с ID {order.id}: {order.text}"
+            f"{made_word} заказ с ID {order.id}: {order.text}."
         )
     )
 
@@ -82,7 +82,7 @@ async def cancel_order(
                 employees_output.append(
                     f"Клиент {helpers.get_tag_from_vk_user_info(client_info)} "
                     f"{cancelled_word} заказ с ID {order.id} "
-                    f"по причине \"{cancellation_reason}\""
+                    f"по причине \"{cancellation_reason}\"!"
                 )
     return NotificationTexts(
         text_for_employees=(
