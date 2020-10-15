@@ -5,7 +5,7 @@ import aiohttp
 import pysimplelog
 
 import exceptions
-import handlers
+from handlers import handlers
 from lexer.lexer_classes import Command, Arg, Context
 from lexer.lexer_implementations import (
     StringArgType, OrdersManagerMetadataElement, VKSenderIDMetadataElement,

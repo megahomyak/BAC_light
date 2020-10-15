@@ -2,7 +2,7 @@ from typing import Tuple, List, Optional
 
 from sqlalchemy.orm.exc import NoResultFound
 
-import utils
+from handlers import handler_helpers as helpers
 from orm import db_apis
 from orm import orm_classes
 from vk import vk_constants
@@ -26,7 +26,7 @@ async def create_order(
     return NotificationTexts(
         text_for_client=f"Заказ с ID {order.id} создан!",
         text_for_employees=(
-            f"Клиент {utils.get_tag_from_vk_user_info(client_info)} "
+            f"Клиент {helpers.get_tag_from_vk_user_info(client_info)} "
             f"{made_word} заказ с ID {order.id}: {order.text}"
         )
     )
@@ -80,7 +80,7 @@ async def cancel_order(
                 )
                 client_output.append(f"Заказ с ID {order.id} отменен!")
                 employees_output.append(
-                    f"Клиент {utils.get_tag_from_vk_user_info(client_info)} "
+                    f"Клиент {helpers.get_tag_from_vk_user_info(client_info)} "
                     f"{cancelled_word} заказ с ID {order.id} "
                     f"по причине \"{cancellation_reason}\""
                 )
@@ -113,20 +113,20 @@ async def get_orders(
                 )
                 order_contents = [
                     f"Заказ с ID {order.id}:",
-                    f"Создан {utils.get_tag_from_vk_user_info(creator_info)}."
+                    f"Создан {helpers.get_tag_from_vk_user_info(creator_info)}."
                 ]
                 if order.is_taken:
                     taker_info = await vk_worker.get_user_info(
                         order.creator_vk_id, "ins"  # Instrumental case
                     )
                     order_contents.append(
-                        f"Взят {utils.get_tag_from_vk_user_info(taker_info)}."
+                        f"Взят {helpers.get_tag_from_vk_user_info(taker_info)}."
                     )
                 if order.is_canceled:
                     canceler_info = await vk_worker.get_user_info(
                         order.canceler_vk_id, "ins"  # Instrumental case
                     )
-                    canceler_tag = utils.get_tag_from_vk_user_info(
+                    canceler_tag = helpers.get_tag_from_vk_user_info(
                         canceler_info
                     )
                     order_contents.append(
@@ -158,13 +158,13 @@ async def get_orders(
                         order.creator_vk_id, "ins"  # Instrumental case
                     )
                     order_contents.append(
-                        f"Взят {utils.get_tag_from_vk_user_info(taker_info)}."
+                        f"Взят {helpers.get_tag_from_vk_user_info(taker_info)}."
                     )
                 if order.is_canceled:
                     canceler_info = await vk_worker.get_user_info(
                         order.canceler_vk_id, "ins"  # Instrumental case
                     )
-                    canceler_tag = utils.get_tag_from_vk_user_info(
+                    canceler_tag = helpers.get_tag_from_vk_user_info(
                         canceler_info
                     )
                     order_contents.append(
