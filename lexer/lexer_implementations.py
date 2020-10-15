@@ -78,13 +78,6 @@ class SequenceArgType(BaseArgType):
         )
 
 
-class OrdersManagerMetadataElement(BaseMetadataElement):
-
-    @staticmethod
-    def get_data_from_context(context: Context) -> Any:
-        return context.orders_manager
-
-
 class VKSenderIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
@@ -92,22 +85,8 @@ class VKSenderIDMetadataElement(BaseMetadataElement):
         return context.vk_message_info["from_id"]
 
 
-class VKWorkerMetadataElement(BaseMetadataElement):
-
-    @staticmethod
-    def get_data_from_context(context: Context) -> Any:
-        return context.vk_worker
-
-
 class VKPeerIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> Any:
         return context.vk_message_info["peer_id"]
-
-
-class EmployeesChatPeerIDMetadataElement(BaseMetadataElement):
-
-    @staticmethod
-    def get_data_from_context(context: Context) -> Any:
-        return context.employees_chat_peer_id

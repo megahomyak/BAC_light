@@ -5,12 +5,12 @@ import aiohttp
 import pysimplelog
 
 import exceptions
-from handlers import handlers
+from handlers.handler_helpers import HandlerHelpers
+from handlers.handlers import Handlers
 from lexer.lexer_classes import Command, Arg, Context
 from lexer.lexer_implementations import (
-    StringArgType, OrdersManagerMetadataElement, VKSenderIDMetadataElement,
-    VKWorkerMetadataElement, VKPeerIDMetadataElement, SequenceArgType,
-    IntArgType
+    StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
+    SequenceArgType, IntArgType
 )
 from orm import db_apis
 from vk import vk_constants
@@ -23,7 +23,8 @@ class MainLogic:
     def __init__(
             self, vk_worker: VKWorker,
             orders_manager: db_apis.OrdersManager,
-            logger: pysimplelog.Logger) -> None:
+            logger: pysimplelog.Logger,
+            handlers: Handlers) -> None:
         self.vk_worker = vk_worker
         self.orders_manager = orders_manager
         self.logger = logger
@@ -33,9 +34,7 @@ class MainLogic:
                 handlers.create_order,
                 "создает новый заказ",
                 (
-                    OrdersManagerMetadataElement,
-                    VKWorkerMetadataElement,
-                    VKSenderIDMetadataElement
+                    VKSenderIDMetadataElement,
                 ),
                 (
                     Arg(
@@ -53,8 +52,6 @@ class MainLogic:
                     "сотрудником; всем нельзя отменять оплаченные заказы)"
                 ),
                 (
-                    OrdersManagerMetadataElement,
-                    VKWorkerMetadataElement,
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 ),
@@ -79,8 +76,6 @@ class MainLogic:
                     "только заказы этого же клиента)"
                 ),
                 (
-                    OrdersManagerMetadataElement,
-                    VKWorkerMetadataElement,
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
@@ -98,10 +93,7 @@ class MainLogic:
                 pass
             else:
                 context = Context(
-                    self.orders_manager,
-                    self.vk_worker,
-                    vk_message_info,
-                    vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    vk_message_info
                 )
                 notification_texts: NotificationTexts = await command_.handler(
                     *command_.get_converted_metadata(context),
@@ -168,20 +160,29 @@ class MainLogic:
 
 async def main():
     async with aiohttp.ClientSession() as aiohttp_session:
+        vk_worker = VKWorker(
+            aiohttp_session,
+            vk_constants.TOKEN,
+            vk_constants.GROUP_ID
+        )
+        orders_manager = db_apis.OrdersManager(
+            db_apis.get_sqlalchemy_db_session("sqlite:///BAC_light.db")
+        )
         main_logic = MainLogic(
-            VKWorker(
-                aiohttp_session,
-                vk_constants.TOKEN,
-                vk_constants.GROUP_ID
-            ),
-            db_apis.OrdersManager(
-                db_apis.get_sqlalchemy_db_session("sqlite:///BAC_light.db")
-            ),
+            vk_worker,
+            orders_manager,
             pysimplelog.Logger(
                 "command_errors",
                 logFileBasename="command_errors",
                 logFileMaxSize=None,
                 logFileFirstNumber=None
+            ),
+            Handlers(
+                vk_worker,
+                orders_manager,
+                HandlerHelpers(
+                    vk_worker
+                )
             )
         )
         await main_logic.listen_for_vk_events()

@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from typing import Optional, Any, Tuple, Callable, Type
 
 import exceptions
-from orm.db_apis import OrdersManager
-from vk.vk_worker import VKWorker
 
 
 class BaseArgType(ABC):
@@ -56,10 +54,7 @@ class Arg:
 @dataclass
 class Context:
 
-    orders_manager: OrdersManager
-    vk_worker: VKWorker
     vk_message_info: dict
-    employees_chat_peer_id: int
 
 
 class BaseMetadataElement(ABC):
