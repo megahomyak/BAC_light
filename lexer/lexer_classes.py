@@ -111,7 +111,7 @@ class Command:
         rgx_result = re.fullmatch(
             pattern=separator.join(
                 [
-                    f"(?:{'|'.join(re.escape(name) for name in self.names)})",
+                    f"(?i:{'|'.join(re.escape(name) for name in self.names)})",
                     *[
                         f"({arg.type.regex})"
                         for arg in self.arguments
