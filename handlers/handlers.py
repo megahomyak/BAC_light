@@ -106,41 +106,12 @@ async def get_orders(
     if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
         orders = orders_manager.get_orders()
         if orders:
-            output = []
-            for order in orders:
-                creator_info = await vk_worker.get_user_info(
-                    order.creator_vk_id, "ins"  # Instrumental case
-                )
-                order_contents = [
-                    f"Заказ с ID {order.id}:",
-                    f"Создан {helpers.get_tag_from_vk_user_info(creator_info)}."
-                ]
-                if order.is_taken:
-                    taker_info = await vk_worker.get_user_info(
-                        order.creator_vk_id, "ins"  # Instrumental case
-                    )
-                    order_contents.append(
-                        f"Взят {helpers.get_tag_from_vk_user_info(taker_info)}."
-                    )
-                if order.is_canceled:
-                    canceler_info = await vk_worker.get_user_info(
-                        order.canceler_vk_id, "ins"  # Instrumental case
-                    )
-                    canceler_tag = helpers.get_tag_from_vk_user_info(
-                        canceler_info
-                    )
-                    order_contents.append(
-                        f"Отменен {canceler_tag} по причине "
-                        f"{order.cancellation_reason}."
-                    )
-                elif order.is_paid:
-                    order_contents.append(
-                        f"Оплачен заказчиком {order.earning_date}."
-                    )
-                order_contents.append(f"Текст заказа: {order.text}.")
-                output.append("\n".join(order_contents))
             return NotificationTexts(
-                text_for_client="\n\n".join(output)
+                text_for_client="\n\n".join(
+                    await helpers.get_orders_as_strings(
+                        orders, vk_worker
+                    )
+                )
             )
         return NotificationTexts(
             text_for_client="Заказов еще нет!"
@@ -150,35 +121,13 @@ async def get_orders(
             orm_classes.Order.creator_vk_id == client_vk_id
         )
         if orders:
-            output = []
-            for order in orders:
-                order_contents = [f"Заказ с ID {order.id}:"]
-                if order.is_taken:
-                    taker_info = await vk_worker.get_user_info(
-                        order.creator_vk_id, "ins"  # Instrumental case
-                    )
-                    order_contents.append(
-                        f"Взят {helpers.get_tag_from_vk_user_info(taker_info)}."
-                    )
-                if order.is_canceled:
-                    canceler_info = await vk_worker.get_user_info(
-                        order.canceler_vk_id, "ins"  # Instrumental case
-                    )
-                    canceler_tag = helpers.get_tag_from_vk_user_info(
-                        canceler_info
-                    )
-                    order_contents.append(
-                        f"Отменен {canceler_tag} по причине "
-                        f"{order.cancellation_reason}."
-                    )
-                elif order.is_paid:
-                    order_contents.append(
-                        f"Оплачен заказчиком {order.earning_date}."
-                    )
-                order_contents.append(f"Текст заказа: {order.text}.")
-                output.append("\n".join(order_contents))
             return NotificationTexts(
-                text_for_client="\n\n".join(output)
+                text_for_client="\n\n".join(
+                    await helpers.get_orders_as_strings(
+                        orders, vk_worker,
+                        include_creator_info=False
+                    )
+                )
             )
         client_info = await vk_worker.get_user_info(client_vk_id)
         order_word = (
