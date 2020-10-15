@@ -79,6 +79,18 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
+            ),
+            Command(
+                ("взятые", "взятые заказы", "taken", "taken orders"),
+                handlers.get_taken_orders,
+                (
+                    "показывает все взятые заказы (если спрашивает клиент - "
+                    "только заказы этого же клиента)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                )
             )
         )
 
