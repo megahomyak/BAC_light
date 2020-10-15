@@ -106,12 +106,8 @@ async def get_orders(
     if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
         orders = orders_manager.get_orders()
         if orders:
-            return NotificationTexts(
-                text_for_client="\n\n".join(
-                    await helpers.get_orders_as_strings(
-                        orders, vk_worker
-                    )
-                )
+            return await helpers.get_notification_with_orders(
+                orders, vk_worker
             )
         return NotificationTexts(
             text_for_client="Заказов еще нет!"
@@ -121,13 +117,9 @@ async def get_orders(
             orm_classes.Order.creator_vk_id == client_vk_id
         )
         if orders:
-            return NotificationTexts(
-                text_for_client="\n\n".join(
-                    await helpers.get_orders_as_strings(
-                        orders, vk_worker,
-                        include_creator_info=False
-                    )
-                )
+            return await helpers.get_notification_with_orders(
+                orders, vk_worker,
+                include_creator_info=False
             )
         client_info = await vk_worker.get_user_info(client_vk_id)
         order_word = (

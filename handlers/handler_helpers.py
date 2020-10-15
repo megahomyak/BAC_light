@@ -1,6 +1,7 @@
 from typing import List
 
 from orm import orm_classes
+from vk.message_classes import NotificationTexts
 from vk.vk_worker import VKWorker
 
 
@@ -56,3 +57,15 @@ async def get_orders_as_strings(
         order_contents.append(f"Текст заказа: {order.text}.")
         output.append("\n".join(order_contents))
     return output
+
+
+async def get_notification_with_orders(
+        orders: List[orm_classes.Order], vk_worker: VKWorker,
+        include_creator_info: bool = True) -> NotificationTexts:
+    return NotificationTexts(
+        text_for_client="\n\n".join(
+            await get_orders_as_strings(
+                orders, vk_worker, include_creator_info
+            )
+        )
+    )
