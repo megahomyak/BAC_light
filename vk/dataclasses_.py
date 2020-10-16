@@ -51,6 +51,7 @@ class NotificationTexts:
 @dataclass
 class VKUserInfo:
 
+    id: int
     name: str
     surname: str
     sex: enums.Sex

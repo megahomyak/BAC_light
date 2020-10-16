@@ -98,5 +98,5 @@ class CachedVKUser(DeclarativeBase):
                 f"Name with the name case {name_case} not found!"
             )
         return vk.dataclasses_.VKUserInfo(
-            name.name, name.surname, self.sex
+            self.vk_id, name.name, name.surname, self.sex
         )
