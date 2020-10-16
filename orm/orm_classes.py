@@ -50,29 +50,23 @@ class Order(DeclarativeBase):
         return cls.earnings.isnot(None)
 
 
+class UserNameAndSurname(DeclarativeBase):
+
+    __tablename__ = "names_and_surnames"
+
+    vk_user_id = Column(Integer)
+
+    case = Column(String)
+
+    name = Column(String)
+    surname = Column(String)
+
+
 class CachedVKUser(DeclarativeBase):
 
-    __tablename__ = "cached_vk_users"
+    __tablename__ = "vk_users"
 
     id = Column(Integer, primary_key=True)
     vk_id = Column(Integer, nullable=False)
 
     sex = Column(SmallInteger, nullable=False)
-
-    name_nom = Column(String)
-    surname_nom = Column(String)
-
-    name_gen = Column(String)
-    surname_gen = Column(String)
-
-    name_dat = Column(String)
-    surname_dat = Column(String)
-
-    name_acc = Column(String)
-    surname_acc = Column(String)
-
-    name_ins = Column(String)
-    surname_ins = Column(String)
-
-    name_abl = Column(String)
-    surname_abl = Column(String)
