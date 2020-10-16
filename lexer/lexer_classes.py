@@ -105,7 +105,6 @@ class Command:
         """
         for args_num in range(len(self.arguments) + 1):
             names = '|'.join(re.escape(name) for name in self.names)
-            a = self.arguments[args_num:]
             pattern = separator.join(
                 [
                     f"(?i:{names})",
