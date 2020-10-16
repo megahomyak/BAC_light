@@ -1,6 +1,10 @@
-from sqlalchemy import Column, Integer, DateTime, String, SmallInteger
+from typing import List
+
+from sqlalchemy import Column, Integer, DateTime, String, SmallInteger, \
+    ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
 
 DeclarativeBase = declarative_base()
 
@@ -54,12 +58,18 @@ class UserNameAndSurname(DeclarativeBase):
 
     __tablename__ = "names_and_surnames"
 
-    vk_user_id = Column(Integer)
+    id = Column(Integer, primary_key=True)
 
-    case = Column(String)
+    vk_user_id = Column(Integer, ForeignKey("vk_users.id"), nullable=False)
 
-    name = Column(String)
-    surname = Column(String)
+    case = Column(String, nullable=False)
+
+    name = Column(String, nullable=False)
+    surname = Column(String, nullable=False)
+
+    vk_user: List["CachedVKUser"] = (
+        relationship("CachedVKUser", back_populates="names")
+    )
 
 
 class CachedVKUser(DeclarativeBase):
@@ -70,3 +80,7 @@ class CachedVKUser(DeclarativeBase):
     vk_id = Column(Integer, nullable=False)
 
     sex = Column(SmallInteger, nullable=False)
+
+    names: List[UserNameAndSurname] = (
+        relationship("UserNameAndSurname", back_populates="vk_user")
+    )
