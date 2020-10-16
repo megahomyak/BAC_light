@@ -91,6 +91,19 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
+            ),
+            Command(
+                ("в ожидании", "waiting", "pending", "ожидающие"),
+                handlers.get_pending_orders,
+                (
+                    "показывает все заказы, которые еще не взяты (но и не "
+                    "отменены; если спрашивает клиент - только заказы этого же "
+                    "клиента)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                )
             )
         )
 

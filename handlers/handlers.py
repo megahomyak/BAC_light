@@ -1,5 +1,6 @@
 from typing import Tuple, List, Optional
 
+from sqlalchemy import not_
 from sqlalchemy.orm.exc import NoResultFound
 
 from handlers.handler_helpers import HandlerHelpers
@@ -162,4 +163,36 @@ class Handlers:
                 )
             return NotificationTexts(
                 text_for_client=f"Среди твоих заказов нет взятых!"
+            )
+
+    async def get_pending_orders(
+            self, client_vk_id: int,
+            current_chat_peer_id: int) -> NotificationTexts:
+        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            orders = self.orders_manager.get_orders(
+                not_(orm_classes.Order.is_taken),
+                not_(orm_classes.Order.is_canceled)
+            )
+            if orders:
+                return await self.helpers.get_notification_with_orders(
+                    orders
+                )
+            return NotificationTexts(
+                text_for_client=(
+                    "Заказов в ожидании еще нет! "
+                    "(Но можно подождать новых клиентов ( ͡° ͜ʖ ͡°))"
+                )                       # Should be the Lenny ^
+            )
+        else:
+            orders = self.orders_manager.get_orders(
+                orm_classes.Order.creator_vk_id == client_vk_id,
+                not_(orm_classes.Order.is_taken),
+                not_(orm_classes.Order.is_canceled)
+            )
+            if orders:
+                return await self.helpers.get_notification_with_orders(
+                    orders, include_creator_info=False
+                )
+            return NotificationTexts(
+                text_for_client=f"Из твоих заказов ни один не \"в ожидании\"!"
             )
