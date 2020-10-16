@@ -51,12 +51,7 @@ class Handlers:
             except NoResultFound:
                 client_output.append(f"Заказ с ID {order_id} не найден!")
             else:
-                if order.is_paid:
-                    client_output.append(
-                        f"Заказ с ID {order_id} уже оплачен, "
-                        f"его нельзя отменить!"
-                    )
-                elif (
+                if (
                     current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
                     and
                     order.creator_vk_id != client_vk_id
@@ -64,6 +59,15 @@ class Handlers:
                     client_output.append(
                         f"Заказ с ID {order_id} не твой, поэтому его "
                         f"нельзя отменить!"
+                    )
+                elif order.is_paid:
+                    client_output.append(
+                        f"Заказ с ID {order_id} уже оплачен, "
+                        f"его нельзя отменить!"
+                    )
+                elif order.is_canceled:
+                    client_output.append(
+                        f"Заказ с ID {order_id} уже отменен!"
                     )
                 elif (
                     order.is_taken and not order.taker_vk_id == client_vk_id
