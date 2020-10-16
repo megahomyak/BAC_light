@@ -1,8 +1,8 @@
-from enum import Enum
 from typing import List
 
-from sqlalchemy import Column, Integer, DateTime, String, SmallInteger, \
-    ForeignKey
+from sqlalchemy import (
+    Column, Integer, DateTime, String, SmallInteger, ForeignKey, Enum
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
