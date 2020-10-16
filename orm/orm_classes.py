@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime, String
+from sqlalchemy import Column, Integer, DateTime, String, SmallInteger
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -48,3 +48,31 @@ class Order(DeclarativeBase):
     @is_paid.expression
     def is_paid(cls):
         return cls.earnings.isnot(None)
+
+
+class CachedVKUser(DeclarativeBase):
+
+    __tablename__ = "cached_vk_users"
+
+    id = Column(Integer, primary_key=True)
+    vk_id = Column(Integer, nullable=False)
+
+    sex = Column(SmallInteger, nullable=False)
+
+    name_nom = Column(String)
+    surname_nom = Column(String)
+
+    name_gen = Column(String)
+    surname_gen = Column(String)
+
+    name_dat = Column(String)
+    surname_dat = Column(String)
+
+    name_acc = Column(String)
+    surname_acc = Column(String)
+
+    name_ins = Column(String)
+    surname_ins = Column(String)
+
+    name_abl = Column(String)
+    surname_abl = Column(String)
