@@ -149,7 +149,7 @@ class Handlers:
                     orders
                 )
             return NotificationTexts(
-                text_for_client="Взятых заказов нет!"
+                text_for_client="Взятых заказов еще нет!"
             )
         else:
             orders = self.orders_manager.get_orders(
