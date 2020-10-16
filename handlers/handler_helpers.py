@@ -1,7 +1,8 @@
 from typing import List
 
-from orm import orm_classes
-from vk.message_classes import NotificationTexts
+from orm import models
+from vk.dataclasses_ import NotificationTexts
+from vk.enums import NameCases
 from vk.vk_worker import VKWorker
 
 
@@ -19,13 +20,13 @@ class HandlerHelpers:
         )
 
     async def get_orders_as_strings(
-            self, orders: List[orm_classes.Order],
+            self, orders: List[models.Order],
             include_creator_info: bool = True) -> List[str]:
         output = []
         for order in orders:
             if include_creator_info:
                 creator_info = await self.vk_worker.get_user_info(
-                    order.creator_vk_id, "ins"  # Instrumental case
+                    order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
                 order_contents = [
                     f"Заказ с ID {order.id}:",
@@ -35,14 +36,14 @@ class HandlerHelpers:
                 order_contents = [f"Заказ с ID {order.id}:"]
             if order.is_taken:
                 taker_info = await self.vk_worker.get_user_info(
-                    order.creator_vk_id, "ins"  # Instrumental case
+                    order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
                 order_contents.append(
                     f"Взят {self.get_tag_from_vk_user_info(taker_info)}."
                 )
             if order.is_canceled:
                 canceler_info = await self.vk_worker.get_user_info(
-                    order.canceler_vk_id, "ins"  # Instrumental case
+                    order.canceler_vk_id, NameCases.INS  # Instrumental case
                 )
                 canceler_tag = self.get_tag_from_vk_user_info(
                     canceler_info
@@ -64,7 +65,7 @@ class HandlerHelpers:
         return output
 
     async def get_notification_with_orders(
-            self, orders: List[orm_classes.Order],
+            self, orders: List[models.Order],
             include_creator_info: bool = True) -> NotificationTexts:
         return NotificationTexts(
             text_for_client="\n\n".join(

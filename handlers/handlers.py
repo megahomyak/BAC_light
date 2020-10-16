@@ -5,9 +5,9 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from handlers.handler_helpers import HandlerHelpers
 from orm import db_apis
-from orm import orm_classes
+from orm import models
 from vk import vk_constants
-from vk.message_classes import NotificationTexts
+from vk.dataclasses_ import NotificationTexts
 from vk.vk_worker import VKWorker
 
 
@@ -23,7 +23,7 @@ class Handlers:
 
     async def create_order(
             self, client_vk_id: int, text: str) -> NotificationTexts:
-        order = orm_classes.Order(
+        order = models.Order(
             creator_vk_id=client_vk_id,
             text=text
         )
@@ -126,7 +126,7 @@ class Handlers:
             )
         else:
             orders = self.orders_manager.get_orders(
-                orm_classes.Order.creator_vk_id == client_vk_id
+                models.Order.creator_vk_id == client_vk_id
             )
             if orders:
                 return await self.helpers.get_notification_with_orders(
@@ -147,9 +147,9 @@ class Handlers:
             current_chat_peer_id: int) -> NotificationTexts:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders(
-                not_(orm_classes.Order.is_canceled),
-                not_(orm_classes.Order.is_paid),
-                orm_classes.Order.is_taken
+                not_(models.Order.is_canceled),
+                not_(models.Order.is_paid),
+                models.Order.is_taken
             )
             if orders:
                 return await self.helpers.get_notification_with_orders(
@@ -160,10 +160,10 @@ class Handlers:
             )
         else:
             orders = self.orders_manager.get_orders(
-                orm_classes.Order.creator_vk_id == client_vk_id,
-                not_(orm_classes.Order.is_canceled),
-                not_(orm_classes.Order.is_paid),
-                orm_classes.Order.is_taken
+                models.Order.creator_vk_id == client_vk_id,
+                not_(models.Order.is_canceled),
+                not_(models.Order.is_paid),
+                models.Order.is_taken
             )
             if orders:
                 return await self.helpers.get_notification_with_orders(
@@ -178,8 +178,8 @@ class Handlers:
             current_chat_peer_id: int) -> NotificationTexts:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders(
-                not_(orm_classes.Order.is_taken),
-                not_(orm_classes.Order.is_canceled)
+                not_(models.Order.is_taken),
+                not_(models.Order.is_canceled)
             )
             if orders:
                 return await self.helpers.get_notification_with_orders(
@@ -193,9 +193,9 @@ class Handlers:
             )
         else:
             orders = self.orders_manager.get_orders(
-                orm_classes.Order.creator_vk_id == client_vk_id,
-                not_(orm_classes.Order.is_taken),
-                not_(orm_classes.Order.is_canceled)
+                models.Order.creator_vk_id == client_vk_id,
+                not_(models.Order.is_taken),
+                not_(models.Order.is_canceled)
             )
             if orders:
                 return await self.helpers.get_notification_with_orders(
