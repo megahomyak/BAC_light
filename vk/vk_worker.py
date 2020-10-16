@@ -60,4 +60,4 @@ class VKWorker(SimpleAVK):
         )
         user_info = user_info[0]
         user_info["sex"] = Sex.MALE if user_info["sex"] == 2 else Sex.FEMALE
-        return user_info[0]
+        return user_info
