@@ -3,7 +3,8 @@ import random
 from simple_avk import SimpleAVK
 
 from vk import vk_constants
-from vk.message_classes import Notification, Message
+from vk.dataclasses_ import Notification, Message
+from vk.enums import NameCases, Sex
 
 
 class VKWorker(SimpleAVK):
@@ -47,13 +48,16 @@ class VKWorker(SimpleAVK):
                 await self.reply(notification.message_for_employees)
 
     async def get_user_info(
-            self, user_vk_id: int, name_case: str = "nom") -> dict:
+            self, user_vk_id: int,
+            name_case: NameCases = NameCases.NOM) -> dict:
         user_info = await self.call_method(
             "users.get",
             {
                 "user_ids": user_vk_id,
                 "fields": "sex",
-                "name_case": name_case
+                "name_case": name_case.value
             }
         )
+        user_info = user_info[0]
+        user_info["sex"] = Sex.MALE if user_info["sex"] == 2 else Sex.FEMALE
         return user_info[0]
