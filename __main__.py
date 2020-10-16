@@ -14,7 +14,7 @@ from lexer.lexer_implementations import (
 )
 from orm import db_apis
 from vk import vk_constants
-from vk.message_classes import Notification, Message, NotificationTexts
+from vk.dataclasses_ import Notification, Message, NotificationTexts
 from vk.vk_worker import VKWorker
 
 
