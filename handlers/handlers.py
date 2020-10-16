@@ -147,6 +147,8 @@ class Handlers:
             current_chat_peer_id: int) -> NotificationTexts:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders(
+                not_(orm_classes.Order.is_canceled),
+                not_(orm_classes.Order.is_paid),
                 orm_classes.Order.is_taken
             )
             if orders:
@@ -159,6 +161,8 @@ class Handlers:
         else:
             orders = self.orders_manager.get_orders(
                 orm_classes.Order.creator_vk_id == client_vk_id,
+                not_(orm_classes.Order.is_canceled),
+                not_(orm_classes.Order.is_paid),
                 orm_classes.Order.is_taken
             )
             if orders:
