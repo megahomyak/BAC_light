@@ -103,23 +103,29 @@ class Command:
         Returns:
             tuple of some values, which are converted arguments from string
         """
-        rgx_result = re.fullmatch(
-            pattern=separator.join(
+        for args_num in range(len(self.arguments) + 1):
+            names = '|'.join(re.escape(name) for name in self.names)
+            a = self.arguments[args_num:]
+            pattern = separator.join(
                 [
-                    f"(?i:{'|'.join(re.escape(name) for name in self.names)})",
+                    f"(?i:{names})",
                     *[
                         f"({arg.type.regex})"
-                        for arg in self.arguments
+                        for arg in self.arguments[:args_num]
                     ]  # Something like (\d\d)
                 ]  # Something like (?:command) (\d\d)
-            ),
-            string=command
-        )
-        if rgx_result is None:
-            raise exceptions.ParsingError
+            ) + ("$" if args_num == len(self.arguments) else "")
+            rgx_result = re.match(
+                pattern=pattern,
+                string=command
+            )
+            if rgx_result is None:
+                raise exceptions.ParsingError(args_num)
         # noinspection PyArgumentList
         # because IDK why it thinks that `arg` argument is already filled
         # (like `self`)
+        # noinspection PyUnboundLocalVariable
+        # because range will be at least with length of 1
         return tuple(
             converter(group)
             for group, converter in zip(

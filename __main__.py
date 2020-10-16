@@ -111,11 +111,13 @@ class MainLogic:
             self, vk_message_info: dict) -> Notification:
         command = vk_message_info["text"][1:]  # Cutting /
         current_chat_peer_id = vk_message_info["peer_id"]
+        error_args_amount = 0
         for command_ in self.commands:
             try:
                 args = command_.convert_command_to_args(command)
-            except exceptions.ParsingError:
-                pass
+            except exceptions.ParsingError as parsing_error:
+                if parsing_error.args_num > error_args_amount:
+                    error_args_amount = parsing_error.args_num
             else:
                 context = Context(
                     vk_message_info
@@ -128,9 +130,16 @@ class MainLogic:
                     employees_chat_peer_id=vk_constants.EMPLOYEES_CHAT_PEER_ID,
                     client_chat_peer_id=current_chat_peer_id
                 )
+        if error_args_amount == 0:
+            error_msg = "Ошибка обработки команды на её названии!"
+        else:
+            error_msg = (
+                f"Ошибка обработки команды на аргументе номер "
+                f"{error_args_amount} (он неправильный или пропущен)"
+            )
         return Notification(
             message_for_client=Message(
-                "Что?",
+                error_msg,
                 current_chat_peer_id
             )
         )
