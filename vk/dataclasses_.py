@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from vk import enums
+
 
 @dataclass
 class Message:
@@ -44,3 +46,11 @@ class NotificationTexts:
                 )
             )
         )
+
+
+@dataclass
+class VKUserInfo:
+
+    name: str
+    surname: str
+    sex: enums.Sex
