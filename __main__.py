@@ -122,7 +122,8 @@ class MainLogic:
                     error_args_amount = parsing_error.args_num
             else:
                 context = Context(
-                    vk_message_info
+                    vk_message_info,
+                    self.commands
                 )
                 notification_texts: NotificationTexts = await command_.handler(
                     *command_.get_converted_metadata(context),

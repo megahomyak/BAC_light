@@ -55,6 +55,7 @@ class Arg:
 class Context:
 
     vk_message_info: dict
+    commands: Tuple["Command", ...]
 
 
 class BaseMetadataElement(ABC):
