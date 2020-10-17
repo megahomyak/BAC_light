@@ -6,8 +6,10 @@ from sqlalchemy.orm.exc import NoResultFound
 from handlers.handler_helpers import HandlerHelpers
 from orm import db_apis
 from orm import models
+from orm.db_apis import VKUsersManager
 from vk import vk_constants
 from vk.dataclasses_ import NotificationTexts
+from vk.enums import Sex
 from vk.vk_worker import VKWorker
 
 
@@ -16,10 +18,12 @@ class Handlers:
     def __init__(
             self, vk_worker: VKWorker,
             orders_manager: db_apis.OrdersManager,
-            handler_helpers: HandlerHelpers) -> None:
+            handler_helpers: HandlerHelpers,
+            users_manager: VKUsersManager) -> None:
         self.vk_worker = vk_worker
         self.orders_manager = orders_manager
         self.helpers = handler_helpers
+        self.users_manager = users_manager
 
     async def create_order(
             self, client_vk_id: int, text: str) -> NotificationTexts:
@@ -29,12 +33,13 @@ class Handlers:
         )
         self.orders_manager.add(order)
         self.orders_manager.commit()
-        client_info = await self.vk_worker.get_user_info(client_vk_id)
-        made_word = "сделал" if client_info["sex"] == 2 else "сделала"
+        client_info = await self.users_manager.get_user_info_by_id(client_vk_id)
+        made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
         return NotificationTexts(
             text_for_client=f"Заказ с ID {order.id} создан!",
             text_for_employees=(
-                f"Клиент {self.helpers.get_tag_from_vk_user_info(client_info)} "
+                f"Клиент "
+                f"{self.helpers.get_tag_from_vk_user_dataclass(client_info)} "
                 f"{made_word} заказ с ID {order.id}: {order.text}."
             )
         )
@@ -82,16 +87,16 @@ class Handlers:
                     order.canceler_vk_id = client_vk_id
                     order.cancellation_reason = cancellation_reason
                     self.orders_manager.commit()
-                    client_info = await self.vk_worker.get_user_info(
+                    client_info = await self.users_manager.get_user_info_by_id(
                         client_vk_id
                     )
                     cancelled_word = (
                         "отменил"
-                        if client_info["sex"] == 2 else
+                        if client_info.sex is Sex.MALE else
                         "отменила"
                     )
                     client_output.append(f"Заказ с ID {order.id} отменен!")
-                    canceler_tag = self.helpers.get_tag_from_vk_user_info(
+                    canceler_tag = self.helpers.get_tag_from_vk_user_dataclass(
                         client_info
                     )
                     employees_output.append(

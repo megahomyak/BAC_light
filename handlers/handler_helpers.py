@@ -1,22 +1,23 @@
 from typing import List
 
 from orm import models
-from vk.dataclasses_ import NotificationTexts
+from orm.db_apis import VKUsersManager
+from vk.dataclasses_ import NotificationTexts, VKUserInfo
 from vk.enums import NameCases
 from vk.vk_worker import VKWorker
 
 
 class HandlerHelpers:
 
-    def __init__(self, vk_worker: VKWorker) -> None:
+    def __init__(
+            self, vk_worker: VKWorker, users_manager: VKUsersManager) -> None:
         self.vk_worker = vk_worker
+        self.users_manager = users_manager
 
     @staticmethod
-    def get_tag_from_vk_user_info(user_info: dict) -> str:
+    def get_tag_from_vk_user_dataclass(user_info: VKUserInfo) -> str:
         return (
-            f"[id{user_info['id']}|"
-            f"{user_info['first_name']} "
-            f"{user_info['last_name']}]"
+            f"[id{user_info.id}|{user_info.name} {user_info.surname}]"
         )
 
     async def get_orders_as_strings(
@@ -25,27 +26,30 @@ class HandlerHelpers:
         output = []
         for order in orders:
             if include_creator_info:
-                creator_info = await self.vk_worker.get_user_info(
+                creator_info = await self.users_manager.get_user_info_by_id(
                     order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
                 order_contents = [
                     f"Заказ с ID {order.id}:",
-                    f"Создан {self.get_tag_from_vk_user_info(creator_info)}."
+                    (
+                        f"Создан "
+                        f"{self.get_tag_from_vk_user_dataclass(creator_info)}."
+                    )
                 ]
             else:
                 order_contents = [f"Заказ с ID {order.id}:"]
             if order.is_taken:
-                taker_info = await self.vk_worker.get_user_info(
+                taker_info = await self.users_manager.get_user_info_by_id(
                     order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
                 order_contents.append(
-                    f"Взят {self.get_tag_from_vk_user_info(taker_info)}."
+                    f"Взят {self.get_tag_from_vk_user_dataclass(taker_info)}."
                 )
             if order.is_canceled:
-                canceler_info = await self.vk_worker.get_user_info(
+                canceler_info = await self.users_manager.get_user_info_by_id(
                     order.canceler_vk_id, NameCases.INS  # Instrumental case
                 )
-                canceler_tag = self.get_tag_from_vk_user_info(
+                canceler_tag = self.get_tag_from_vk_user_dataclass(
                     canceler_info
                 )
                 if order.creator_vk_id == order.canceler_vk_id:
