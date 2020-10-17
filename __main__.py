@@ -11,7 +11,7 @@ from handlers.handlers import Handlers
 from lexer.lexer_classes import Command, Arg, Context
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
-    SequenceArgType, IntArgType
+    SequenceArgType, IntArgType, CommandsMetadataElement
 )
 from orm import db_apis
 from vk import vk_constants
@@ -105,6 +105,14 @@ class MainLogic:
                 (
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
+                )
+            ),
+            Command(
+                ("команды", "помощь", "help", "commands"),
+                handlers.get_help_message,
+                "показывает помощь по командам",
+                (
+                    CommandsMetadataElement,
                 )
             )
         )

@@ -4,6 +4,7 @@ from sqlalchemy import not_
 from sqlalchemy.orm.exc import NoResultFound
 
 from handlers.handler_helpers import HandlerHelpers
+from lexer import lexer_classes
 from orm import db_apis
 from orm import models
 from orm.db_apis import VKUsersManager
@@ -209,3 +210,15 @@ class Handlers:
             return NotificationTexts(
                 text_for_client=f"Из твоих заказов ни один не \"в ожидании\"!"
             )
+
+    @staticmethod
+    async def get_help_message(
+            commands: Tuple[lexer_classes.Command]) -> NotificationTexts:
+        return NotificationTexts(
+            text_for_client="\n\n".join(
+                [
+                    command.get_full_description(include_heading=True)
+                    for command in commands
+                ]
+            ) + vk_constants.HELP_MESSAGE_ENDING
+        )
