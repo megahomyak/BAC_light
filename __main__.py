@@ -126,6 +126,18 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
+            ),
+            Command(
+                ("оплаченные", "paid"),
+                handlers.get_paid_orders,
+                (
+                    "показывает все оплаченные заказы (если спрашивает клиент "
+                    "- только заказы этого же клиента)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                )
             )
         )
 
