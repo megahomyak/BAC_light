@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import NoReturn
 
 import aiohttp
@@ -155,12 +156,16 @@ class MainLogic:
             future: asyncio.Future) -> None:
         exc = future.exception()
         if exc:
-            self.logger.error(str(exc))
+            self.logger.error(
+                "".join(
+                    traceback.TracebackException.from_exception(exc).format()
+                )
+            )
             await self.vk_worker.reply(
                 Message(
                     f"Тут у юзера при обработке команды \"{text}\" произошла "
-                    f"ошибка \"{str(exc)}\", это в логах тоже есть, гляньте, "
-                    f"разберитесь...",
+                    f"ошибка \"{str(exc)}\", это в логах тоже есть, "
+                    f"гляньте, разберитесь...",
                     vk_constants.EMPLOYEES_CHAT_PEER_ID
                 )
             )
@@ -200,8 +205,14 @@ async def main():
             vk_constants.TOKEN,
             vk_constants.GROUP_ID
         )
+        sqlalchemy_session = db_apis.get_sqlalchemy_db_session(
+            "sqlite:///BAC_light.db"
+        )
         orders_manager = db_apis.OrdersManager(
-            db_apis.get_sqlalchemy_db_session("sqlite:///BAC_light.db")
+            sqlalchemy_session
+        )
+        users_manager = db_apis.VKUsersManager(
+            sqlalchemy_session, vk_worker
         )
         main_logic = MainLogic(
             vk_worker,
@@ -216,8 +227,10 @@ async def main():
                 vk_worker,
                 orders_manager,
                 HandlerHelpers(
-                    vk_worker
-                )
+                    vk_worker,
+                    users_manager
+                ),
+                users_manager
             )
         )
         await main_logic.listen_for_vk_events()
