@@ -82,14 +82,17 @@ class VKUsersManager:
                 vk_id=vk_id,
                 sex=user_info_from_vk["sex"]
             )
-            self.db_session.add(
-                models.UserNameAndSurname(
-                    vk_user_id=vk_id,
-                    case=name_case,
-                    name=user_info_from_vk["first_name"],
-                    surname=user_info_from_vk["last_name"]
-                ),
-                user_info
+            self.db_session.flush()
+            self.db_session.add_all(
+                (
+                    models.UserNameAndSurname(
+                        vk_user_id=user_info.id,
+                        case=name_case,
+                        name=user_info_from_vk["first_name"],
+                        surname=user_info_from_vk["last_name"]
+                    ),
+                    user_info
+                )
             )
             self.db_session.commit()
             return user_info.get_as_vk_user_info_dataclass(name_case)
@@ -104,7 +107,7 @@ class VKUsersManager:
                 )
                 self.db_session.add(
                     models.UserNameAndSurname(
-                        vk_user_id=vk_id,
+                        vk_user_id=user_info.id,
                         case=name_case,
                         name=user_info_from_vk["first_name"],
                         surname=user_info_from_vk["last_name"]
