@@ -1,3 +1,4 @@
+import datetime
 from typing import Tuple, List
 
 from sqlalchemy import not_
@@ -276,5 +277,64 @@ class Handlers:
             return NotificationTexts(
                 text_for_client=(
                     f"Среди твоих заказов нет оплаченных! (А лучше бы были!)"
+                )
+            )
+
+    async def make_orders_paid(
+            self, employee_vk_id: int, current_chat_peer_id: int,
+            order_ids: Tuple[int],
+            earnings_amount: int) -> NotificationTexts:
+        output: List[str] = []
+        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            for order_id in order_ids:
+                try:
+                    order = self.orders_manager.get_order_by_id(order_id)
+                except NoResultFound:
+                    output_str = f"Заказ с ID {order_id} не найден!"
+                else:
+                    if order.is_paid:
+                        output_str = f"Заказ с ID {order_id} уже оплачен!"
+                    elif order.is_canceled:
+                        output_str = (
+                            f"Заказ с ID {order_id} отменен, поэтому его "
+                            f"нельзя оплатить!"
+                        )
+                    elif not order.is_taken:
+                        output_str = (
+                            f"Заказ с ID {order_id} не взят, его нельзя "
+                            f"оплатить!"
+                        )
+                    elif order.taker_vk_id != employee_vk_id:
+                        employee_info = await (
+                            self.users_manager.get_user_info_by_id(
+                                employee_vk_id
+                            )
+                        )
+                        taken_word = (
+                            "взял"
+                            if employee_info.sex is Sex.MALE else
+                            "взяла"
+                        )
+                        output_str = (
+                            f"Заказ с ID {order_id} {taken_word} не ты!"
+                        )
+                    else:
+                        order.earnings = earnings_amount
+                        order.earning_date = datetime.datetime.now()
+                        output_str = (
+                            f"Заказ с ID {order_id} отмечен оплаченным."
+                        )
+                output.append(output_str)
+            return NotificationTexts(
+                text_for_client=(
+                    "\n".join(output)
+                    if output else
+                    None
+                )
+            )
+        else:
+            return NotificationTexts(
+                text_for_client=(
+                    "Отмечать заказы оплаченными могут только сотрудники!"
                 )
             )

@@ -138,7 +138,35 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
-            )
+            ),
+            Command(
+                ("оплачено", "оплатить", "pay", "mark as paid"),
+                handlers.make_orders_paid,
+                (
+                    "отмечает заказ оплаченным (это могут делать только "
+                    "сотрудники, причем могут помечать оплаченными лишь те "
+                    "заказы, которые взяли сами)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                ),
+                (
+                    Arg(
+                        (
+                            "ID заказов, которые нужно отметить оплаченными "
+                            "(через запятую)"
+                        ),
+                        SequenceArgType(
+                            IntArgType()
+                        )
+                    ),
+                    Arg(
+                        "выручка (с каждого указанного заказа)",
+                        IntArgType()
+                    )
+                )
+            ),
         )
 
     async def handle_command(
