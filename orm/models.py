@@ -1,7 +1,7 @@
 from typing import List
 
 from sqlalchemy import (
-    Column, Integer, DateTime, String, SmallInteger, ForeignKey, Enum
+    Column, Integer, DateTime, String, ForeignKey, Enum
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 
 import exceptions
 import vk.dataclasses_
-from vk.enums import NameCases
+from vk.enums import NameCases, Sex
 
 DeclarativeBase = declarative_base()
 
@@ -84,7 +84,7 @@ class CachedVKUser(DeclarativeBase):
     id = Column(Integer, primary_key=True)
     vk_id = Column(Integer, nullable=False)
 
-    sex = Column(SmallInteger, nullable=False)
+    sex = Column(Enum(Sex), nullable=False)
 
     names: List[UserNameAndSurname] = (
         relationship("UserNameAndSurname", back_populates="vk_user")
