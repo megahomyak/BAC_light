@@ -208,7 +208,7 @@ class Handlers:
                     orders, include_creator_info=False
                 )
             return NotificationTexts(
-                text_for_client=f"Из твоих заказов ни один не \"в ожидании\"!"
+                text_for_client=f"Среди твоих заказов нет ожидающих!"
             )
 
     @staticmethod
@@ -247,7 +247,7 @@ class Handlers:
                     orders, include_creator_info=False
                 )
             return NotificationTexts(
-                text_for_client=f"Из твоих заказов ни один не отменен!"
+                text_for_client=f"Среди твоих заказов нет отмененных!"
             )
 
     async def get_paid_orders(
@@ -275,6 +275,6 @@ class Handlers:
                 )
             return NotificationTexts(
                 text_for_client=(
-                    f"Из твоих заказов ни один не оплачен! (А лучше бы был!)"
+                    f"Среди твоих заказов нет оплаченных! (А лучше бы были!)"
                 )
             )
