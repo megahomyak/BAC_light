@@ -286,6 +286,7 @@ class Handlers:
             earnings_amount: int) -> NotificationTexts:
         output: List[str] = []
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            output: List[str] = []
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
