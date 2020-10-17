@@ -1,4 +1,4 @@
-from typing import Tuple, List, Optional
+from typing import Tuple, List
 
 from sqlalchemy import not_
 from sqlalchemy.orm.exc import NoResultFound
@@ -48,7 +48,7 @@ class Handlers:
     async def cancel_orders(
             self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
-            cancellation_reason: Optional[str]) -> NotificationTexts:
+            cancellation_reason: str) -> NotificationTexts:
         client_output: List[str] = []
         employees_output: List[str] = []
         for order_id in order_ids:
