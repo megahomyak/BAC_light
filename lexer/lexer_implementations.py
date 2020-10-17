@@ -1,7 +1,8 @@
 import re
 from typing import Any, Tuple
 
-from lexer.lexer_classes import Context, BaseArgType, BaseMetadataElement
+from lexer.lexer_classes import Context, BaseArgType, BaseMetadataElement, \
+    Command
 
 
 class IntArgType(BaseArgType):
@@ -71,7 +72,7 @@ class SequenceArgType(BaseArgType):
         self.element_type = element_type
         self.separator = separator
 
-    def convert(self, arg: str) -> Tuple[Any]:
+    def convert(self, arg: str) -> Tuple[Any, ...]:
         return tuple(
             self.element_type.convert(element)
             for element in re.split(self.separator, arg)
@@ -81,12 +82,19 @@ class SequenceArgType(BaseArgType):
 class VKSenderIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: Context) -> Any:
+    def get_data_from_context(context: Context) -> int:
         return context.vk_message_info["from_id"]
 
 
 class VKPeerIDMetadataElement(BaseMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: Context) -> Any:
+    def get_data_from_context(context: Context) -> int:
         return context.vk_message_info["peer_id"]
+
+
+class CommandsMetadataElement(BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: Context) -> Tuple[Command, ...]:
+        return context.commands
