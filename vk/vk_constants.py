@@ -15,4 +15,9 @@ _constants_config = configparser.ConfigParser()
 _constants_config.read("vk/vk_constants.ini")
 
 SYMBOLS_PER_MESSAGE = int(_constants_config["MESSAGES"]["symbols_limit"])
-HELP_MESSAGE_ENDING = _constants_config["HELP_MESSAGE"]["ending"]
+_help_message_ending = _constants_config["HELP_MESSAGE"]["ending"]
+HELP_MESSAGE_ENDING = (
+    f"\n\n{_help_message_ending}"
+    if _help_message_ending else
+    ""
+)
