@@ -222,3 +222,30 @@ class Handlers:
                 ]
             ) + vk_constants.HELP_MESSAGE_ENDING
         )
+
+    async def get_canceled_orders(
+            self, client_vk_id: int,
+            current_chat_peer_id: int) -> NotificationTexts:
+        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            orders = self.orders_manager.get_orders(
+                models.Order.is_canceled
+            )
+            if orders:
+                return await self.helpers.get_notification_with_orders(
+                    orders
+                )
+            return NotificationTexts(
+                text_for_client="Отмененных заказов еще нет!"
+            )
+        else:
+            orders = self.orders_manager.get_orders(
+                models.Order.creator_vk_id == client_vk_id,
+                models.Order.is_canceled
+            )
+            if orders:
+                return await self.helpers.get_notification_with_orders(
+                    orders, include_creator_info=False
+                )
+            return NotificationTexts(
+                text_for_client=f"Из твоих заказов ни один не отменен!"
+            )

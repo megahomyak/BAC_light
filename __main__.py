@@ -114,6 +114,18 @@ class MainLogic:
                 (
                     CommandsMetadataElement,
                 )
+            ),
+            Command(
+                ("отмененные", "canceled"),
+                handlers.get_canceled_orders,
+                (
+                    "показывает все отмененные заказы (если спрашивает клиент "
+                    "- только заказы этого же клиента)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                )
             )
         )
 
