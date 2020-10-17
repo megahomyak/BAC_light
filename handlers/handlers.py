@@ -45,7 +45,7 @@ class Handlers:
             )
         )
 
-    async def cancel_order(
+    async def cancel_orders(
             self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
             cancellation_reason: Optional[str]) -> NotificationTexts:

@@ -46,7 +46,7 @@ class MainLogic:
             ),
             Command(
                 ("отменить", "отмена", "cancel"),
-                handlers.cancel_order,
+                handlers.cancel_orders,
                 (
                     "отменяет заказ (клиентам нельзя отменять чужие заказы; "
                     "сотрудникам нельзя отменять заказы, взятые другим "
