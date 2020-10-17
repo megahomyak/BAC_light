@@ -1,8 +1,6 @@
 from typing import List
 
-from sqlalchemy import (
-    Column, Integer, DateTime, String, ForeignKey, Enum
-)
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -32,7 +30,7 @@ class Order(DeclarativeBase):
     cancellation_reason = Column(String)
 
     earnings = Column(Integer)
-    earning_date = Column(DateTime)
+    earning_date = Column(Date)
 
     @hybrid_property
     def is_taken(self) -> bool:

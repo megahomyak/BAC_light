@@ -320,7 +320,7 @@ class Handlers:
                         )
                     else:
                         order.earnings = earnings_amount
-                        order.earning_date = datetime.datetime.now()
+                        order.earning_date = datetime.date.today()
                         output_str = (
                             f"Заказ с ID {order_id} отмечен оплаченным."
                         )
