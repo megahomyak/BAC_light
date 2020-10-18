@@ -23,8 +23,8 @@ class VKWorker:
                 message_info = event["object"]["message"]
                 if self.logger is not None:
                     self.logger.info(
-                        f"Новое сообщение от {message_info['peer_id']}: "
-                        f"{message_info['text']}"
+                        f"Новое сообщение из чата с peer_id "
+                        f"{message_info['peer_id']}: {message_info['text']}"
                     )
                 yield message_info
 
@@ -50,7 +50,7 @@ class VKWorker:
                 )
             if self.logger is not None:
                 self.logger.info(
-                    f"Отправлено сообщение для {message.peer_id}: "
+                    f"Отправлено сообщение в чат с peer_id {message.peer_id}: "
                     f"{message.text}"
                 )
 
