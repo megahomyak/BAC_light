@@ -1,7 +1,7 @@
 import datetime
 from typing import Tuple, List
 
-from sqlalchemy import not_
+from sqlalchemy import not_, extract
 from sqlalchemy.orm.exc import NoResultFound
 
 from handlers.handler_helpers import HandlerHelpers
@@ -284,7 +284,6 @@ class Handlers:
             self, employee_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
             earnings_amount: int) -> NotificationTexts:
-        output: List[str] = []
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             output: List[str] = []
             for order_id in order_ids:
@@ -337,5 +336,31 @@ class Handlers:
             return NotificationTexts(
                 text_for_client=(
                     "Отмечать заказы оплаченными могут только сотрудники!"
+                )
+            )
+
+    async def get_monthly_paid_orders(
+            self, current_chat_peer_id: int) -> NotificationTexts:
+        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            today = datetime.date.today()
+            orders = self.orders_manager.get_orders(
+                extract("month", models.Order.earning_date) == today.month,
+                extract("year", models.Order.earning_date) == today.year,
+                models.Order.is_paid
+            )
+            if orders:
+                return await self.helpers.get_notification_with_orders(
+                    orders
+                )
+            return NotificationTexts(
+                text_for_client=(
+                    "За этот месяц не оплачено еще ни одного заказа!"
+                )
+            )
+        else:
+            return NotificationTexts(
+                text_for_client=(
+                    "Получать месячные оплаченные заказы могут только "
+                    "сотрудники!"
                 )
             )

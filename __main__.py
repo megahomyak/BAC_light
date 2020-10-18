@@ -167,6 +167,17 @@ class MainLogic:
                     )
                 )
             ),
+            Command(
+                ("месячное", "monthly"),
+                handlers.get_monthly_paid_orders,
+                (
+                    "показывает оплаченные заказы за месяц (только для "
+                    "сотрудников)"
+                ),
+                (
+                    VKPeerIDMetadataElement,
+                )
+            )
         )
 
     async def handle_command(
