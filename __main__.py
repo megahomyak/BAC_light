@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import NoReturn
+from typing import NoReturn, Optional
 
 import aiohttp
 import simplest_logger
@@ -25,8 +25,8 @@ class MainLogic:
     def __init__(
             self, vk_worker: VKWorker,
             orders_manager: db_apis.OrdersManager,
-            logger: simplest_logger.Logger,
-            handlers: Handlers) -> None:
+            handlers: Handlers,
+            logger: Optional[simplest_logger.Logger] = None) -> None:
         self.vk_worker = vk_worker
         self.orders_manager = orders_manager
         self.logger = logger
@@ -212,6 +212,26 @@ class MainLogic:
                 f"Ошибка обработки команды на аргументе номер "
                 f"{error_args_amount} (он неправильный или пропущен)"
             )
+        if self.logger is not None:
+            from_id = vk_message_info['from_id']
+            chat_name = (
+                "чате для сотрудников"
+                if (
+                    current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID
+                ) else
+                "ЛС"
+            )
+            if error_args_amount == 0:
+                self.logger.info(
+                    f"Ошибка обработки команды \"{command}\" от пользователя с "
+                    f"VK ID {from_id} в {chat_name} на её названии!"
+                )
+            else:
+                self.logger.info(
+                    f"Ошибка обработки команды \"{command}\" от пользователя с "
+                    f"VK ID {from_id} в {chat_name} на аргументе номер "
+                    f"{error_args_amount} (он неправильный или пропущен)"
+                )
         return Notification(
             message_for_client=Message(
                 error_msg,
@@ -229,11 +249,19 @@ class MainLogic:
             future: asyncio.Future) -> None:
         exc = future.exception()
         if exc:
-            self.logger.error(
-                "".join(
-                    traceback.TracebackException.from_exception(exc).format()
+            if self.logger is not None:
+                chat_name = (
+                    "чате для сотрудников"
+                    if peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID else
+                    "ЛС"
                 )
-            )
+                self.logger.error(
+                    f"Ошибка на команде \"{text}\" в {chat_name}:\n" + "".join(
+                        traceback.TracebackException.from_exception(
+                            exc
+                        ).format()
+                    )
+                )
             await self.vk_worker.reply(
                 Message(
                     f"Тут у юзера при обработке команды \"{text}\" произошла "
@@ -290,7 +318,6 @@ async def main():
         main_logic = MainLogic(
             vk_worker,
             orders_manager,
-            simplest_logger.Logger("command_errors.log"),
             Handlers(
                 vk_worker,
                 orders_manager,
@@ -299,7 +326,8 @@ async def main():
                     users_manager
                 ),
                 users_manager
-            )
+            ),
+            simplest_logger.Logger("command_errors.log")
         )
         await main_logic.listen_for_vk_events()
 
