@@ -3,7 +3,8 @@ import traceback
 from typing import NoReturn
 
 import aiohttp
-import pysimplelog
+import simplest_logger
+from simple_avk import SimpleAVK
 
 import exceptions
 from handlers.handler_helpers import HandlerHelpers
@@ -24,7 +25,7 @@ class MainLogic:
     def __init__(
             self, vk_worker: VKWorker,
             orders_manager: db_apis.OrdersManager,
-            logger: pysimplelog.Logger,
+            logger: simplest_logger.Logger,
             handlers: Handlers) -> None:
         self.vk_worker = vk_worker
         self.orders_manager = orders_manager
@@ -251,31 +252,31 @@ class MainLogic:
                 )
 
     async def listen_for_vk_events(self) -> NoReturn:
-        async for event in self.vk_worker.listen():
-            if event["type"] == "message_new":
-                message_info = event["object"]["message"]
-                text: str = message_info["text"]
-                peer_id: int = message_info["peer_id"]
-                print(f"{peer_id=}; {text=}")
-                if text.startswith("/"):
-                    text = text[1:]  # Cutting /
-                    asyncio.create_task(
-                        self.reply_to_vk_message(message_info)
-                    ).add_done_callback(
-                        lambda future: asyncio.create_task(
-                            self.future_done_callback(
-                                peer_id, text, future
-                            )
+        async for message_info in self.vk_worker.listen_for_messages():
+            text: str = message_info["text"]
+            peer_id: int = message_info["peer_id"]
+            if text.startswith("/"):
+                text = text[1:]  # Cutting /
+                asyncio.create_task(
+                    self.reply_to_vk_message(message_info)
+                ).add_done_callback(
+                    lambda future: asyncio.create_task(
+                        self.future_done_callback(
+                            peer_id, text, future
                         )
                     )
+                )
 
 
 async def main():
     async with aiohttp.ClientSession() as aiohttp_session:
         vk_worker = VKWorker(
-            aiohttp_session,
-            vk_constants.TOKEN,
-            vk_constants.GROUP_ID
+            SimpleAVK(
+                aiohttp_session,
+                vk_constants.TOKEN,
+                vk_constants.GROUP_ID
+            ),
+            simplest_logger.Logger("vk_info.log")
         )
         sqlalchemy_session = db_apis.get_sqlalchemy_db_session(
             "sqlite:///BAC_light.db"
@@ -289,12 +290,7 @@ async def main():
         main_logic = MainLogic(
             vk_worker,
             orders_manager,
-            pysimplelog.Logger(
-                "command_errors",
-                logFileBasename="command_errors",
-                logFileMaxSize=None,
-                logFileFirstNumber=None
-            ),
+            simplest_logger.Logger("command_errors.log"),
             Handlers(
                 vk_worker,
                 orders_manager,
