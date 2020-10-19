@@ -75,13 +75,14 @@ class HandlerHelpers:
                     maybe_creator_postfix = ""
                 order_contents.append(
                     f"Отменен {canceler_tag}{maybe_creator_postfix} по причине "
-                    f"{order.cancellation_reason}."
+                    f"\"{order.cancellation_reason}\"."
                 )
             elif order.is_paid:
                 order_contents.append(
-                    f"Оплачен заказчиком {order.earning_date}."
+                    f"Оплачен заказчиком {order.earning_date} на сумму "
+                    f"{order.earnings} руб."
                 )
-            order_contents.append(f"Текст заказа: {order.text}.")
+            order_contents.append(f"Текст заказа: \"{order.text}\".")
             output.append("\n".join(order_contents))
         return OrdersAsStrings(
             output,
