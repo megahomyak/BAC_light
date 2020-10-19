@@ -30,7 +30,11 @@ class Notification:
         if (
             self.text_for_employees is not None
             and
-            client_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+            (
+                client_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+                or
+                self.text_for_client is None
+            )
         ):
             messages.append(
                 Message(
