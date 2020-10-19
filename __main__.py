@@ -26,10 +26,12 @@ class MainLogic:
             self, vk_worker: VKWorker,
             orders_manager: db_apis.OrdersManager,
             handlers: Handlers,
-            logger: Optional[simplest_logger.Logger] = None) -> None:
+            logger: Optional[simplest_logger.Logger] = None,
+            log_command_parsing_errors: bool = True) -> None:
         self.vk_worker = vk_worker
         self.orders_manager = orders_manager
         self.logger = logger
+        self.log_command_parsing_errors = log_command_parsing_errors
         self.commands = (
             Command(
                 ("заказ", "order", "заказать"),
@@ -250,7 +252,7 @@ class MainLogic:
                 f"Ошибка обработки команды на аргументе номер "
                 f"{error_args_amount} (он неправильный или пропущен)"
             )
-        if self.logger is not None:
+        if self.logger is not None and self.log_command_parsing_errors:
             from_id = vk_message_info['from_id']
             chat_name = (
                 "чате для сотрудников"
@@ -367,7 +369,8 @@ async def main():
                 ),
                 users_manager
             ),
-            simplest_logger.Logger("command_errors.log")
+            simplest_logger.Logger("command_errors.log"),
+            log_command_parsing_errors=False
         )
         await main_logic.listen_for_vk_events()
 
