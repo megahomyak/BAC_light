@@ -10,7 +10,7 @@ from orm import db_apis
 from orm import models
 from orm.db_apis import VKUsersManager
 from vk import vk_constants
-from vk.dataclasses_ import Notification
+from vk.dataclasses_ import Notification, Message
 from vk.enums import Sex
 from vk.vk_worker import VKWorker
 
@@ -52,6 +52,7 @@ class Handlers:
             cancellation_reason: str) -> Notification:
         client_output: List[str] = []
         employees_output: List[str] = []
+        at_least_one_order_is_canceled = False
         for order_id in order_ids:
             try:
                 order = self.orders_manager.get_order_by_id(order_id)
@@ -88,7 +89,7 @@ class Handlers:
                 else:
                     order.canceler_vk_id = client_vk_id
                     order.cancellation_reason = cancellation_reason
-                    self.orders_manager.commit()
+                    at_least_one_order_is_canceled = True
                     client_info = await self.users_manager.get_user_info_by_id(
                         client_vk_id
                     )
@@ -106,6 +107,8 @@ class Handlers:
                         f"{cancelled_word} заказ с ID {order.id} "
                         f"по причине \"{cancellation_reason}\"!"
                     )
+        if at_least_one_order_is_canceled:
+            self.orders_manager.commit()
         return Notification(
             text_for_employees=(
                 "\n".join(employees_output)
@@ -286,6 +289,7 @@ class Handlers:
             earnings_amount: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             output: List[str] = []
+            at_least_one_order_is_marked_as_paid = False
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
@@ -321,9 +325,12 @@ class Handlers:
                     else:
                         order.earnings = earnings_amount
                         order.earning_date = datetime.date.today()
+                        at_least_one_order_is_marked_as_paid = True
                         output_str = (
                             f"Заказ с ID {order_id} отмечен оплаченным."
                         )
+                if at_least_one_order_is_marked_as_paid:
+                    self.orders_manager.commit()
                 output.append(output_str)
             return Notification(
                 text_for_client=(
