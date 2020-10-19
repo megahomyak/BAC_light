@@ -352,7 +352,7 @@ class Handlers:
                 )
             return NotificationTexts(
                 text_for_client=(
-                    "За этот месяц не оплачено еще ни одного заказа!"
+                    "За текущий месяц не оплачено еще ни одного заказа!"
                 )
             )
         else:
