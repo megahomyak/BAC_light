@@ -218,6 +218,29 @@ class MainLogic:
                         IntArgType()
                     ),
                 )
+            ),
+            Command(
+                ("взять", "take"),
+                handlers.take_orders,
+                (
+                    "отмечает заказы как взятые и отсылает уведомления о "
+                    "взятии клиентам (только для сотрудников)"
+                ),
+                (
+                    VKPeerIDMetadataElement,
+                    VKSenderIDMetadataElement
+                ),
+                (
+                    Arg(
+                        (
+                            "ID заказов, которые нужно отметить "
+                            "взятыми (через запятую)"
+                        ),
+                        SequenceArgType(
+                            IntArgType()
+                        )
+                    ),
+                )
             )
         )
 

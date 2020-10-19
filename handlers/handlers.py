@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from sqlalchemy import not_
 from sqlalchemy.orm.exc import NoResultFound
@@ -418,4 +418,74 @@ class Handlers:
                     "Получать месячные оплаченные заказы могут только "
                     "сотрудники!"
                 )
+            )
+
+    async def take_orders(
+            self, current_chat_peer_id: int, user_vk_id: int,
+            order_ids: Tuple[int]) -> Notification:
+        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            employee_output: List[str] = []
+            client_messages: List[Message] = []
+            employee_tag: Optional[str] = None  # To make client message
+            taken_word: Optional[str] = None  # To make client message
+            at_least_one_task_is_taken = False
+            for order_id in order_ids:
+                try:
+                    order = self.orders_manager.get_order_by_id(order_id)
+                except NoResultFound:
+                    employee_output.append(f"Заказ с ID {order_id} не найден!")
+                else:
+                    if order.is_taken:
+                        employee_output.append(
+                            f"Заказ с ID {order_id} уже взят!"
+                        )
+                    elif order.is_canceled:
+                        employee_output.append(
+                            f"Заказ с ID {order_id} отменен, его нельзя взять!"
+                        )
+                    else:
+                        order.taker_vk_id = user_vk_id
+                        if employee_tag is None:
+                            user_info = (
+                                await self.users_manager.get_user_info_by_id(
+                                    user_vk_id
+                                )
+                            )
+                            employee_tag = (
+                                self.helpers.get_tag_from_vk_user_dataclass(
+                                    user_info
+                                )
+                            )
+                            taken_word = (
+                                "взял"
+                                if user_info.sex == Sex.MALE else
+                                "взяла"
+                            )
+                            del user_info
+                        employee_output.append(f"Заказ с ID {order_id} взят!")
+                        client_messages.append(
+                            Message(
+                                (
+                                    f"{employee_tag} {taken_word} твой заказ с "
+                                    f"ID {order_id}! Открой ЛС или напиши ему "
+                                    f"сам для обсуждения деталей заказа и "
+                                    f"получения результата."
+                                ),
+                                order.creator_vk_id
+                            )
+                        )
+                        at_least_one_task_is_taken = True
+            if at_least_one_task_is_taken:
+                self.orders_manager.commit()
+            return Notification(
+                text_for_employees=(
+                    "\n".join(employee_output)
+                    if employee_output else
+                    None
+                ),
+                additional_messages=client_messages
+            )
+        else:
+            return Notification(
+                text_for_client="Брать заказы могут только сотрудники!"
             )
