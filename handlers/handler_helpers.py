@@ -1,7 +1,8 @@
 from typing import List
 
-from orm import models
-from orm.db_apis import VKUsersManager
+from sqlalchemy import extract
+
+from orm import models, db_apis
 from vk.dataclasses_ import NotificationTexts, VKUserInfo
 from vk.enums import NameCases
 from vk.vk_worker import VKWorker
@@ -10,9 +11,12 @@ from vk.vk_worker import VKWorker
 class HandlerHelpers:
 
     def __init__(
-            self, vk_worker: VKWorker, users_manager: VKUsersManager) -> None:
+            self, vk_worker: VKWorker,
+            users_manager: db_apis.VKUsersManager,
+            orders_manager: db_apis.OrdersManager) -> None:
         self.vk_worker = vk_worker
         self.users_manager = users_manager
+        self.orders_manager = orders_manager
 
     @staticmethod
     def get_tag_from_vk_user_dataclass(user_info: VKUserInfo) -> str:
@@ -77,4 +81,12 @@ class HandlerHelpers:
                     orders, include_creator_info
                 )
             )
+        )
+
+    def get_monthly_paid_orders_by_month_and_year(
+            self, month: int, year: int) -> List[models.Order]:
+        return self.orders_manager.get_orders(
+            extract("month", models.Order.earning_date) == month,
+            extract("year", models.Order.earning_date) == year,
+            models.Order.is_paid
         )

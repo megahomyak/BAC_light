@@ -178,6 +178,27 @@ class MainLogic:
                 (
                     VKPeerIDMetadataElement,
                 )
+            ),
+            Command(
+                ("месячное", "monthly"),
+                handlers.get_monthly_paid_orders_by_month_and_year,
+                (
+                    "показывает оплаченные заказы за указанный месяц (только "
+                    "для сотрудников)"
+                ),
+                (
+                    VKPeerIDMetadataElement,
+                ),
+                (
+                    Arg(
+                        "номер месяца",
+                        IntArgType()
+                    ),
+                    Arg(
+                        "номер года",
+                        IntArgType()
+                    )
+                )
             )
         )
 
@@ -323,7 +344,8 @@ async def main():
                 orders_manager,
                 HandlerHelpers(
                     vk_worker,
-                    users_manager
+                    users_manager,
+                    orders_manager
                 ),
                 users_manager
             ),
