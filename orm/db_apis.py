@@ -79,24 +79,22 @@ class CachedVKUsersManager:
             user_info_from_vk = await self.vk_worker.get_user_info(
                 vk_id, name_case
             )
-            user_info = models.CachedVKUser(
+            cached_vk_user = models.CachedVKUser(
                 vk_id=vk_id,
                 sex=user_info_from_vk["sex"]
             )
-            self.db_session.flush()
-            self.db_session.add_all(
-                (
-                    models.UserNameAndSurname(
-                        vk_user_id=user_info.id,
-                        case=name_case,
-                        name=user_info_from_vk["first_name"],
-                        surname=user_info_from_vk["last_name"]
-                    ),
-                    user_info
+            cached_vk_user.names = [
+                models.UserNameAndSurname(
+                    case=name_case,
+                    name=user_info_from_vk["first_name"],
+                    surname=user_info_from_vk["last_name"]
                 )
+            ]
+            self.db_session.add(
+                cached_vk_user
             )
             return dataclasses_.RequestedVKUserInfo(
-                user_info.get_as_vk_user_info_dataclass(name_case),
+                cached_vk_user.get_as_vk_user_info_dataclass(name_case),
                 is_downloaded=True
             )
         else:
@@ -108,7 +106,7 @@ class CachedVKUsersManager:
                 user_info_from_vk = await self.vk_worker.get_user_info(
                     vk_id, name_case
                 )
-                self.db_session.add(
+                user_info.names.append(
                     models.UserNameAndSurname(
                         vk_user_id=user_info.id,
                         case=name_case,
