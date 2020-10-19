@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Tuple, List
+from typing import Optional, List
 
 from vk import enums, vk_constants
 
@@ -16,7 +16,7 @@ class Notification:
 
     text_for_employees: Optional[str] = None
     text_for_client: Optional[str] = None
-    additional_messages: Optional[Tuple[Message, ...]] = None
+    additional_messages: Optional[List[Message]] = None
 
     def to_messages(self, client_peer_id: int) -> List[Message]:
         messages = []
