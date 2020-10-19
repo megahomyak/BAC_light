@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import NoReturn, Optional
+from typing import NoReturn, Optional, List
 
 import aiohttp
 import simplest_logger
@@ -16,7 +16,7 @@ from lexer.lexer_implementations import (
 )
 from orm import db_apis
 from vk import vk_constants
-from vk.dataclasses_ import Notification, Message, NotificationTexts
+from vk.dataclasses_ import Notification, Message
 from vk.vk_worker import VKWorker
 
 
@@ -221,8 +221,7 @@ class MainLogic:
             )
         )
 
-    async def handle_command(
-            self, vk_message_info: dict) -> Notification:
+    async def handle_command(self, vk_message_info: dict) -> List[Message]:
         command = vk_message_info["text"][1:]  # Cutting /
         current_chat_peer_id = vk_message_info["peer_id"]
         error_args_amount = 0
@@ -237,13 +236,12 @@ class MainLogic:
                     vk_message_info,
                     self.commands
                 )
-                notification_texts: NotificationTexts = await command_.handler(
+                notification_texts: Notification = await command_.handler(
                     *command_.get_converted_metadata(context),
                     *args
                 )
-                return notification_texts.to_notification(
-                    employees_chat_peer_id=vk_constants.EMPLOYEES_CHAT_PEER_ID,
-                    client_chat_peer_id=current_chat_peer_id
+                return notification_texts.to_messages(
+                    client_peer_id=current_chat_peer_id
                 )
         if error_args_amount == 0:
             error_msg = "Ошибка обработки команды на её названии!"
@@ -272,16 +270,16 @@ class MainLogic:
                     f"VK ID {from_id} в {chat_name} на аргументе номер "
                     f"{error_args_amount} (он неправильный или пропущен)"
                 )
-        return Notification(
-            message_for_client=Message(
+        return [
+            Message(
                 error_msg,
                 current_chat_peer_id
             )
-        )
+        ]
 
     async def reply_to_vk_message(self, message_info: dict) -> None:
-        await self.vk_worker.send_notifications(
-            await self.handle_command(message_info)
+        await self.vk_worker.reply(
+            *await self.handle_command(message_info)
         )
 
     async def future_done_callback(

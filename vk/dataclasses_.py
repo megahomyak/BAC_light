@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple, List
 
-from vk import enums
+from vk import enums, vk_constants
 
 
 @dataclass
@@ -14,38 +14,33 @@ class Message:
 @dataclass
 class Notification:
 
-    message_for_employees: Optional[Message] = None
-    message_for_client: Optional[Message] = None
-
-
-@dataclass
-class NotificationTexts:
-
     text_for_employees: Optional[str] = None
     text_for_client: Optional[str] = None
+    additional_messages: Optional[Tuple[Message, ...]] = None
 
-    def to_notification(
-            self,
-            employees_chat_peer_id: Optional[int] = None,
-            client_chat_peer_id: Optional[int] = None) -> Notification:
-        return Notification(
-            message_for_employees=(
-                None
-                if self.text_for_employees is None else
-                Message(
-                    self.text_for_employees,
-                    employees_chat_peer_id
-                )
-            ),
-            message_for_client=(
-                None
-                if self.text_for_client is None else
+    def to_messages(self, client_peer_id: int) -> List[Message]:
+        messages = []
+        if self.text_for_client is not None:
+            messages.append(
                 Message(
                     self.text_for_client,
-                    client_chat_peer_id
+                    client_peer_id
                 )
             )
-        )
+        if (
+            self.text_for_employees is not None
+            and
+            client_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+        ):
+            messages.append(
+                Message(
+                    self.text_for_employees,
+                    vk_constants.EMPLOYEES_CHAT_PEER_ID
+                )
+            )
+        if self.additional_messages is not None:
+            messages.extend(self.additional_messages)
+        return messages
 
 
 @dataclass

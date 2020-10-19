@@ -10,7 +10,7 @@ from orm import db_apis
 from orm import models
 from orm.db_apis import VKUsersManager
 from vk import vk_constants
-from vk.dataclasses_ import NotificationTexts
+from vk.dataclasses_ import Notification
 from vk.enums import Sex
 from vk.vk_worker import VKWorker
 
@@ -28,7 +28,7 @@ class Handlers:
         self.users_manager = users_manager
 
     async def create_order(
-            self, client_vk_id: int, text: str) -> NotificationTexts:
+            self, client_vk_id: int, text: str) -> Notification:
         order = models.Order(
             creator_vk_id=client_vk_id,
             text=text
@@ -37,7 +37,7 @@ class Handlers:
         self.orders_manager.commit()
         client_info = await self.users_manager.get_user_info_by_id(client_vk_id)
         made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
-        return NotificationTexts(
+        return Notification(
             text_for_client=f"Заказ с ID {order.id} создан!",
             text_for_employees=(
                 f"Клиент "
@@ -49,7 +49,7 @@ class Handlers:
     async def cancel_orders(
             self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
-            cancellation_reason: str) -> NotificationTexts:
+            cancellation_reason: str) -> Notification:
         client_output: List[str] = []
         employees_output: List[str] = []
         for order_id in order_ids:
@@ -106,7 +106,7 @@ class Handlers:
                         f"{cancelled_word} заказ с ID {order.id} "
                         f"по причине \"{cancellation_reason}\"!"
                     )
-        return NotificationTexts(
+        return Notification(
             text_for_employees=(
                 "\n".join(employees_output)
                 if employees_output else
@@ -121,14 +121,14 @@ class Handlers:
 
     async def get_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> NotificationTexts:
+            current_chat_peer_id: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders()
             if orders:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client="Заказов еще нет!"
             )
         else:
@@ -145,13 +145,13 @@ class Handlers:
                 if client_info['sex'] == 2 else
                 'заказала'
             )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=f"Ты еще ничего не {order_word}!"
             )
 
     async def get_taken_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> NotificationTexts:
+            current_chat_peer_id: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders(
                 not_(models.Order.is_canceled),
@@ -162,7 +162,7 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client="Взятых заказов еще нет!"
             )
         else:
@@ -176,13 +176,13 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders, include_creator_info=False
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=f"Среди твоих заказов нет взятых!"
             )
 
     async def get_pending_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> NotificationTexts:
+            current_chat_peer_id: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders(
                 not_(models.Order.is_taken),
@@ -192,7 +192,7 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     "Заказов в ожидании еще нет! "
                     "(Но можно подождать новых клиентов ( ͡° ͜ʖ ͡°))"
@@ -208,14 +208,14 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders, include_creator_info=False
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=f"Среди твоих заказов нет ожидающих!"
             )
 
     @staticmethod
     async def get_help_message(
-            commands: Tuple[lexer_classes.Command]) -> NotificationTexts:
-        return NotificationTexts(
+            commands: Tuple[lexer_classes.Command]) -> Notification:
+        return Notification(
             text_for_client="\n\n".join(
                 [
                     command.get_full_description(include_heading=True)
@@ -226,7 +226,7 @@ class Handlers:
 
     async def get_canceled_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> NotificationTexts:
+            current_chat_peer_id: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders(
                 models.Order.is_canceled
@@ -235,7 +235,7 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client="Отмененных заказов еще нет!"
             )
         else:
@@ -247,13 +247,13 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders, include_creator_info=False
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=f"Среди твоих заказов нет отмененных!"
             )
 
     async def get_paid_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> NotificationTexts:
+            current_chat_peer_id: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders(
                 models.Order.is_paid
@@ -262,7 +262,7 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client="Оплаченных заказов еще нет! (Грустно!)"
             )
         else:
@@ -274,7 +274,7 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders, include_creator_info=False
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     f"Среди твоих заказов нет оплаченных! (А лучше бы были!)"
                 )
@@ -283,7 +283,7 @@ class Handlers:
     async def make_orders_paid(
             self, employee_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
-            earnings_amount: int) -> NotificationTexts:
+            earnings_amount: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             output: List[str] = []
             for order_id in order_ids:
@@ -325,7 +325,7 @@ class Handlers:
                             f"Заказ с ID {order_id} отмечен оплаченным."
                         )
                 output.append(output_str)
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     "\n".join(output)
                     if output else
@@ -333,14 +333,14 @@ class Handlers:
                 )
             )
         else:
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     "Отмечать заказы оплаченными могут только сотрудники!"
                 )
             )
 
     async def get_monthly_paid_orders(
-            self, current_chat_peer_id: int) -> NotificationTexts:
+            self, current_chat_peer_id: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             today = datetime.date.today()
             orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
@@ -350,13 +350,13 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     "За текущий месяц не оплачено еще ни одного заказа!"
                 )
             )
         else:
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     "Получать месячные оплаченные заказы могут только "
                     "сотрудники!"
@@ -365,7 +365,7 @@ class Handlers:
 
     async def get_monthly_paid_orders_by_month_and_year(
             self, current_chat_peer_id: int,
-            month: int, year: int) -> NotificationTexts:
+            month: int, year: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
                 month, year
@@ -374,14 +374,14 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     f"За {month} месяц {year} года не оплачено еще ни одного "
                     f"заказа!"
                 )
             )
         else:
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     "Получать месячные оплаченные заказы могут только "
                     "сотрудники!"
@@ -389,7 +389,7 @@ class Handlers:
             )
 
     async def get_monthly_paid_orders_by_month(
-            self, current_chat_peer_id: int, month: int) -> NotificationTexts:
+            self, current_chat_peer_id: int, month: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             year = datetime.date.today().year
             orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
@@ -399,14 +399,14 @@ class Handlers:
                 return await self.helpers.get_notification_with_orders(
                     orders
                 )
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     f"За {month} месяц {year} года не оплачено еще ни одного "
                     f"заказа!"
                 )
             )
         else:
-            return NotificationTexts(
+            return Notification(
                 text_for_client=(
                     "Получать месячные оплаченные заказы могут только "
                     "сотрудники!"

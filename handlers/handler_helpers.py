@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import extract
 
 from orm import models, db_apis
-from vk.dataclasses_ import NotificationTexts, VKUserInfo
+from vk.dataclasses_ import VKUserInfo, Notification
 from vk.enums import NameCases
 from vk.vk_worker import VKWorker
 
@@ -74,8 +74,8 @@ class HandlerHelpers:
 
     async def get_notification_with_orders(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> NotificationTexts:
-        return NotificationTexts(
+            include_creator_info: bool = True) -> Notification:
+        return Notification(
             text_for_client="\n\n".join(
                 await self.get_orders_as_strings(
                     orders, include_creator_info

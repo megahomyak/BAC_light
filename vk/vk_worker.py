@@ -5,7 +5,7 @@ import simplest_logger
 from simple_avk import SimpleAVK
 
 from vk import vk_constants
-from vk.dataclasses_ import Notification, Message
+from vk.dataclasses_ import Message
 from vk.enums import NameCases, Sex
 
 
@@ -63,23 +63,6 @@ class VKWorker:
                     f"Отправлено сообщение в чат с peer_id {message.peer_id}: "
                     f"{message.text}"
                 )
-
-    async def send_notifications(self, *notifications: Notification) -> None:
-        for notification in notifications:
-            if notification.message_for_client is not None:
-                await self.reply(notification.message_for_client)
-            if (
-                notification.message_for_employees is not None
-                and
-                (
-                    notification.message_for_client is None
-                    or
-                    notification.message_for_client.peer_id
-                    !=
-                    notification.message_for_employees.peer_id
-                )
-            ):
-                await self.reply(notification.message_for_employees)
 
     async def get_user_info(
             self, user_vk_id: int,
