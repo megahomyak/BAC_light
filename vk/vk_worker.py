@@ -13,7 +13,7 @@ class VKWorker:
 
     def __init__(
             self, simple_avk: SimpleAVK,
-            logger: Optional[simplest_logger.Logger]) -> None:
+            logger: Optional[simplest_logger.Logger] = None) -> None:
         self.vk = simple_avk
         self.logger = logger
 
