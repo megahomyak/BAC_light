@@ -9,18 +9,11 @@ class IntArgType(BaseArgType):
 
     @property
     def name(self) -> str:
-        if self.is_signed:
-            return "целое число"
-        return "неотрицательное целое число"
+        return "целое число"
 
     @property
     def regex(self) -> str:
-        if self.is_signed:
-            return r"-?\d+"
-        return r"\d+"
-
-    def __init__(self, is_signed: bool = True) -> None:
-        self.is_signed = is_signed
+        return r"-?\d+"
 
     def convert(self, arg: str) -> int:
         return int(arg)
