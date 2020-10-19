@@ -8,7 +8,7 @@ from handlers.handler_helpers import HandlerHelpers
 from lexer import lexer_classes
 from orm import db_apis
 from orm import models
-from orm.db_apis import VKUsersManager
+from orm.db_apis import CachedVKUsersManager
 from vk import vk_constants
 from vk.dataclasses_ import Notification, Message
 from vk.enums import Sex
@@ -428,7 +428,7 @@ class Handlers:
             client_messages: List[Message] = []
             employee_tag: Optional[str] = None  # To make client message
             taken_word: Optional[str] = None  # To make client message
-            at_least_one_task_is_taken = False
+            at_least_one_order_is_taken = False
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
@@ -474,8 +474,8 @@ class Handlers:
                                 order.creator_vk_id
                             )
                         )
-                        at_least_one_task_is_taken = True
-            if at_least_one_task_is_taken:
+                        at_least_one_order_is_taken = True
+            if at_least_one_order_is_taken:
                 self.orders_manager.commit()
             return Notification(
                 text_for_employees=(
