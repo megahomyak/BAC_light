@@ -132,7 +132,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client="Заказов еще нет!"
+                text_for_employees="Заказов еще нет!"
             )
         else:
             orders = self.orders_manager.get_orders(
@@ -166,7 +166,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client="Взятых заказов еще нет!"
+                text_for_employees="Взятых заказов еще нет!"
             )
         else:
             orders = self.orders_manager.get_orders(
@@ -196,7 +196,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client=(
+                text_for_employees=(
                     "Заказов в ожидании еще нет! "
                     "(Но можно подождать новых клиентов ( ͡° ͜ʖ ͡°))"
                 )                       # Should be the Lenny ^
@@ -239,7 +239,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client="Отмененных заказов еще нет!"
+                text_for_employees="Отмененных заказов еще нет!"
             )
         else:
             orders = self.orders_manager.get_orders(
@@ -266,7 +266,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client="Оплаченных заказов еще нет! (Грустно!)"
+                text_for_employees="Оплаченных заказов еще нет! (Грустно!)"
             )
         else:
             orders = self.orders_manager.get_orders(
@@ -333,7 +333,7 @@ class Handlers:
                     self.orders_manager.commit()
                 output.append(output_str)
             return Notification(
-                text_for_client=(
+                text_for_employees=(
                     "\n".join(output)
                     if output else
                     None
@@ -358,7 +358,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client=(
+                text_for_employees=(
                     "За текущий месяц не оплачено еще ни одного заказа!"
                 )
             )
@@ -382,7 +382,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client=(
+                text_for_employees=(
                     f"За {month} месяц {year} года не оплачено еще ни одного "
                     f"заказа!"
                 )
@@ -407,7 +407,7 @@ class Handlers:
                     orders
                 )
             return Notification(
-                text_for_client=(
+                text_for_employees=(
                     f"За {month} месяц {year} года не оплачено еще ни одного "
                     f"заказа!"
                 )
