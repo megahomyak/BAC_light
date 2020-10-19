@@ -280,7 +280,7 @@ class Handlers:
                 )
             )
 
-    async def make_orders_paid(
+    async def mark_orders_as_paid(
             self, employee_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
             earnings_amount: int) -> Notification:

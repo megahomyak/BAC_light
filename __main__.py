@@ -144,7 +144,7 @@ class MainLogic:
             ),
             Command(
                 ("оплачено", "оплатить", "pay", "mark as paid"),
-                handlers.make_orders_paid,
+                handlers.mark_orders_as_paid,
                 (
                     "отмечает заказ оплаченным (это могут делать только "
                     "сотрудники, причем могут помечать оплаченными лишь те "
