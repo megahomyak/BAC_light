@@ -387,3 +387,28 @@ class Handlers:
                     "сотрудники!"
                 )
             )
+
+    async def get_monthly_paid_orders_by_month(
+            self, current_chat_peer_id: int, month: int) -> NotificationTexts:
+        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            year = datetime.date.today().year
+            orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
+                month, year
+            )
+            if orders:
+                return await self.helpers.get_notification_with_orders(
+                    orders
+                )
+            return NotificationTexts(
+                text_for_client=(
+                    f"За {month} месяц {year} года не оплачено еще ни одного "
+                    f"заказа!"
+                )
+            )
+        else:
+            return NotificationTexts(
+                text_for_client=(
+                    "Получать месячные оплаченные заказы могут только "
+                    "сотрудники!"
+                )
+            )

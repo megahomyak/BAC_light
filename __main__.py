@@ -199,6 +199,23 @@ class MainLogic:
                         IntArgType()
                     )
                 )
+            ),
+            Command(
+                ("месячное", "monthly"),
+                handlers.get_monthly_paid_orders_by_month,
+                (
+                    "показывает оплаченные заказы за указанный месяц (только "
+                    "для сотрудников)"
+                ),
+                (
+                    VKPeerIDMetadataElement,
+                ),
+                (
+                    Arg(
+                        "номер месяца",
+                        IntArgType()
+                    ),
+                )
             )
         )
 
