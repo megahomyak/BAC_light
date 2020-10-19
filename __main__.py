@@ -113,7 +113,7 @@ class MainLogic:
             Command(
                 ("команды", "помощь", "help", "commands"),
                 handlers.get_help_message,
-                "показывает помощь по командам",
+                "показывает помощь по командам и их написанию",
                 (
                     CommandsMetadataElement,
                 )

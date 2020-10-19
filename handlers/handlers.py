@@ -273,12 +273,12 @@ class Handlers:
     async def get_help_message(
             commands: Tuple[lexer_classes.Command]) -> Notification:
         return Notification(
-            text_for_client="\n\n".join(
+            text_for_client=vk_constants.HELP_MESSAGE_BEGINNING + "\n\n".join(
                 [
                     command.get_full_description(include_heading=True)
                     for command in commands
                 ]
-            ) + vk_constants.HELP_MESSAGE_ENDING
+            )
         )
 
     async def get_canceled_orders(
