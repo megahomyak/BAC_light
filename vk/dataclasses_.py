@@ -54,3 +54,10 @@ class VKUserInfo:
     name: str
     surname: str
     sex: enums.Sex
+
+
+@dataclass
+class RequestedVKUserInfo:
+
+    user_info: VKUserInfo
+    is_downloaded: bool

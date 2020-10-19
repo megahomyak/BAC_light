@@ -374,7 +374,7 @@ async def main():
         orders_manager = db_apis.OrdersManager(
             sqlalchemy_session
         )
-        users_manager = db_apis.VKUsersManager(
+        users_manager = db_apis.CachedVKUsersManager(
             sqlalchemy_session, vk_worker
         )
         main_logic = MainLogic(

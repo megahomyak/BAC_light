@@ -2,6 +2,7 @@ from typing import List
 
 from sqlalchemy import extract
 
+from handlers.dataclasses_ import OrdersAsStrings, NotificationWithOrders
 from orm import models, db_apis
 from vk.dataclasses_ import VKUserInfo, Notification
 from vk.enums import NameCases
@@ -12,7 +13,7 @@ class HandlerHelpers:
 
     def __init__(
             self, vk_worker: VKWorker,
-            users_manager: db_apis.VKUsersManager,
+            users_manager: db_apis.CachedVKUsersManager,
             orders_manager: db_apis.OrdersManager) -> None:
         self.vk_worker = vk_worker
         self.users_manager = users_manager
@@ -26,18 +27,23 @@ class HandlerHelpers:
 
     async def get_orders_as_strings(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> List[str]:
+            include_creator_info: bool = True) -> OrdersAsStrings:
         output = []
+        some_user_info_is_downloaded = False
         for order in orders:
             if include_creator_info:
                 creator_info = await self.users_manager.get_user_info_by_id(
                     order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
+                if creator_info.is_downloaded:
+                    some_user_info_is_downloaded = True
+                creator_tag = self.get_tag_from_vk_user_dataclass(
+                    creator_info.user_info
+                )
                 order_contents = [
                     f"Заказ с ID {order.id}:",
                     (
-                        f"Создан "
-                        f"{self.get_tag_from_vk_user_dataclass(creator_info)}."
+                        f"Создан {creator_tag}."
                     )
                 ]
             else:
@@ -46,15 +52,22 @@ class HandlerHelpers:
                 taker_info = await self.users_manager.get_user_info_by_id(
                     order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
+                if taker_info.is_downloaded:
+                    some_user_info_is_downloaded = True
+                taker_tag = self.get_tag_from_vk_user_dataclass(
+                    taker_info.user_info
+                )
                 order_contents.append(
-                    f"Взят {self.get_tag_from_vk_user_dataclass(taker_info)}."
+                    f"Взят {taker_tag}."
                 )
             if order.is_canceled:
                 canceler_info = await self.users_manager.get_user_info_by_id(
                     order.canceler_vk_id, NameCases.INS  # Instrumental case
                 )
+                if canceler_info.is_downloaded:
+                    some_user_info_is_downloaded = True
                 canceler_tag = self.get_tag_from_vk_user_dataclass(
-                    canceler_info
+                    canceler_info.user_info
                 )
                 if order.creator_vk_id == order.canceler_vk_id:
                     maybe_creator_postfix = " (создателем)"
@@ -70,16 +83,25 @@ class HandlerHelpers:
                 )
             order_contents.append(f"Текст заказа: {order.text}.")
             output.append("\n".join(order_contents))
-        return output
+        return OrdersAsStrings(
+            output,
+            some_user_info_is_downloaded
+        )
 
     async def get_notification_with_orders(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> Notification:
-        return Notification(
-            text_for_client="\n\n".join(
-                await self.get_orders_as_strings(
-                    orders, include_creator_info
+            include_creator_info: bool = True) -> NotificationWithOrders:
+        orders_as_strings = await self.get_orders_as_strings(
+            orders, include_creator_info
+        )
+        return NotificationWithOrders(
+            Notification(
+                text_for_client="\n\n".join(
+                    orders_as_strings.orders
                 )
+            ),
+            some_user_info_is_downloaded=(
+                orders_as_strings.some_user_info_is_downloaded
             )
         )
 

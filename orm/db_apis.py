@@ -56,7 +56,7 @@ class OrdersManager:
         self.db_session.add_all(orders)
 
 
-class VKUsersManager:
+class CachedVKUsersManager:
 
     def __init__(
             self, sqlalchemy_session: Session,
@@ -66,7 +66,8 @@ class VKUsersManager:
 
     async def get_user_info_by_id(
             self, vk_id: int,
-            name_case: NameCases = NameCases.NOM) -> dataclasses_.VKUserInfo:
+            name_case: NameCases = NameCases.NOM
+            ) -> dataclasses_.RequestedVKUserInfo:
         try:
             user_info: models.CachedVKUser = (
                 self.db_session
@@ -94,8 +95,10 @@ class VKUsersManager:
                     user_info
                 )
             )
-            self.db_session.commit()
-            return user_info.get_as_vk_user_info_dataclass(name_case)
+            return dataclasses_.RequestedVKUserInfo(
+                user_info.get_as_vk_user_info_dataclass(name_case),
+                is_downloaded=True
+            )
         else:
             try:
                 user_info_dataclass = user_info.get_as_vk_user_info_dataclass(
@@ -113,7 +116,15 @@ class VKUsersManager:
                         surname=user_info_from_vk["last_name"]
                     )
                 )
-                self.db_session.commit()
-                return user_info.get_as_vk_user_info_dataclass(name_case)
+                return dataclasses_.RequestedVKUserInfo(
+                    user_info.get_as_vk_user_info_dataclass(name_case),
+                    is_downloaded=True
+                )
             else:
-                return user_info_dataclass
+                return dataclasses_.RequestedVKUserInfo(
+                    user_info_dataclass,
+                    is_downloaded=False
+                )
+
+    def commit(self) -> None:
+        self.db_session.commit()

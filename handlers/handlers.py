@@ -21,7 +21,7 @@ class Handlers:
             self, vk_worker: VKWorker,
             orders_manager: db_apis.OrdersManager,
             handler_helpers: HandlerHelpers,
-            users_manager: VKUsersManager) -> None:
+            users_manager: CachedVKUsersManager) -> None:
         self.vk_worker = vk_worker
         self.orders_manager = orders_manager
         self.helpers = handler_helpers
@@ -36,6 +36,10 @@ class Handlers:
         self.orders_manager.add(order)
         self.orders_manager.commit()
         client_info = await self.users_manager.get_user_info_by_id(client_vk_id)
+        if client_info.is_downloaded:
+            self.users_manager.commit()
+        # Re-writing client_info because I don't need old client_info anymore
+        client_info = client_info.user_info
         made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
         return Notification(
             text_for_client=f"Заказ с ID {order.id} создан!",
@@ -53,6 +57,7 @@ class Handlers:
         client_output: List[str] = []
         employees_output: List[str] = []
         at_least_one_order_is_canceled = False
+        some_user_info_is_downloaded = False
         for order_id in order_ids:
             try:
                 order = self.orders_manager.get_order_by_id(order_id)
@@ -89,26 +94,42 @@ class Handlers:
                 else:
                     order.canceler_vk_id = client_vk_id
                     order.cancellation_reason = cancellation_reason
-                    at_least_one_order_is_canceled = True
-                    client_info = await self.users_manager.get_user_info_by_id(
-                        client_vk_id
-                    )
-                    cancelled_word = (
-                        "отменил"
-                        if client_info.sex is Sex.MALE else
-                        "отменила"
-                    )
                     client_output.append(f"Заказ с ID {order.id} отменен!")
-                    canceler_tag = self.helpers.get_tag_from_vk_user_dataclass(
-                        client_info
-                    )
-                    employees_output.append(
-                        f"Клиент {canceler_tag} "
-                        f"{cancelled_word} заказ с ID {order.id} "
-                        f"по причине \"{cancellation_reason}\"!"
-                    )
+                    if (
+                        current_chat_peer_id
+                        !=
+                        vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    ):
+                        at_least_one_order_is_canceled = True
+                        client_info = (
+                            await self.users_manager.get_user_info_by_id(
+                                client_vk_id
+                            )
+                        )
+                        if client_info.is_downloaded:
+                            some_user_info_is_downloaded = True
+                        # Re-writing client_info because I don't need old
+                        # client_info anymore
+                        client_info = client_info.user_info
+                        cancelled_word = (
+                            "отменил"
+                            if client_info.sex is Sex.MALE else
+                            "отменила"
+                        )
+                        canceler_tag = (
+                            self.helpers.get_tag_from_vk_user_dataclass(
+                                client_info
+                            )
+                        )
+                        employees_output.append(
+                            f"Клиент {canceler_tag} "
+                            f"{cancelled_word} заказ с ID {order.id} "
+                            f"по причине \"{cancellation_reason}\"!"
+                        )
         if at_least_one_order_is_canceled:
             self.orders_manager.commit()
+        if some_user_info_is_downloaded:
+            self.users_manager.commit()
         return Notification(
             text_for_employees=(
                 "\n".join(employees_output)
@@ -128,9 +149,14 @@ class Handlers:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.orders_manager.get_orders()
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees="Заказов еще нет!"
             )
@@ -139,9 +165,15 @@ class Handlers:
                 models.Order.creator_vk_id == client_vk_id
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders, include_creator_info=False
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders,
+                        include_creator_info=False
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             client_info = await self.vk_worker.get_user_info(client_vk_id)
             order_word = (
                 'заказал'
@@ -162,9 +194,14 @@ class Handlers:
                 models.Order.is_taken
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees="Взятых заказов еще нет!"
             )
@@ -176,9 +213,15 @@ class Handlers:
                 models.Order.is_taken
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders, include_creator_info=False
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders,
+                        include_creator_info=False
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_client=f"Среди твоих заказов нет взятых!"
             )
@@ -192,9 +235,14 @@ class Handlers:
                 not_(models.Order.is_canceled)
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees=(
                     "Заказов в ожидании еще нет! "
@@ -208,9 +256,15 @@ class Handlers:
                 not_(models.Order.is_canceled)
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders, include_creator_info=False
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders,
+                        include_creator_info=False
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_client=f"Среди твоих заказов нет ожидающих!"
             )
@@ -235,9 +289,14 @@ class Handlers:
                 models.Order.is_canceled
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees="Отмененных заказов еще нет!"
             )
@@ -247,9 +306,15 @@ class Handlers:
                 models.Order.is_canceled
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders, include_creator_info=False
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders,
+                        include_creator_info=False
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_client=f"Среди твоих заказов нет отмененных!"
             )
@@ -262,9 +327,14 @@ class Handlers:
                 models.Order.is_paid
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees="Оплаченных заказов еще нет! (Грустно!)"
             )
@@ -274,9 +344,15 @@ class Handlers:
                 models.Order.is_paid
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders, include_creator_info=False
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders,
+                        include_creator_info=False
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_client=(
                     f"Среди твоих заказов нет оплаченных! (А лучше бы были!)"
@@ -290,6 +366,7 @@ class Handlers:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             output: List[str] = []
             at_least_one_order_is_marked_as_paid = False
+            some_user_info_is_downloaded = False
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
@@ -314,6 +391,11 @@ class Handlers:
                                 employee_vk_id
                             )
                         )
+                        if employee_info.is_downloaded:
+                            some_user_info_is_downloaded = True
+                        # Re-writing employee_info because I don't need old
+                        # employee_info anymore
+                        employee_info = employee_info.user_info
                         taken_word = (
                             "взял"
                             if employee_info.sex is Sex.MALE else
@@ -329,9 +411,11 @@ class Handlers:
                         output_str = (
                             f"Заказ с ID {order_id} отмечен оплаченным."
                         )
-                if at_least_one_order_is_marked_as_paid:
-                    self.orders_manager.commit()
                 output.append(output_str)
+            if at_least_one_order_is_marked_as_paid:
+                self.orders_manager.commit()
+            if some_user_info_is_downloaded:
+                self.users_manager.commit()
             return Notification(
                 text_for_employees=(
                     "\n".join(output)
@@ -354,9 +438,14 @@ class Handlers:
                 today.month, today.year
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees=(
                     "За текущий месяц не оплачено еще ни одного заказа!"
@@ -378,9 +467,14 @@ class Handlers:
                 month, year
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees=(
                     f"За {month} месяц {year} года не оплачено еще ни одного "
@@ -403,9 +497,14 @@ class Handlers:
                 month, year
             )
             if orders:
-                return await self.helpers.get_notification_with_orders(
-                    orders
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
                 )
+                if notification_with_orders.some_user_info_is_downloaded:
+                    self.users_manager.commit()
+                return notification_with_orders.notification
             return Notification(
                 text_for_employees=(
                     f"За {month} месяц {year} года не оплачено еще ни одного "
@@ -429,6 +528,7 @@ class Handlers:
             employee_tag: Optional[str] = None  # To make client message
             taken_word: Optional[str] = None  # To make client message
             at_least_one_order_is_taken = False
+            some_user_info_is_downloaded = False
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
@@ -446,22 +546,27 @@ class Handlers:
                     else:
                         order.taker_vk_id = user_vk_id
                         if employee_tag is None:
-                            user_info = (
+                            client_info = (
                                 await self.users_manager.get_user_info_by_id(
                                     user_vk_id
                                 )
                             )
+                            if client_info.is_downloaded:
+                                some_user_info_is_downloaded = True
+                            # Re-writing client_info because I don't need old
+                            # client_info anymore
+                            client_info = client_info.user_info
                             employee_tag = (
                                 self.helpers.get_tag_from_vk_user_dataclass(
-                                    user_info
+                                    client_info
                                 )
                             )
                             taken_word = (
                                 "взял"
-                                if user_info.sex == Sex.MALE else
+                                if client_info.sex == Sex.MALE else
                                 "взяла"
                             )
-                            del user_info
+                            del client_info
                         employee_output.append(f"Заказ с ID {order_id} взят!")
                         client_messages.append(
                             Message(
@@ -477,6 +582,8 @@ class Handlers:
                         at_least_one_order_is_taken = True
             if at_least_one_order_is_taken:
                 self.orders_manager.commit()
+            if some_user_info_is_downloaded:
+                self.users_manager.commit()
             return Notification(
                 text_for_employees=(
                     "\n".join(employee_output)
