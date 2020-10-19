@@ -81,5 +81,5 @@ class VKWorker:
             }
         )
         user_info = user_info[0]
-        user_info["sex"] = Sex.MALE if user_info["sex"] == 2 else Sex.FEMALE
+        user_info["sex"] = Sex.FEMALE if user_info["sex"] == 1 else Sex.MALE
         return user_info
