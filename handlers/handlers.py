@@ -95,12 +95,12 @@ class Handlers:
                     order.canceler_vk_id = client_vk_id
                     order.cancellation_reason = cancellation_reason
                     client_output.append(f"Заказ с ID {order.id} отменен!")
+                    at_least_one_order_is_canceled = True
                     if (
                         current_chat_peer_id
                         !=
                         vk_constants.EMPLOYEES_CHAT_PEER_ID
                     ):
-                        at_least_one_order_is_canceled = True
                         client_info = (
                             await self.users_manager.get_user_info_by_id(
                                 client_vk_id
