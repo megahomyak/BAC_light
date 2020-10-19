@@ -93,7 +93,8 @@ class CachedVKUser(DeclarativeBase):
         name = {name.case: name for name in self.names}.get(name_case)
         if name is None:
             raise exceptions.NameCaseNotFound(
-                f"Name with the name case {name_case} not found!"
+                f"Name for user with VK ID {self.vk_id} with the name case "
+                f"{name_case} not found!"
             )
         return vk.dataclasses_.VKUserInfo(
             self.vk_id, name.name, name.surname, self.sex
