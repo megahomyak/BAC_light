@@ -342,7 +342,8 @@ async def main():
                 vk_constants.TOKEN,
                 vk_constants.GROUP_ID
             ),
-            simplest_logger.Logger("vk_info.log")
+            simplest_logger.Logger("vk_info.log"),
+            log_only_user_info_getting=True
         )
         sqlalchemy_session = db_apis.get_sqlalchemy_db_session(
             "sqlite:///BAC_light.db"
