@@ -26,6 +26,7 @@ class OrdersManager:
         return (
             self.db_session
             .query(models.Order)
+            .order_by(models.Order.id.desc())
         )
 
     def get_orders(self, *filters: Any) -> List[models.Order]:
@@ -40,7 +41,8 @@ class OrdersManager:
 
     def get_order_by_id(self, order_id: int) -> models.Order:
         return (
-            self._get_query()
+            self.db_session
+            .query(models.Order)
             .filter_by(id=order_id)
             .one()
         )
