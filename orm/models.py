@@ -6,7 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 import exceptions
-import vk.dataclasses_
+import vk.vk_related_classes
 from vk.enums import NameCases, Sex
 
 DeclarativeBase = declarative_base()
@@ -89,13 +89,13 @@ class CachedVKUser(DeclarativeBase):
     )
 
     def get_as_vk_user_info_dataclass(
-            self, name_case: NameCases) -> vk.dataclasses_.VKUserInfo:
+            self, name_case: NameCases) -> vk.vk_related_classes.VKUserInfo:
         name = {name.case: name for name in self.names}.get(name_case)
         if name is None:
             raise exceptions.NameCaseNotFound(
                 f"Name for user with VK ID {self.vk_id} with the name case "
                 f"{name_case} not found!"
             )
-        return vk.dataclasses_.VKUserInfo(
+        return vk.vk_related_classes.VKUserInfo(
             self.vk_id, name.name, name.surname, self.sex
         )

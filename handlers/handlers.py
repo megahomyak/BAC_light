@@ -10,8 +10,8 @@ from orm import db_apis
 from orm import models
 from orm.db_apis import CachedVKUsersManager
 from vk import vk_constants
-from vk.dataclasses_ import Notification, Message
 from vk.enums import Sex
+from vk.vk_related_classes import Notification, Message
 from vk.vk_worker import VKWorker
 
 

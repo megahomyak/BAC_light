@@ -6,8 +6,8 @@ import simplest_logger
 from simple_avk import SimpleAVK
 
 from vk import vk_constants
-from vk.dataclasses_ import Message
 from vk.enums import NameCases, Sex
+from vk.vk_related_classes import Message
 
 
 class VKWorker:

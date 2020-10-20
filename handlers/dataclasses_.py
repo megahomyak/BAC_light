@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from vk.dataclasses_ import Notification
+from vk.vk_related_classes import Notification
 
 
 @dataclass

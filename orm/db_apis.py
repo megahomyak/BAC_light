@@ -6,7 +6,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 import exceptions
 from orm import models
-from vk import dataclasses_
+from vk import vk_related_classes
 from vk.enums import NameCases
 from vk.vk_worker import VKWorker
 
@@ -69,7 +69,7 @@ class CachedVKUsersManager:
     async def get_user_info_by_id(
             self, vk_id: int,
             name_case: NameCases = NameCases.NOM
-            ) -> dataclasses_.RequestedVKUserInfo:
+            ) -> vk_related_classes.RequestedVKUserInfo:
         try:
             user_info: models.CachedVKUser = (
                 self.db_session
@@ -95,7 +95,7 @@ class CachedVKUsersManager:
             self.db_session.add(
                 cached_vk_user
             )
-            return dataclasses_.RequestedVKUserInfo(
+            return vk_related_classes.RequestedVKUserInfo(
                 cached_vk_user.get_as_vk_user_info_dataclass(name_case),
                 is_downloaded=True
             )
@@ -116,12 +116,12 @@ class CachedVKUsersManager:
                         surname=user_info_from_vk["last_name"]
                     )
                 )
-                return dataclasses_.RequestedVKUserInfo(
+                return vk_related_classes.RequestedVKUserInfo(
                     user_info.get_as_vk_user_info_dataclass(name_case),
                     is_downloaded=True
                 )
             else:
-                return dataclasses_.RequestedVKUserInfo(
+                return vk_related_classes.RequestedVKUserInfo(
                     user_info_dataclass,
                     is_downloaded=False
                 )

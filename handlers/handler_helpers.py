@@ -5,8 +5,8 @@ from sqlalchemy import extract
 from handlers.dataclasses_ import OrdersAsStrings, NotificationWithOrders
 from orm import models, db_apis
 from vk import vk_constants
-from vk.dataclasses_ import VKUserInfo, Notification
 from vk.enums import NameCases
+from vk.vk_related_classes import VKUserInfo, Notification
 from vk.vk_worker import VKWorker
 
 
