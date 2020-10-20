@@ -1,3 +1,4 @@
+import asyncio
 import random
 from typing import AsyncGenerator, Optional, Any
 
@@ -34,35 +35,42 @@ class VKWorker:
                     )
                 yield message_info
 
-    async def reply(self, *messages: Message) -> None:
-        for message in messages:
-            text_parts = (
-                message.text[i:i + vk_constants.SYMBOLS_PER_MESSAGE]
-                for i in range(
-                    0,
-                    len(message.text),
-                    vk_constants.SYMBOLS_PER_MESSAGE
-                )
+    async def reply(self, message: Message) -> None:
+        text_parts = (
+            message.text[i:i + vk_constants.SYMBOLS_PER_MESSAGE]
+            for i in range(
+                0,
+                len(message.text),
+                vk_constants.SYMBOLS_PER_MESSAGE
             )
-            for part in text_parts:
-                await self.vk.call_method(
-                    "messages.send",
-                    {
-                        "peer_id": message.peer_id,
-                        "message": part,
-                        "random_id": random.randint(-1_000_000, 1_000_000),
-                        "disable_mentions": 1
-                    }
-                )
-            if (
-                self.logger is not None
-                and
-                not self.log_only_user_info_getting
-            ):
-                self.logger.info(
-                    f"Отправлено сообщение в чат с peer_id {message.peer_id}: "
-                    f"{message.text}"
-                )
+        )
+        for part in text_parts:
+            await self.vk.call_method(
+                "messages.send",
+                {
+                    "peer_id": message.peer_id,
+                    "message": part,
+                    "random_id": random.randint(-1_000_000, 1_000_000),
+                    "disable_mentions": 1
+                }
+            )
+        if (
+            self.logger is not None
+            and
+            not self.log_only_user_info_getting
+        ):
+            self.logger.info(
+                f"Отправлено сообщение в чат с peer_id {message.peer_id}: "
+                f"{message.text}"
+            )
+
+    async def multiple_reply(self, *messages: Message) -> None:
+        await asyncio.gather(
+            *(
+                self.reply(message)
+                for message in messages
+            )
+        )
 
     async def get_user_info(
             self, user_vk_id: int,
