@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import NoReturn, Optional, List, Tuple
+from typing import NoReturn, Optional, List, Tuple, Dict, Callable
 
 import aiohttp
 import simplest_logger
@@ -12,7 +12,8 @@ from handlers.handlers import Handlers
 from lexer.lexer_classes import Command, Arg, Context
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
-    SequenceArgType, IntArgType, CommandsMetadataElement
+    SequenceArgType, IntArgType, CommandsMetadataElement,
+    CommandDescriptionsMetadataElement
 )
 from orm import db_apis
 from vk import vk_constants
@@ -259,7 +260,7 @@ class MainLogic:
                 handlers.get_help_message_for_specific_commands,
                 "показывает помощь по конкретным командам и их написанию",
                 (
-                    CommandsMetadataElement,
+                    CommandDescriptionsMetadataElement,
                 ),
                 (
                     Arg(
@@ -274,6 +275,17 @@ class MainLogic:
                 )
             )
         )
+        self.commands_description: Dict[str, List[Callable]] = {}
+        for command in self.commands:
+            for name in command.names:
+                try:
+                    self.commands_description[name].append(
+                        command.get_full_description
+                    )
+                except KeyError:
+                    self.commands_description[name] = [
+                        command.get_full_description
+                    ]
 
     async def handle_command(self, vk_message_info: dict) -> List[Message]:
         command = vk_message_info["text"][1:]  # Cutting /
@@ -288,7 +300,8 @@ class MainLogic:
             else:
                 context = Context(
                     vk_message_info,
-                    self.commands
+                    self.commands,
+                    self.commands_description
                 )
                 notification_texts: Notification = await command_.handler(
                     *command_.get_converted_metadata(context),

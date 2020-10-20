@@ -1,7 +1,7 @@
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Any, Tuple, Callable, Type
+from typing import Optional, Any, Tuple, Callable, Type, Dict, List
 
 import exceptions
 
@@ -56,6 +56,7 @@ class Context:
 
     vk_message_info: dict
     commands: Tuple["Command", ...]
+    command_descriptions: Dict[str, List[Callable]]
 
 
 class BaseMetadataElement(ABC):

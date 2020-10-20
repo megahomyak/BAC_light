@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple, List, Optional, Dict
+from typing import Tuple, List, Optional, Dict, Callable
 
 from sqlalchemy import not_
 from sqlalchemy.orm.exc import NoResultFound
@@ -410,19 +410,26 @@ class Handlers:
 
     @staticmethod
     async def get_help_message_for_specific_commands(
-            commands: Tuple[lexer_classes.Command, ...],
+            command_descriptions: Dict[str, List[Callable]],
             command_names: Tuple[str, ...]) -> Notification:
-        command_descriptions: List[str] = []
+        command_descriptions_as_strings = []
         for command_name in command_names:
-            for command in commands:
-                if command_name in command.names:
-                    command_descriptions.append(
-                        command.get_full_description(include_heading=True)
+            try:
+                command_descriptions_as_strings.extend(
+                    (
+                        # Here desc_func is a Command.get_full_description,
+                        # if I set Command.get_full_description as a type -
+                        # I wouldn't get any IDE hints anyway
+                        desc_func(include_heading=True)
+                        for desc_func in command_descriptions[command_name]
                     )
+                )
+            except KeyError:
+                pass
         return Notification(
             text_for_client=(
-                "\n\n".join(command_descriptions)
-                if command_descriptions else
+                "\n\n".join(command_descriptions_as_strings)
+                if command_descriptions_as_strings else
                 "Команды с указанными названиями не найдены!"
             )
         )

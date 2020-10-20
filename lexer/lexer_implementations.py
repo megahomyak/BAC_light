@@ -1,5 +1,5 @@
 import re
-from typing import Any, Tuple
+from typing import Any, Tuple, Dict, List, Callable
 
 from lexer.lexer_classes import (
     Context, BaseArgType, BaseMetadataElement, Command
@@ -92,3 +92,10 @@ class CommandsMetadataElement(BaseMetadataElement):
     @staticmethod
     def get_data_from_context(context: Context) -> Tuple[Command, ...]:
         return context.commands
+
+
+class CommandDescriptionsMetadataElement(BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: Context) -> Dict[str, List[Callable]]:
+        return context.command_descriptions
