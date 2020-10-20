@@ -11,7 +11,7 @@ from orm import models
 from orm.db_apis import CachedVKUsersManager
 from vk import vk_constants
 from vk.enums import Sex
-from vk.vk_related_classes import Notification, Message
+from vk.vk_related_classes import Notification, UserCallbackMessages
 from vk.vk_worker import VKWorker
 
 
@@ -317,7 +317,7 @@ class Handlers:
             order_ids: Tuple[int]) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             employee_output: List[str] = []
-            client_messages: Dict[int, List[str]] = {}
+            client_callback_messages = UserCallbackMessages()
             employee_tag: Optional[str] = None  # To make client message
             taken_word: Optional[str] = None  # To make client message
             at_least_one_order_is_taken = False
@@ -361,17 +361,13 @@ class Handlers:
                             )
                             del client_info
                         employee_output.append(f"Заказ с ID {order_id} взят!")
-                        client_message = (
+                        client_callback_messages.add_message(
+                            order.creator_vk_id,
                             f"{employee_tag} {taken_word} твой заказ с ID "
-                            f"{order_id} (и текстом \"{order.text}\")! Открой "
-                            f"ЛС или напиши ему сам для обсуждения деталей "
-                            f"заказа и получения результата."
+                            f"{order_id} (и текстом \"{order.text}\")! "
+                            f"Открой ЛС или напиши ему сам для обсуждения "
+                            f"деталей заказа и получения результата."
                         )
-                        client_vk_id = order.creator_vk_id
-                        try:
-                            client_messages[client_vk_id].append(client_message)
-                        except KeyError:
-                            client_messages[client_vk_id] = [client_message]
                         at_least_one_order_is_taken = True
             if at_least_one_order_is_taken:
                 self.orders_manager.commit()
@@ -383,13 +379,7 @@ class Handlers:
                     if employee_output else
                     None
                 ),
-                additional_messages=[
-                    Message(
-                        "\n\n".join(texts),
-                        client_vk_id_
-                    )
-                    for client_vk_id_, texts in client_messages.items()
-                ]
+                additional_messages=client_callback_messages.to_messages()
             )
         else:
             return Notification(

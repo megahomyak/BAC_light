@@ -61,3 +61,27 @@ class RequestedVKUserInfo:
 
     user_info: VKUserInfo
     is_downloaded: bool
+
+
+class UserCallbackMessages:
+
+    """
+    This class is needed to register callback messages, which will be sent to
+    clients, for example, when employee takes multiple orders.
+    """
+
+    def __init__(self):
+        # Dict[user_vk_id, List[message_text]]
+        self.messages: Dict[int, List[str]] = {}
+
+    def add_message(self, user_vk_id: int, message_text: str) -> None:
+        try:
+            self.messages[user_vk_id].append(message_text)
+        except KeyError:
+            self.messages[user_vk_id] = [message_text]
+
+    def to_messages(self, separator="\n\n") -> Tuple[Message, ...]:
+        return tuple(
+            Message(separator.join(texts), client_vk_id_)
+            for client_vk_id_, texts in self.messages.items()
+        )
