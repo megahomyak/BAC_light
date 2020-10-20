@@ -1,8 +1,9 @@
 import re
 from typing import Any, Tuple
 
-from lexer.lexer_classes import Context, BaseArgType, BaseMetadataElement, \
-    Command
+from lexer.lexer_classes import (
+    Context, BaseArgType, BaseMetadataElement, Command
+)
 
 
 class IntArgType(BaseArgType):
