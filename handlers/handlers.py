@@ -402,3 +402,22 @@ class Handlers:
             no_orders_found_client_error="Среди твоих заказов нет активных!",
             no_orders_found_employees_error="Активных заказов еще нет!"
         )
+
+    @staticmethod
+    async def get_help_message_for_specific_commands(
+            commands: Tuple[lexer_classes.Command, ...],
+            command_names: Tuple[str, ...]) -> Notification:
+        command_descriptions: List[str] = []
+        for command_name in command_names:
+            for command in commands:
+                if command_name in command.names:
+                    command_descriptions.append(
+                        command.get_full_description(include_heading=True)
+                    )
+        return Notification(
+            text_for_client=(
+                "\n\n".join(command_descriptions)
+                if command_descriptions else
+                "Команды с указанными названиями не найдены!"
+            )
+        )
