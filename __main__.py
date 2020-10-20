@@ -253,6 +253,25 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
+            ),
+            Command(
+                ("команды", "помощь", "help", "commands"),
+                handlers.get_help_message_for_specific_commands,
+                "показывает помощь по конкретным командам и их написанию",
+                (
+                    CommandsMetadataElement,
+                ),
+                (
+                    Arg(
+                        (
+                            "команды, к которым нужно получить подсказку "
+                            "(через запятую)"
+                        ),
+                        SequenceArgType(
+                            StringArgType()
+                        )
+                    ),
+                )
             )
         )
 
