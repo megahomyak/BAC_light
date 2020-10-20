@@ -146,128 +146,42 @@ class Handlers:
     async def get_orders(
             self, client_vk_id: int,
             current_chat_peer_id: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.orders_manager.get_orders()
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees="Заказов еще нет!"
-            )
-        else:
-            orders = self.orders_manager.get_orders(
-                models.Order.creator_vk_id == client_vk_id
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders,
-                        include_creator_info=False
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            client_info = await self.vk_worker.get_user_info(client_vk_id)
-            order_word = (
-                'заказал'
-                if client_info['sex'] == 2 else
-                'заказала'
-            )
-            return Notification(
-                text_for_client=f"Ты еще ничего не {order_word}!"
-            )
+        return await self.helpers.request_orders_as_notification(
+            client_vk_id, current_chat_peer_id,
+            filters=(),
+            no_orders_found_client_error="У тебя еще нет заказов!",
+            no_orders_found_employees_error="Заказов еще нет!"
+        )
 
     async def get_taken_orders(
             self, client_vk_id: int,
             current_chat_peer_id: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.orders_manager.get_orders(
+        return await self.helpers.request_orders_as_notification(
+            client_vk_id, current_chat_peer_id,
+            filters=(
                 not_(models.Order.is_canceled),
                 not_(models.Order.is_paid),
                 models.Order.is_taken
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees="Взятых заказов еще нет!"
-            )
-        else:
-            orders = self.orders_manager.get_orders(
-                models.Order.creator_vk_id == client_vk_id,
-                not_(models.Order.is_canceled),
-                not_(models.Order.is_paid),
-                models.Order.is_taken
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders,
-                        include_creator_info=False
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_client=f"Среди твоих заказов нет взятых!"
-            )
+            ),
+            no_orders_found_client_error="Среди твоих заказов нет взятых!",
+            no_orders_found_employees_error="Взятых заказов еще нет!"
+        )
 
     async def get_pending_orders(
             self, client_vk_id: int,
             current_chat_peer_id: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.orders_manager.get_orders(
+        return await self.helpers.request_orders_as_notification(
+            client_vk_id, current_chat_peer_id,
+            filters=(
                 not_(models.Order.is_taken),
                 not_(models.Order.is_canceled)
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees=(
-                    "Заказов в ожидании еще нет! "
-                    "(Но можно подождать новых клиентов ( ͡° ͜ʖ ͡°))"
-                )                       # Should be the Lenny ^
-            )
-        else:
-            orders = self.orders_manager.get_orders(
-                models.Order.creator_vk_id == client_vk_id,
-                not_(models.Order.is_taken),
-                not_(models.Order.is_canceled)
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders,
-                        include_creator_info=False
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_client=f"Среди твоих заказов нет ожидающих!"
-            )
+            ),
+            no_orders_found_client_error="Среди твоих заказов нет ожидающих!",
+            no_orders_found_employees_error=(
+                "Заказов в ожидании еще нет! "
+                "(Но можно подождать новых клиентов ( ͡° ͜ʖ ͡°))"
+            )                       # Should be the Lenny ^
+        )
 
     @staticmethod
     async def get_help_message(
@@ -284,80 +198,28 @@ class Handlers:
     async def get_canceled_orders(
             self, client_vk_id: int,
             current_chat_peer_id: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.orders_manager.get_orders(
+        return await self.helpers.request_orders_as_notification(
+            client_vk_id, current_chat_peer_id,
+            filters=(
                 models.Order.is_canceled
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees="Отмененных заказов еще нет!"
-            )
-        else:
-            orders = self.orders_manager.get_orders(
-                models.Order.creator_vk_id == client_vk_id,
-                models.Order.is_canceled
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders,
-                        include_creator_info=False
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_client=f"Среди твоих заказов нет отмененных!"
-            )
+            ),
+            no_orders_found_client_error="Среди твоих заказов нет отмененных!",
+            no_orders_found_employees_error="Отмененных заказов еще нет!"
+        )
 
     async def get_paid_orders(
             self, client_vk_id: int,
             current_chat_peer_id: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.orders_manager.get_orders(
+        return await self.helpers.request_orders_as_notification(
+            client_vk_id, current_chat_peer_id,
+            filters=(
                 models.Order.is_paid
+            ),
+            no_orders_found_client_error="Среди твоих заказов нет отмененных!",
+            no_orders_found_employees_error=(
+                "Оплаченных заказов еще нет! (Грустно!)"
             )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees="Оплаченных заказов еще нет! (Грустно!)"
-            )
-        else:
-            orders = self.orders_manager.get_orders(
-                models.Order.creator_vk_id == client_vk_id,
-                models.Order.is_paid
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders,
-                        include_creator_info=False
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_client=(
-                    f"Среди твоих заказов нет оплаченных! (А лучше бы были!)"
-                )
-            )
+        )
 
     async def mark_orders_as_paid(
             self, employee_vk_id: int, current_chat_peer_id: int,
@@ -432,92 +294,23 @@ class Handlers:
 
     async def get_monthly_paid_orders(
             self, current_chat_peer_id: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            today = datetime.date.today()
-            orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
-                today.month, today.year
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees=(
-                    "За текущий месяц не оплачено еще ни одного заказа!"
-                )
-            )
-        else:
-            return Notification(
-                text_for_client=(
-                    "Получать месячные оплаченные заказы могут только "
-                    "сотрудники!"
-                )
-            )
+        today = datetime.date.today()
+        return await self.helpers.request_monthly_paid_orders(
+            current_chat_peer_id, today.month, today.year
+        )
 
     async def get_monthly_paid_orders_by_month_and_year(
             self, current_chat_peer_id: int,
             month: int, year: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
-                month, year
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees=(
-                    f"За {month} месяц {year} года не оплачено еще ни одного "
-                    f"заказа!"
-                )
-            )
-        else:
-            return Notification(
-                text_for_client=(
-                    "Получать месячные оплаченные заказы могут только "
-                    "сотрудники!"
-                )
-            )
+        return await self.helpers.request_monthly_paid_orders(
+            current_chat_peer_id, month, year
+        )
 
     async def get_monthly_paid_orders_by_month(
             self, current_chat_peer_id: int, month: int) -> Notification:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            year = datetime.date.today().year
-            orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
-                month, year
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
-            return Notification(
-                text_for_employees=(
-                    f"За {month} месяц {year} года не оплачено еще ни одного "
-                    f"заказа!"
-                )
-            )
-        else:
-            return Notification(
-                text_for_client=(
-                    "Получать месячные оплаченные заказы могут только "
-                    "сотрудники!"
-                )
-            )
+        return await self.helpers.request_monthly_paid_orders(
+            current_chat_peer_id, month, datetime.date.today().year
+        )
 
     async def take_orders(
             self, current_chat_peer_id: int, user_vk_id: int,
