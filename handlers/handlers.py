@@ -122,9 +122,9 @@ class Handlers:
                             )
                         )
                         employees_output.append(
-                            f"Клиент {canceler_tag} "
-                            f"{cancelled_word} заказ с ID {order.id} "
-                            f"по причине \"{cancellation_reason}\"!"
+                            f"Клиент {canceler_tag} {cancelled_word} заказ с "
+                            f"ID {order.id} (и текстом \"{order.text}\") по "
+                            f"причине \"{cancellation_reason}\"!"
                         )
         if at_least_one_order_is_canceled:
             self.orders_manager.commit()
@@ -363,8 +363,9 @@ class Handlers:
                         employee_output.append(f"Заказ с ID {order_id} взят!")
                         client_message = (
                             f"{employee_tag} {taken_word} твой заказ с ID "
-                            f"{order_id}! Открой ЛС или напиши ему сам для "
-                            f"обсуждения деталей заказа и получения результата."
+                            f"{order_id} (и текстом \"{order.text}\")! Открой "
+                            f"ЛС или напиши ему сам для обсуждения деталей "
+                            f"заказа и получения результата."
                         )
                         client_vk_id = order.creator_vk_id
                         try:
