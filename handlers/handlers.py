@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Dict
 
 from sqlalchemy import not_
 from sqlalchemy.orm.exc import NoResultFound
@@ -317,7 +317,7 @@ class Handlers:
             order_ids: Tuple[int]) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             employee_output: List[str] = []
-            client_messages: List[Message] = []
+            client_messages: Dict[int, List[str]] = {}
             employee_tag: Optional[str] = None  # To make client message
             taken_word: Optional[str] = None  # To make client message
             at_least_one_order_is_taken = False
@@ -361,17 +361,16 @@ class Handlers:
                             )
                             del client_info
                         employee_output.append(f"Заказ с ID {order_id} взят!")
-                        client_messages.append(
-                            Message(
-                                (
-                                    f"{employee_tag} {taken_word} твой заказ с "
-                                    f"ID {order_id}! Открой ЛС или напиши ему "
-                                    f"сам для обсуждения деталей заказа и "
-                                    f"получения результата."
-                                ),
-                                order.creator_vk_id
-                            )
+                        client_message = (
+                            f"{employee_tag} {taken_word} твой заказ с ID "
+                            f"{order_id}! Открой ЛС или напиши ему сам для "
+                            f"обсуждения деталей заказа и получения результата."
                         )
+                        client_vk_id = order.creator_vk_id
+                        try:
+                            client_messages[client_vk_id].append(client_message)
+                        except KeyError:
+                            client_messages[client_vk_id] = [client_message]
                         at_least_one_order_is_taken = True
             if at_least_one_order_is_taken:
                 self.orders_manager.commit()
@@ -383,7 +382,13 @@ class Handlers:
                     if employee_output else
                     None
                 ),
-                additional_messages=client_messages
+                additional_messages=[
+                    Message(
+                        "\n\n".join(texts),
+                        client_vk_id_
+                    )
+                    for client_vk_id_, texts in client_messages.items()
+                ]
             )
         else:
             return Notification(
