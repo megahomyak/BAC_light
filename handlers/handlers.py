@@ -389,3 +389,16 @@ class Handlers:
             return Notification(
                 text_for_client="Брать заказы могут только сотрудники!"
             )
+
+    async def get_active_orders(
+            self, client_vk_id: int,
+            current_chat_peer_id: int) -> Notification:
+        return await self.helpers.request_orders_as_notification(
+            client_vk_id, current_chat_peer_id,
+            filters=(
+                not_(models.Order.is_paid),
+                not_(models.Order.is_canceled)
+            ),
+            no_orders_found_client_error="Среди твоих заказов нет активных!",
+            no_orders_found_employees_error="Активных заказов еще нет!"
+        )

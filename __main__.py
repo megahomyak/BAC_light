@@ -241,6 +241,18 @@ class MainLogic:
                         )
                     ),
                 )
+            ),
+            Command(
+                ("активные", "active"),
+                handlers.get_active_orders,
+                (
+                    "показывает все заказы, которые не отменены и не оплачены "
+                    "(если спрашивает клиент - только заказы этого же клиента)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                )
             )
         )
 
