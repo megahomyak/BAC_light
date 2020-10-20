@@ -185,7 +185,7 @@ class Handlers:
 
     @staticmethod
     async def get_help_message(
-            commands: Tuple[lexer_classes.Command]) -> Notification:
+            commands: Tuple[lexer_classes.Command, ...]) -> Notification:
         return Notification(
             text_for_client=vk_constants.HELP_MESSAGE_BEGINNING + "\n\n".join(
                 [

@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import NoReturn, Optional, List
+from typing import NoReturn, Optional, List, Tuple
 
 import aiohttp
 import simplest_logger
@@ -32,7 +32,7 @@ class MainLogic:
         self.orders_manager = orders_manager
         self.logger = logger
         self.log_command_parsing_errors = log_command_parsing_errors
-        self.commands = (
+        self.commands: Tuple[Command, ...] = (
             Command(
                 ("заказ", "order", "заказать"),
                 handlers.create_order,
