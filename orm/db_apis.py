@@ -13,7 +13,18 @@ from vk.vk_worker import VKWorker
 
 class MySession(Session):
 
+    """
+    Added only a commit_if_something_is_changed method to the sqlalchemy's
+    Session class, the rest remains the same.
+    """
+
     def commit_if_something_is_changed(self) -> None:
+        """
+        Makes a commit if there are staging (non-flushed) changes.
+
+        Warnings:
+            If autoflush is enabled - it wouldn't work!
+        """
         # If autoflush is enabled - this lists will be empty, so that can lead
         # to the situation, where commit isn't working
         if self.new or self.dirty or self.deleted:
