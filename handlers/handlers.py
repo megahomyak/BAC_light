@@ -313,24 +313,24 @@ class Handlers:
                         )
                     else:
                         order.taker_vk_id = user_vk_id
+                        employee_output.append(f"Заказ с ID {order_id} взят!")
                         if employee_tag is None:
-                            client_info = (
+                            employee_info = (
                                 await self.users_manager.get_user_info_by_id(
                                     user_vk_id
                                 )
                             )
                             employee_tag = (
                                 self.helpers.get_tag_from_vk_user_dataclass(
-                                    client_info
+                                    employee_info
                                 )
                             )
                             taken_word = (
                                 "взял"
-                                if client_info.sex == Sex.MALE else
+                                if employee_info.sex == Sex.MALE else
                                 "взяла"
                             )
-                            del client_info
-                        employee_output.append(f"Заказ с ID {order_id} взят!")
+                            del employee_info
                         client_callback_messages.add_message(
                             order.creator_vk_id,
                             f"{employee_tag} {taken_word} твой заказ с ID "
