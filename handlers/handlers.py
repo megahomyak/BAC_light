@@ -433,3 +433,39 @@ class Handlers:
                 "Команды с указанными названиями не найдены!"
             )
         )
+
+    async def get_order_by_id(
+            self, client_vk_id: int,
+            current_chat_peer_id: int,
+            order_ids: Tuple[int, ...]) -> Notification:
+        output: List[str] = []
+        for order_id in order_ids:
+            try:
+                order = self.orders_manager.get_order_by_id(order_id)
+            except NoResultFound:
+                output.append(f"Заказа с ID {order_id} нет!")
+            else:
+                if (
+                    current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    and
+                    order.creator_vk_id != client_vk_id
+                ):
+                    output.append(f"Заказ с ID {order_id} тебе не принадлежит!")
+                else:
+                    output.append(
+                        await self.helpers.get_order_as_string(
+                            order,
+                            include_creator_info=(
+                                True
+                                if (
+                                    current_chat_peer_id
+                                    ==
+                                    vk_constants.EMPLOYEES_CHAT_PEER_ID
+                                ) else
+                                False
+                            )
+                        )
+                    )
+        return Notification(
+            text_for_client="\n\n".join(output)
+        )

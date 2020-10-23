@@ -273,6 +273,26 @@ class MainLogic:
                         )
                     ),
                 )
+            ),
+            Command(
+                ("инфо", "info", "information", "информация"),
+                handlers.get_order_by_id,
+                (
+                    "показывает заказы с указанными ID (для клиентов - лишь "
+                    "если заказ принадлежит им)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                ),
+                (
+                    Arg(
+                        "ID заказов (через запятую)",
+                        SequenceArgType(
+                            IntArgType()
+                        )
+                    ),
+                )
             )
         )
         self.commands_description: Dict[str, List[Callable]] = {}
