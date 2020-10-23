@@ -319,7 +319,7 @@ class Handlers:
             employee_output: List[str] = []
             client_callback_messages = UserCallbackMessages()
             employee_tag: Optional[str] = None  # To make client message
-            taken_word: Optional[str] = None  # To make client message
+            taken_word: Optional[str] = None  # Also to make client message
             at_least_one_order_is_taken = False
             some_user_info_is_downloaded = False
             for order_id in order_ids:
