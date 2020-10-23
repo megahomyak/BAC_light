@@ -53,6 +53,9 @@ class Handlers:
             cancellation_reason: str) -> Notification:
         client_output: List[str] = []
         employees_output: List[str] = []
+        client_callback_messages = UserCallbackMessages()
+        canceler_tag: Optional[str] = None  # To make client message
+        canceled_word: Optional[str] = None  # Also to make client message
         for order_id in order_ids:
             try:
                 order = self.orders_manager.get_order_by_id(order_id)
@@ -90,28 +93,39 @@ class Handlers:
                     order.canceler_vk_id = client_vk_id
                     order.cancellation_reason = cancellation_reason
                     client_output.append(f"Заказ с ID {order.id} отменен!")
-                    if (
-                        current_chat_peer_id
-                        !=
-                        vk_constants.EMPLOYEES_CHAT_PEER_ID
-                    ):
-                        client_info = (
+                    if canceler_tag is None:
+                        sender_info = (
                             await self.users_manager.get_user_info_by_id(
                                 client_vk_id
                             )
                         )
-                        cancelled_word = (
+                        canceled_word = (
                             "отменил"
-                            if client_info.sex is Sex.MALE else
+                            if sender_info.sex is Sex.MALE else
                             "отменила"
                         )
                         canceler_tag = (
                             self.helpers.get_tag_from_vk_user_dataclass(
-                                client_info
+                                sender_info
                             )
                         )
+                        del sender_info
+                    if (
+                        current_chat_peer_id
+                        ==
+                        vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    ):
+                        client_callback_messages.add_message(
+                            order.creator_vk_id, (
+                                f"Сотрудник {canceler_tag} {canceled_word}"
+                                f" твой заказ с ID {order.id} (и текстом "
+                                f"\"{order.text}\") по причине "
+                                f"\"{cancellation_reason}\"!"
+                            )
+                        )
+                    else:
                         employees_output.append(
-                            f"Клиент {canceler_tag} {cancelled_word} заказ с "
+                            f"Клиент {canceler_tag} {canceled_word} заказ с "
                             f"ID {order.id} (и текстом \"{order.text}\") по "
                             f"причине \"{cancellation_reason}\"!"
                         )
@@ -127,7 +141,8 @@ class Handlers:
                 "\n".join(client_output)
                 if client_output else
                 None
-            )
+            ),
+            additional_messages=client_callback_messages.to_messages()
         )
 
     async def get_orders(
@@ -214,6 +229,9 @@ class Handlers:
             earnings_amount: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             output: List[str] = []
+            client_callback_messages = UserCallbackMessages()
+            employee_tag: Optional[str] = None  # To make client message
+            marked_word: Optional[str] = None  # Also to make client message
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
@@ -238,19 +256,42 @@ class Handlers:
                                 employee_vk_id
                             )
                         )
-                        taken_word = (
+                        marked_word = (
                             "взял"
                             if employee_info.sex is Sex.MALE else
                             "взяла"
                         )
                         output_str = (
-                            f"Заказ с ID {order_id} {taken_word} не ты!"
+                            f"Заказ с ID {order_id} {marked_word} не ты!"
                         )
                     else:
                         order.earnings = earnings_amount
                         order.earning_date = datetime.date.today()
                         output_str = (
                             f"Заказ с ID {order_id} отмечен оплаченным."
+                        )
+                        if employee_tag is None:
+                            employee_info = (
+                                await self.users_manager.get_user_info_by_id(
+                                    employee_vk_id
+                                )
+                            )
+                            employee_tag = (
+                                self.helpers.get_tag_from_vk_user_dataclass(
+                                    employee_info
+                                )
+                            )
+                            marked_word = (
+                                "отметил"
+                                if employee_info.sex == Sex.MALE else
+                                "отметила"
+                            )
+                            del employee_info
+                        client_callback_messages.add_message(
+                            order.creator_vk_id,
+                            f"{employee_tag} {marked_word} оплаченным твой "
+                            f"заказ с ID {order_id} (и текстом "
+                            f"\"{order.text}\")!"
                         )
                 output.append(output_str)
             self.orders_manager.commit_if_something_is_changed()
@@ -260,7 +301,8 @@ class Handlers:
                     "\n".join(output)
                     if output else
                     None
-                )
+                ),
+                additional_messages=client_callback_messages.to_messages()
             )
         else:
             return Notification(
