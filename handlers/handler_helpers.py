@@ -27,53 +27,58 @@ class HandlerHelpers:
 
     async def get_orders_as_strings(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> List[str]:
-        output = []
-        for order in orders:
-            if include_creator_info:
-                creator_info = await self.users_manager.get_user_info_by_id(
-                    order.creator_vk_id, NameCases.INS  # Instrumental case
+            include_creator_info: bool = True) -> Tuple[str, ...]:
+        return tuple(
+            await self.get_order_as_string(order, include_creator_info)
+            for order in orders
+        )
+
+    async def get_order_as_string(
+            self, order: models.Order,
+            include_creator_info: bool = True) -> str:
+        if include_creator_info:
+            creator_info = await self.users_manager.get_user_info_by_id(
+                order.creator_vk_id, NameCases.INS  # Instrumental case
+            )
+            creator_tag = self.get_tag_from_vk_user_dataclass(creator_info)
+            order_contents = [
+                f"Заказ с ID {order.id}:",
+                (
+                    f"Создан {creator_tag}."
                 )
-                creator_tag = self.get_tag_from_vk_user_dataclass(creator_info)
-                order_contents = [
-                    f"Заказ с ID {order.id}:",
-                    (
-                        f"Создан {creator_tag}."
-                    )
-                ]
+            ]
+        else:
+            order_contents = [f"Заказ с ID {order.id}:"]
+        if order.is_taken:
+            taker_info = await self.users_manager.get_user_info_by_id(
+                order.creator_vk_id, NameCases.INS  # Instrumental case
+            )
+            taker_tag = self.get_tag_from_vk_user_dataclass(taker_info)
+            order_contents.append(
+                f"Взят {taker_tag}."
+            )
+        if order.is_canceled:
+            canceler_info = await self.users_manager.get_user_info_by_id(
+                order.canceler_vk_id, NameCases.INS  # Instrumental case
+            )
+            canceler_tag = self.get_tag_from_vk_user_dataclass(
+                canceler_info
+            )
+            if order.creator_vk_id == order.canceler_vk_id:
+                maybe_creator_postfix = " (создателем)"
             else:
-                order_contents = [f"Заказ с ID {order.id}:"]
-            if order.is_taken:
-                taker_info = await self.users_manager.get_user_info_by_id(
-                    order.creator_vk_id, NameCases.INS  # Instrumental case
-                )
-                taker_tag = self.get_tag_from_vk_user_dataclass(taker_info)
-                order_contents.append(
-                    f"Взят {taker_tag}."
-                )
-            if order.is_canceled:
-                canceler_info = await self.users_manager.get_user_info_by_id(
-                    order.canceler_vk_id, NameCases.INS  # Instrumental case
-                )
-                canceler_tag = self.get_tag_from_vk_user_dataclass(
-                    canceler_info
-                )
-                if order.creator_vk_id == order.canceler_vk_id:
-                    maybe_creator_postfix = " (создателем)"
-                else:
-                    maybe_creator_postfix = ""
-                order_contents.append(
-                    f"Отменен {canceler_tag}{maybe_creator_postfix} по причине "
-                    f"\"{order.cancellation_reason}\"."
-                )
-            elif order.is_paid:
-                order_contents.append(
-                    f"Оплачен заказчиком {order.earning_date} на сумму "
-                    f"{order.earnings} руб."
-                )
-            order_contents.append(f"Текст заказа: \"{order.text}\".")
-            output.append("\n".join(order_contents))
-        return output
+                maybe_creator_postfix = ""
+            order_contents.append(
+                f"Отменен {canceler_tag}{maybe_creator_postfix} по причине "
+                f"\"{order.cancellation_reason}\"."
+            )
+        elif order.is_paid:
+            order_contents.append(
+                f"Оплачен заказчиком {order.earning_date} на сумму "
+                f"{order.earnings} руб."
+            )
+        order_contents.append(f"Текст заказа: \"{order.text}\".")
+        return "\n".join(order_contents)
 
     async def get_notification_with_orders(
             self, orders: List[models.Order],
