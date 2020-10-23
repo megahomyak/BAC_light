@@ -36,10 +36,7 @@ class Handlers:
         self.orders_manager.add(order)
         self.orders_manager.commit()
         client_info = await self.users_manager.get_user_info_by_id(client_vk_id)
-        if client_info.is_downloaded:
-            self.users_manager.commit()
-        # Re-writing client_info because I don't need old client_info anymore
-        client_info = client_info.user_info
+        self.users_manager.commit_if_something_is_changed()
         made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
         return Notification(
             text_for_client=f"Заказ с ID {order.id} создан!",
@@ -56,8 +53,6 @@ class Handlers:
             cancellation_reason: str) -> Notification:
         client_output: List[str] = []
         employees_output: List[str] = []
-        at_least_one_order_is_canceled = False
-        some_user_info_is_downloaded = False
         for order_id in order_ids:
             try:
                 order = self.orders_manager.get_order_by_id(order_id)
@@ -95,7 +90,6 @@ class Handlers:
                     order.canceler_vk_id = client_vk_id
                     order.cancellation_reason = cancellation_reason
                     client_output.append(f"Заказ с ID {order.id} отменен!")
-                    at_least_one_order_is_canceled = True
                     if (
                         current_chat_peer_id
                         !=
@@ -106,11 +100,6 @@ class Handlers:
                                 client_vk_id
                             )
                         )
-                        if client_info.is_downloaded:
-                            some_user_info_is_downloaded = True
-                        # Re-writing client_info because I don't need old
-                        # client_info anymore
-                        client_info = client_info.user_info
                         cancelled_word = (
                             "отменил"
                             if client_info.sex is Sex.MALE else
@@ -126,10 +115,8 @@ class Handlers:
                             f"ID {order.id} (и текстом \"{order.text}\") по "
                             f"причине \"{cancellation_reason}\"!"
                         )
-        if at_least_one_order_is_canceled:
-            self.orders_manager.commit()
-        if some_user_info_is_downloaded:
-            self.users_manager.commit()
+        self.orders_manager.commit_if_something_is_changed()
+        self.users_manager.commit_if_something_is_changed()
         return Notification(
             text_for_employees=(
                 "\n".join(employees_output)
@@ -227,8 +214,6 @@ class Handlers:
             earnings_amount: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             output: List[str] = []
-            at_least_one_order_is_marked_as_paid = False
-            some_user_info_is_downloaded = False
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
@@ -253,11 +238,6 @@ class Handlers:
                                 employee_vk_id
                             )
                         )
-                        if employee_info.is_downloaded:
-                            some_user_info_is_downloaded = True
-                        # Re-writing employee_info because I don't need old
-                        # employee_info anymore
-                        employee_info = employee_info.user_info
                         taken_word = (
                             "взял"
                             if employee_info.sex is Sex.MALE else
@@ -269,15 +249,12 @@ class Handlers:
                     else:
                         order.earnings = earnings_amount
                         order.earning_date = datetime.date.today()
-                        at_least_one_order_is_marked_as_paid = True
                         output_str = (
                             f"Заказ с ID {order_id} отмечен оплаченным."
                         )
                 output.append(output_str)
-            if at_least_one_order_is_marked_as_paid:
-                self.orders_manager.commit()
-            if some_user_info_is_downloaded:
-                self.users_manager.commit()
+            self.orders_manager.commit_if_something_is_changed()
+            self.users_manager.commit_if_something_is_changed()
             return Notification(
                 text_for_employees=(
                     "\n".join(output)
@@ -320,8 +297,6 @@ class Handlers:
             client_callback_messages = UserCallbackMessages()
             employee_tag: Optional[str] = None  # To make client message
             taken_word: Optional[str] = None  # Also to make client message
-            at_least_one_order_is_taken = False
-            some_user_info_is_downloaded = False
             for order_id in order_ids:
                 try:
                     order = self.orders_manager.get_order_by_id(order_id)
@@ -344,11 +319,6 @@ class Handlers:
                                     user_vk_id
                                 )
                             )
-                            if client_info.is_downloaded:
-                                some_user_info_is_downloaded = True
-                            # Re-writing client_info because I don't need old
-                            # client_info anymore
-                            client_info = client_info.user_info
                             employee_tag = (
                                 self.helpers.get_tag_from_vk_user_dataclass(
                                     client_info
@@ -368,11 +338,8 @@ class Handlers:
                             f"Открой ЛС или напиши ему сам для обсуждения "
                             f"деталей заказа и получения результата."
                         )
-                        at_least_one_order_is_taken = True
-            if at_least_one_order_is_taken:
-                self.orders_manager.commit()
-            if some_user_info_is_downloaded:
-                self.users_manager.commit()
+            self.orders_manager.commit_if_something_is_changed()
+            self.users_manager.commit_if_something_is_changed()
             return Notification(
                 text_for_employees=(
                     "\n".join(employee_output)

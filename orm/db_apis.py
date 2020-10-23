@@ -11,15 +11,22 @@ from vk.enums import NameCases
 from vk.vk_worker import VKWorker
 
 
-def get_sqlalchemy_db_session(path_to_sqlite_db: str) -> Session:
+class MySession(Session):
+
+    def commit_if_something_is_changed(self) -> None:
+        if self.new or self.dirty or self.deleted:
+            self.commit()
+
+
+def get_db_session(path_to_sqlite_db: str) -> MySession:
     sql_engine = create_engine(path_to_sqlite_db)
     models.DeclarativeBase.metadata.create_all(sql_engine)
-    return Session(sql_engine)
+    return MySession(sql_engine)
 
 
 class OrdersManager:
 
-    def __init__(self, sqlalchemy_session: Session) -> None:
+    def __init__(self, sqlalchemy_session: MySession) -> None:
         self.db_session = sqlalchemy_session
 
     def _get_query(self) -> Query:
@@ -50,6 +57,9 @@ class OrdersManager:
     def commit(self) -> None:
         self.db_session.commit()
 
+    def commit_if_something_is_changed(self) -> None:
+        self.db_session.commit_if_something_is_changed()
+
     def delete(self, *orders: models.Order) -> None:
         for order in orders:
             self.db_session.delete(order)
@@ -61,7 +71,7 @@ class OrdersManager:
 class CachedVKUsersManager:
 
     def __init__(
-            self, sqlalchemy_session: Session,
+            self, sqlalchemy_session: MySession,
             vk_worker: VKWorker) -> None:
         self.db_session = sqlalchemy_session
         self.vk_worker = vk_worker
@@ -69,7 +79,7 @@ class CachedVKUsersManager:
     async def get_user_info_by_id(
             self, vk_id: int,
             name_case: NameCases = NameCases.NOM
-            ) -> vk_related_classes.RequestedVKUserInfo:
+            ) -> vk_related_classes.VKUserInfo:
         try:
             user_info: models.CachedVKUser = (
                 self.db_session
@@ -95,10 +105,7 @@ class CachedVKUsersManager:
             self.db_session.add(
                 cached_vk_user
             )
-            return vk_related_classes.RequestedVKUserInfo(
-                cached_vk_user.get_as_vk_user_info_dataclass(name_case),
-                is_downloaded=True
-            )
+            return cached_vk_user.get_as_vk_user_info_dataclass(name_case)
         else:
             try:
                 user_info_dataclass = user_info.get_as_vk_user_info_dataclass(
@@ -116,15 +123,12 @@ class CachedVKUsersManager:
                         surname=user_info_from_vk["last_name"]
                     )
                 )
-                return vk_related_classes.RequestedVKUserInfo(
-                    user_info.get_as_vk_user_info_dataclass(name_case),
-                    is_downloaded=True
-                )
+                return user_info.get_as_vk_user_info_dataclass(name_case)
             else:
-                return vk_related_classes.RequestedVKUserInfo(
-                    user_info_dataclass,
-                    is_downloaded=False
-                )
+                return user_info_dataclass
 
     def commit(self) -> None:
         self.db_session.commit()
+
+    def commit_if_something_is_changed(self) -> None:
+        self.db_session.commit_if_something_is_changed()

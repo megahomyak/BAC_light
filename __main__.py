@@ -412,9 +412,7 @@ async def main():
             simplest_logger.Logger("vk_info.log"),
             log_only_user_info_getting=True
         )
-        sqlalchemy_session = db_apis.get_sqlalchemy_db_session(
-            "sqlite:///BAC_light.db"
-        )
+        sqlalchemy_session = db_apis.get_db_session("sqlite:///BAC_light.db")
         orders_manager = db_apis.OrdersManager(
             sqlalchemy_session
         )

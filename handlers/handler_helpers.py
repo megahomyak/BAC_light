@@ -2,7 +2,6 @@ from typing import List, Tuple, Any
 
 from sqlalchemy import extract
 
-from handlers.dataclasses_ import OrdersAsStrings, NotificationWithOrders
 from orm import models, db_apis
 from vk import vk_constants
 from vk.enums import NameCases
@@ -28,19 +27,14 @@ class HandlerHelpers:
 
     async def get_orders_as_strings(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> OrdersAsStrings:
+            include_creator_info: bool = True) -> List[str]:
         output = []
-        some_user_info_is_downloaded = False
         for order in orders:
             if include_creator_info:
                 creator_info = await self.users_manager.get_user_info_by_id(
                     order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
-                if creator_info.is_downloaded:
-                    some_user_info_is_downloaded = True
-                creator_tag = self.get_tag_from_vk_user_dataclass(
-                    creator_info.user_info
-                )
+                creator_tag = self.get_tag_from_vk_user_dataclass(creator_info)
                 order_contents = [
                     f"Заказ с ID {order.id}:",
                     (
@@ -53,11 +47,7 @@ class HandlerHelpers:
                 taker_info = await self.users_manager.get_user_info_by_id(
                     order.creator_vk_id, NameCases.INS  # Instrumental case
                 )
-                if taker_info.is_downloaded:
-                    some_user_info_is_downloaded = True
-                taker_tag = self.get_tag_from_vk_user_dataclass(
-                    taker_info.user_info
-                )
+                taker_tag = self.get_tag_from_vk_user_dataclass(taker_info)
                 order_contents.append(
                     f"Взят {taker_tag}."
                 )
@@ -65,10 +55,8 @@ class HandlerHelpers:
                 canceler_info = await self.users_manager.get_user_info_by_id(
                     order.canceler_vk_id, NameCases.INS  # Instrumental case
                 )
-                if canceler_info.is_downloaded:
-                    some_user_info_is_downloaded = True
                 canceler_tag = self.get_tag_from_vk_user_dataclass(
-                    canceler_info.user_info
+                    canceler_info
                 )
                 if order.creator_vk_id == order.canceler_vk_id:
                     maybe_creator_postfix = " (создателем)"
@@ -85,25 +73,17 @@ class HandlerHelpers:
                 )
             order_contents.append(f"Текст заказа: \"{order.text}\".")
             output.append("\n".join(order_contents))
-        return OrdersAsStrings(
-            output,
-            some_user_info_is_downloaded
-        )
+        return output
 
     async def get_notification_with_orders(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> NotificationWithOrders:
+            include_creator_info: bool = True) -> Notification:
         orders_as_strings = await self.get_orders_as_strings(
             orders, include_creator_info
         )
-        return NotificationWithOrders(
-            Notification(
-                text_for_client="\n\n".join(
-                    orders_as_strings.orders
-                )
-            ),
-            some_user_info_is_downloaded=(
-                orders_as_strings.some_user_info_is_downloaded
+        return Notification(
+            text_for_client="\n\n".join(
+                orders_as_strings
             )
         )
 
@@ -146,9 +126,8 @@ class HandlerHelpers:
                 include_creator_info=request_is_from_employee
             )
         )
-        if notification_with_orders.some_user_info_is_downloaded:
-            self.users_manager.commit()
-        return notification_with_orders.notification
+        self.users_manager.commit_if_something_is_changed()
+        return notification_with_orders
 
     async def request_monthly_paid_orders(
             self, current_chat_peer_id: int,
@@ -163,9 +142,8 @@ class HandlerHelpers:
                         orders
                     )
                 )
-                if notification_with_orders.some_user_info_is_downloaded:
-                    self.users_manager.commit()
-                return notification_with_orders.notification
+                self.users_manager.commit_if_something_is_changed()
+                return notification_with_orders
             return Notification(
                 text_for_employees=(
                     f"За {month} месяц {year} года не оплачено еще ни одного "

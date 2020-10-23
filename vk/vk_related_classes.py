@@ -56,13 +56,6 @@ class VKUserInfo:
     sex: enums.Sex
 
 
-@dataclass
-class RequestedVKUserInfo:
-
-    user_info: VKUserInfo
-    is_downloaded: bool
-
-
 class UserCallbackMessages:
 
     """
