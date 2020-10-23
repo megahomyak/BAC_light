@@ -16,7 +16,7 @@ class Notification:
 
     text_for_employees: Optional[str] = None
     text_for_client: Optional[str] = None
-    additional_messages: Optional[Iterable[Message]] = None
+    additional_messages: Iterable[Message] = ()
 
     def to_messages(self, client_peer_id: int) -> List[Message]:
         messages = []
