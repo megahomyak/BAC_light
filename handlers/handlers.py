@@ -188,7 +188,7 @@ class Handlers:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
-                models.Order.is_canceled
+                models.Order.is_canceled,
             ),
             no_orders_found_client_error="Среди твоих заказов нет отмененных!",
             no_orders_found_employees_error="Отмененных заказов еще нет!"
@@ -200,7 +200,7 @@ class Handlers:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
-                models.Order.is_paid
+                models.Order.is_paid,
             ),
             no_orders_found_client_error="Среди твоих заказов нет отмененных!",
             no_orders_found_employees_error=(
