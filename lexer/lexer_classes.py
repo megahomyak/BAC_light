@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, Any, Tuple, Callable, Type, Dict, List
 
 import exceptions
+from enums import GrammaticalCases
 
 
 class BaseArgType(ABC):
@@ -16,9 +17,63 @@ class BaseArgType(ABC):
     """
 
     @property
-    @abstractmethod
     def name(self) -> str:
+        """
+        Shortcut for the self.get_name()
+
+        Returns:
+            name of the argument
+        """
+        return self.get_name()
+
+    @abstractmethod
+    def _get_name(
+            self, case: GrammaticalCases = GrammaticalCases.NOMINATIVE,
+            singular: bool = True) -> Optional[str]:
+        """
+        Returns the string with the name of the argument or None, if there is
+        no matching name. Shouldn't be used, because there is a get_name method,
+        which is a wrapper around this method.
+
+        Args:
+            case:
+                grammatical case of the name
+            singular:
+                if True, name will be returned in a singular form, else in a
+                plural form
+
+        Returns:
+            name or None
+        """
         pass
+
+    def get_name(
+            self, case: GrammaticalCases = GrammaticalCases.NOMINATIVE,
+            singular: bool = True) -> str:
+        """
+        Returns the name of the argument. If nothing found, raises a
+        NotImplementedError.
+
+        Args:
+            case:
+                grammatical case of the name
+            singular:
+                if True, name will be returned in a singular form, else in a
+                plural form
+
+        Returns:
+            name of the argument
+
+        Raises:
+            NotImplementedError:
+                if name in the specified case and form isn't found
+        """
+        name = self._get_name(case, singular)
+        if name is None:
+            raise NotImplementedError(
+                f"There is no {case} for the name of {self.__class__.__name__}!"
+            )
+        return name
 
     @property
     @abstractmethod
