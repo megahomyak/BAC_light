@@ -95,6 +95,27 @@ class CachedVKUsersManager:
             self, vk_id: int,
             name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE
             ) -> vk_related_classes.VKUserInfo:
+        r"""
+        Gets user info by ID. If no user info found - downloads it, even with
+        the name cases.
+
+        Warnings:
+            Not even async-safe! Like, really! Here's an example:
+            [ task1: method is called                               | task2: - ]
+            [ task1: no user info found, let's wait and download it | task2: - ]
+            [ task1: *waits*   | task2: method is called                       ]
+            [ task1: *waits*   | task2: no user info found, let's wait and...  ]
+            Hey, but we already made this in task1!
+            \*Joker's trap\*
+            IDK how to fix it actually
+
+        Args:
+            vk_id: VK ID of user, info of who will be found.
+            name_case: case of user's name and surname.
+
+        Returns:
+            info about the specified user
+        """
         try:
             user_info: models.CachedVKUser = (
                 self.db_session
@@ -117,9 +138,7 @@ class CachedVKUsersManager:
                     surname=user_info_from_vk["last_name"]
                 )
             ]
-            self.db_session.add(
-                cached_vk_user
-            )
+            self.db_session.add(cached_vk_user)
             return cached_vk_user.get_as_vk_user_info_dataclass(name_case)
         else:
             try:

@@ -27,11 +27,11 @@ class HandlerHelpers:
 
     async def get_orders_as_strings(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> Tuple[str, ...]:
-        return tuple(
+            include_creator_info: bool = True) -> List[str]:
+        return [
             await self.get_order_as_string(order, include_creator_info)
             for order in orders
-        )
+        ]
 
     async def get_order_as_string(
             self, order: models.Order,
