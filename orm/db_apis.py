@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, Query
 from sqlalchemy.orm.exc import NoResultFound
 
 import exceptions
-from enums import NameCases
+from enums import GrammaticalCases
 from orm import models
 from vk import vk_related_classes
 from vk.vk_worker import VKWorker
@@ -93,7 +93,7 @@ class CachedVKUsersManager:
 
     async def get_user_info_by_id(
             self, vk_id: int,
-            name_case: NameCases = NameCases.NOM
+            name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE
             ) -> vk_related_classes.VKUserInfo:
         try:
             user_info: models.CachedVKUser = (

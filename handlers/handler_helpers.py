@@ -2,7 +2,7 @@ from typing import List, Tuple, Any
 
 from sqlalchemy import extract
 
-from enums import NameCases
+from enums import GrammaticalCases
 from orm import models, db_apis
 from vk import vk_constants
 from vk.vk_related_classes import VKUserInfo, Notification
@@ -38,7 +38,7 @@ class HandlerHelpers:
             include_creator_info: bool = True) -> str:
         if include_creator_info:
             creator_info = await self.users_manager.get_user_info_by_id(
-                order.creator_vk_id, NameCases.INS  # Instrumental case
+                order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
             )
             creator_tag = self.get_tag_from_vk_user_dataclass(creator_info)
             order_contents = [
@@ -51,7 +51,7 @@ class HandlerHelpers:
             order_contents = [f"Заказ с ID {order.id}:"]
         if order.is_taken:
             taker_info = await self.users_manager.get_user_info_by_id(
-                order.creator_vk_id, NameCases.INS  # Instrumental case
+                order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
             )
             taker_tag = self.get_tag_from_vk_user_dataclass(taker_info)
             order_contents.append(
@@ -59,7 +59,7 @@ class HandlerHelpers:
             )
         if order.is_canceled:
             canceler_info = await self.users_manager.get_user_info_by_id(
-                order.canceler_vk_id, NameCases.INS  # Instrumental case
+                order.canceler_vk_id, GrammaticalCases.INSTRUMENTAL
             )
             canceler_tag = self.get_tag_from_vk_user_dataclass(
                 canceler_info

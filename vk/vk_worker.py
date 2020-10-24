@@ -5,7 +5,7 @@ from typing import AsyncGenerator, Optional, Any
 import simplest_logger
 from simple_avk import SimpleAVK
 
-from enums import NameCases, Sex
+from enums import GrammaticalCases, Sex
 from vk import vk_constants
 from vk.vk_related_classes import Message
 
@@ -74,7 +74,7 @@ class VKWorker:
 
     async def get_user_info(
             self, user_vk_id: int,
-            name_case: NameCases = NameCases.NOM) -> dict:
+            name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE) -> dict:
         if self.logger is not None:
             self.logger.info(
                 f"Запрос информации о пользователе с VK ID {user_vk_id} с "

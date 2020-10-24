@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 
 import exceptions
 import vk.vk_related_classes
-from enums import NameCases, Sex
+from enums import GrammaticalCases, Sex
 
 DeclarativeBase = declarative_base()
 
@@ -65,7 +65,7 @@ class UserNameAndSurname(DeclarativeBase):
 
     vk_user_id = Column(Integer, ForeignKey("vk_users.id"), nullable=False)
 
-    case = Column(Enum(NameCases), nullable=False)
+    case = Column(Enum(GrammaticalCases), nullable=False)
 
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)
@@ -89,7 +89,8 @@ class CachedVKUser(DeclarativeBase):
     )
 
     def get_as_vk_user_info_dataclass(
-            self, name_case: NameCases) -> vk.vk_related_classes.VKUserInfo:
+            self, name_case: GrammaticalCases
+            ) -> vk.vk_related_classes.VKUserInfo:
         name = {name.case: name for name in self.names}.get(name_case)
         if name is None:
             raise exceptions.NameCaseNotFound(

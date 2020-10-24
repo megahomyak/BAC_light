@@ -7,11 +7,11 @@ class Sex(Enum):
     FEMALE = 1
 
 
-class NameCases(Enum):
+class GrammaticalCases(Enum):
 
-    NOM = "nom"
-    GEN = "gen"
-    DAT = "dat"
-    ACC = "acc"
-    INS = "ins"
-    ABL = "abl"
+    NOMINATIVE = "nom"
+    GENITIVE = "gen"
+    DATIVE = "dat"
+    ACCUSATIVE = "acc"
+    INSTRUMENTAL = "ins"
+    PREPOSITIONAL = "abl"  # IDK why short name is abl in docs...
