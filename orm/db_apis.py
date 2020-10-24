@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session, Query
 from sqlalchemy.orm.exc import NoResultFound
 
 import exceptions
+from enums import NameCases
 from orm import models
 from vk import vk_related_classes
-from vk.enums import NameCases
 from vk.vk_worker import VKWorker
 
 

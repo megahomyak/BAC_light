@@ -2,9 +2,9 @@ from typing import List, Tuple, Any
 
 from sqlalchemy import extract
 
+from enums import NameCases
 from orm import models, db_apis
 from vk import vk_constants
-from vk.enums import NameCases
 from vk.vk_related_classes import VKUserInfo, Notification
 from vk.vk_worker import VKWorker
 

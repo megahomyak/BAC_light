@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Tuple, Iterable
 
-from vk import enums, vk_constants
+import enums
+from vk import vk_constants
 
 
 @dataclass

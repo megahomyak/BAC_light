@@ -4,13 +4,13 @@ from typing import Tuple, List, Optional, Dict, Callable
 from sqlalchemy import not_
 from sqlalchemy.orm.exc import NoResultFound
 
+from enums import Sex
 from handlers.handler_helpers import HandlerHelpers
 from lexer import lexer_classes
 from orm import db_apis
 from orm import models
 from orm.db_apis import CachedVKUsersManager
 from vk import vk_constants
-from vk.enums import Sex
 from vk.vk_related_classes import Notification, UserCallbackMessages
 from vk.vk_worker import VKWorker
 
