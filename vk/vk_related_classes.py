@@ -74,8 +74,10 @@ class UserCallbackMessages:
         except KeyError:
             self.messages[user_vk_id] = [message_text]
 
-    def to_messages(self, separator="\n\n") -> Tuple[Message, ...]:
+    def to_messages(
+            self, separator: str = "\n\n",
+            prefix: str = "", postfix: str = "") -> Tuple[Message, ...]:
         return tuple(
-            Message(separator.join(texts), client_vk_id_)
+            Message(f"{prefix}{separator.join(texts)}{postfix}", client_vk_id_)
             for client_vk_id_, texts in self.messages.items()
         )

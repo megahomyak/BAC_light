@@ -9,19 +9,28 @@ from lexer.lexer_classes import (
 
 class IntArgType(BaseArgType):
 
+    def __init__(self, is_signed: bool = True) -> None:
+        self.is_signed = is_signed
+
     def _get_name(
             self, case: GrammaticalCases = GrammaticalCases.NOMINATIVE,
             singular: bool = True) -> str:
         if case is GrammaticalCases.NOMINATIVE:
             if singular:
-                return "целое число"
-            else:
+                if self.is_signed:
+                    return "целое число"
+                return "положительное целое число"
+            if self.is_signed:
                 return "целые числа"
+            return "положительные целые числа"
         elif case is GrammaticalCases.GENITIVE:
             if singular:
-                return "целого числа"
-            else:
+                if self.is_signed:
+                    return "целого числа"
+                return "положительного целого числа"
+            if self.is_signed:
                 return "целых чисел"
+            return "положительных целых чисел"
 
     @property
     def name(self) -> str:
@@ -29,7 +38,9 @@ class IntArgType(BaseArgType):
 
     @property
     def regex(self) -> str:
-        return r"-?\d+"
+        if self.is_signed:
+            return r"-?\d+"
+        return r"\d+"
 
     def convert(self, arg: str) -> int:
         return int(arg)

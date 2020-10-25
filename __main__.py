@@ -167,7 +167,7 @@ class MainLogic:
                     ),
                     Arg(
                         "выручка (с каждого указанного заказа)",
-                        IntArgType()
+                        IntArgType(is_signed=False)
                     )
                 )
             ),
