@@ -2,7 +2,6 @@ import datetime
 from typing import Tuple, List, Optional, Dict, Callable
 
 from sqlalchemy import not_
-from sqlalchemy.orm.exc import NoResultFound
 
 from enums import Sex
 from handlers.handler_helpers import HandlerHelpers
@@ -15,6 +14,8 @@ from vk.vk_related_classes import Notification, UserCallbackMessages
 from vk.vk_worker import VKWorker
 
 
+# noinspection GrazieInspection
+# because "Also to make client message" sounds quite normal
 class Handlers:
 
     def __init__(
@@ -51,84 +52,79 @@ class Handlers:
             self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
             cancellation_reason: str) -> Notification:
-        client_output: List[str] = []
         employees_output: List[str] = []
         client_callback_messages = UserCallbackMessages()
         canceler_tag: Optional[str] = None  # To make client message
         canceled_word: Optional[str] = None  # Also to make client message
-        for order_id in order_ids:
-            try:
-                order = self.orders_manager.get_order_by_id(order_id)
-            except NoResultFound:
-                client_output.append(f"Заказ с ID {order_id} не найден!")
+        found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+        client_output: List[str] = [
+            f"Заказ с ID {failed_id} не найден!"
+            for failed_id in found_orders.failed_ids
+        ]
+        request_is_from_client = (
+             current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+        )
+        for order in found_orders.successful_rows:
+            if request_is_from_client and order.creator_vk_id != client_vk_id:
+                client_output_str = (
+                    f"Заказ с ID {order.id} не твой, поэтому его "
+                    f"нельзя отменить!"
+                )
+            elif order.is_paid:
+                client_output_str = (
+                    f"Заказ с ID {order.id} уже оплачен, "
+                    f"его нельзя отменить!"
+                )
+            elif order.is_canceled:
+                client_output_str = (
+                    f"Заказ с ID {order.id} уже отменен!"
+                )
+            elif (
+                order.is_taken and not order.taker_vk_id == client_vk_id
+                and
+                order.creator_vk_id != client_vk_id
+            ):
+                client_output_str = (
+                    f"Заказ с ID {order.id} взят другим "
+                    f"сотрудником, поэтому его нельзя отменить!"
+                )
             else:
-                if (
-                    current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
-                    and
-                    order.creator_vk_id != client_vk_id
-                ):
-                    client_output.append(
-                        f"Заказ с ID {order_id} не твой, поэтому его "
-                        f"нельзя отменить!"
+                order.canceler_vk_id = client_vk_id
+                order.cancellation_reason = cancellation_reason
+                client_output_str = f"Заказ с ID {order.id} отменен!"
+                if canceler_tag is None:
+                    sender_info = (
+                        await self.users_manager.get_user_info_by_id(
+                            client_vk_id
+                        )
                     )
-                elif order.is_paid:
-                    client_output.append(
-                        f"Заказ с ID {order_id} уже оплачен, "
-                        f"его нельзя отменить!"
+                    canceled_word = (
+                        "отменил"
+                        if sender_info.sex is Sex.MALE else
+                        "отменила"
                     )
-                elif order.is_canceled:
-                    client_output.append(
-                        f"Заказ с ID {order_id} уже отменен!"
+                    canceler_tag = (
+                        self.helpers.get_tag_from_vk_user_dataclass(
+                            sender_info
+                        )
                     )
-                elif (
-                    order.is_taken and not order.taker_vk_id == client_vk_id
-                    and
-                    order.creator_vk_id != client_vk_id
-                ):
-                    client_output.append(
-                        f"Заказ с ID {order_id} взят другим "
-                        f"сотрудником, поэтому его нельзя отменить!"
+                    del sender_info
+                if not request_is_from_client:  # Request is from employee
+                    client_callback_messages.add_message(
+                        order.creator_vk_id, (
+                            f"Сотрудник {canceler_tag} {canceled_word}"
+                            f" твой заказ с ID {order.id} (и текстом "
+                            f"\"{order.text}\") по причине "
+                            f"\"{cancellation_reason}\"!"
+                        )
                     )
                 else:
-                    order.canceler_vk_id = client_vk_id
-                    order.cancellation_reason = cancellation_reason
-                    client_output.append(f"Заказ с ID {order.id} отменен!")
-                    if canceler_tag is None:
-                        sender_info = (
-                            await self.users_manager.get_user_info_by_id(
-                                client_vk_id
-                            )
-                        )
-                        canceled_word = (
-                            "отменил"
-                            if sender_info.sex is Sex.MALE else
-                            "отменила"
-                        )
-                        canceler_tag = (
-                            self.helpers.get_tag_from_vk_user_dataclass(
-                                sender_info
-                            )
-                        )
-                        del sender_info
-                    if (
-                        current_chat_peer_id
-                        ==
-                        vk_constants.EMPLOYEES_CHAT_PEER_ID
-                    ):
-                        client_callback_messages.add_message(
-                            order.creator_vk_id, (
-                                f"Сотрудник {canceler_tag} {canceled_word}"
-                                f" твой заказ с ID {order.id} (и текстом "
-                                f"\"{order.text}\") по причине "
-                                f"\"{cancellation_reason}\"!"
-                            )
-                        )
-                    else:
-                        employees_output.append(
-                            f"Клиент {canceler_tag} {canceled_word} заказ с "
-                            f"ID {order.id} (и текстом \"{order.text}\") по "
-                            f"причине \"{cancellation_reason}\"!"
-                        )
+                    employees_output.append(
+                        f"Клиент {canceler_tag} {canceled_word} заказ с "
+                        f"ID {order.id} (и текстом \"{order.text}\") по "
+                        f"причине \"{cancellation_reason}\"!"
+                    )
+            client_output.append(client_output_str)
         self.orders_manager.commit_if_something_is_changed()
         self.users_manager.commit_if_something_is_changed()
         return Notification(
@@ -228,71 +224,70 @@ class Handlers:
             order_ids: Tuple[int],
             earnings_amount: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            output: List[str] = []
             client_callback_messages = UserCallbackMessages()
             employee_tag: Optional[str] = None  # To make client message
             marked_word: Optional[str] = None  # Also to make client message
-            for order_id in order_ids:
-                try:
-                    order = self.orders_manager.get_order_by_id(order_id)
-                except NoResultFound:
-                    output_str = f"Заказ с ID {order_id} не найден!"
+            found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+            output: List[str] = [
+                f"Заказ с ID {failed_id} не найден!"
+                for failed_id in found_orders.failed_ids
+            ]
+            for order in found_orders.successful_rows:
+                if order.is_paid:
+                    output_str = f"Заказ с ID {order.id} уже оплачен!"
+                elif order.is_canceled:
+                    output_str = (
+                        f"Заказ с ID {order.id} отменен, поэтому его "
+                        f"нельзя оплатить!"
+                    )
+                elif not order.is_taken:
+                    output_str = (
+                        f"Заказ с ID {order.id} не взят, его нельзя "
+                        f"оплатить!"
+                    )
+                elif order.taker_vk_id != employee_vk_id:
+                    employee_info = await (
+                        self.users_manager.get_user_info_by_id(
+                            employee_vk_id
+                        )
+                    )
+                    marked_word = (
+                        "взял"
+                        if employee_info.sex is Sex.MALE else
+                        "взяла"
+                    )
+                    output_str = (
+                        f"Заказ с ID {order.id} {marked_word} не ты!"
+                    )
                 else:
-                    if order.is_paid:
-                        output_str = f"Заказ с ID {order_id} уже оплачен!"
-                    elif order.is_canceled:
-                        output_str = (
-                            f"Заказ с ID {order_id} отменен, поэтому его "
-                            f"нельзя оплатить!"
-                        )
-                    elif not order.is_taken:
-                        output_str = (
-                            f"Заказ с ID {order_id} не взят, его нельзя "
-                            f"оплатить!"
-                        )
-                    elif order.taker_vk_id != employee_vk_id:
-                        employee_info = await (
-                            self.users_manager.get_user_info_by_id(
+                    order.earnings = earnings_amount
+                    order.earning_date = datetime.date.today()
+                    output_str = (
+                        f"Заказ с ID {order.id} отмечен оплаченным."
+                    )
+                    if employee_tag is None:
+                        employee_info = (
+                            await self.users_manager.get_user_info_by_id(
                                 employee_vk_id
                             )
                         )
+                        employee_tag = (
+                            self.helpers.get_tag_from_vk_user_dataclass(
+                                employee_info
+                            )
+                        )
                         marked_word = (
-                            "взял"
-                            if employee_info.sex is Sex.MALE else
-                            "взяла"
+                            "отметил"
+                            if employee_info.sex == Sex.MALE else
+                            "отметила"
                         )
-                        output_str = (
-                            f"Заказ с ID {order_id} {marked_word} не ты!"
-                        )
-                    else:
-                        order.earnings = earnings_amount
-                        order.earning_date = datetime.date.today()
-                        output_str = (
-                            f"Заказ с ID {order_id} отмечен оплаченным."
-                        )
-                        if employee_tag is None:
-                            employee_info = (
-                                await self.users_manager.get_user_info_by_id(
-                                    employee_vk_id
-                                )
-                            )
-                            employee_tag = (
-                                self.helpers.get_tag_from_vk_user_dataclass(
-                                    employee_info
-                                )
-                            )
-                            marked_word = (
-                                "отметил"
-                                if employee_info.sex == Sex.MALE else
-                                "отметила"
-                            )
-                            del employee_info
-                        client_callback_messages.add_message(
-                            order.creator_vk_id,
-                            f"{employee_tag} {marked_word} оплаченным твой "
-                            f"заказ с ID {order_id} (и текстом "
-                            f"\"{order.text}\")!"
-                        )
+                        del employee_info
+                    client_callback_messages.add_message(
+                        order.creator_vk_id,
+                        f"{employee_tag} {marked_word} оплаченным твой "
+                        f"заказ с ID {order.id} (и текстом "
+                        f"\"{order.text}\")!"
+                    )
                 output.append(output_str)
             self.orders_manager.commit_if_something_is_changed()
             self.users_manager.commit_if_something_is_changed()
@@ -335,57 +330,55 @@ class Handlers:
             self, current_chat_peer_id: int, user_vk_id: int,
             order_ids: Tuple[int]) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            employee_output: List[str] = []
             client_callback_messages = UserCallbackMessages()
             employee_tag: Optional[str] = None  # To make client message
             taken_word: Optional[str] = None  # Also to make client message
-            for order_id in order_ids:
-                try:
-                    order = self.orders_manager.get_order_by_id(order_id)
-                except NoResultFound:
-                    employee_output.append(f"Заказ с ID {order_id} не найден!")
+            found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+            output: List[str] = [
+                f"Заказ с ID {failed_id} не найден!"
+                for failed_id in found_orders.failed_ids
+            ]
+            for order in found_orders.successful_rows:
+                if order.is_taken:
+                    output_str = f"Заказ с ID {order.id} уже взят!"
+                elif order.is_canceled:
+                    output_str = (
+                        f"Заказ с ID {order.id} отменен, его нельзя взять!"
+                    )
                 else:
-                    if order.is_taken:
-                        employee_output.append(
-                            f"Заказ с ID {order_id} уже взят!"
-                        )
-                    elif order.is_canceled:
-                        employee_output.append(
-                            f"Заказ с ID {order_id} отменен, его нельзя взять!"
-                        )
-                    else:
-                        order.taker_vk_id = user_vk_id
-                        employee_output.append(f"Заказ с ID {order_id} взят!")
-                        if employee_tag is None:
-                            employee_info = (
-                                await self.users_manager.get_user_info_by_id(
-                                    user_vk_id
-                                )
+                    order.taker_vk_id = user_vk_id
+                    output_str = f"Заказ с ID {order.id} взят!"
+                    if employee_tag is None:
+                        employee_info = (
+                            await self.users_manager.get_user_info_by_id(
+                                user_vk_id
                             )
-                            employee_tag = (
-                                self.helpers.get_tag_from_vk_user_dataclass(
-                                    employee_info
-                                )
-                            )
-                            taken_word = (
-                                "взял"
-                                if employee_info.sex == Sex.MALE else
-                                "взяла"
-                            )
-                            del employee_info
-                        client_callback_messages.add_message(
-                            order.creator_vk_id,
-                            f"{employee_tag} {taken_word} твой заказ с ID "
-                            f"{order_id} (и текстом \"{order.text}\")! "
-                            f"Открой ЛС или напиши ему сам для обсуждения "
-                            f"деталей заказа и получения результата."
                         )
+                        employee_tag = (
+                            self.helpers.get_tag_from_vk_user_dataclass(
+                                employee_info
+                            )
+                        )
+                        taken_word = (
+                            "взял"
+                            if employee_info.sex == Sex.MALE else
+                            "взяла"
+                        )
+                        del employee_info
+                    client_callback_messages.add_message(
+                        order.creator_vk_id,
+                        f"{employee_tag} {taken_word} твой заказ с ID "
+                        f"{order.id} (и текстом \"{order.text}\")! "
+                        f"Открой ЛС или напиши ему сам для обсуждения "
+                        f"деталей заказа и получения результата."
+                    )
+                output.append(output_str)
             self.orders_manager.commit_if_something_is_changed()
             self.users_manager.commit_if_something_is_changed()
             return Notification(
                 text_for_employees=(
-                    "\n".join(employee_output)
-                    if employee_output else
+                    "\n".join(output)
+                    if output else
                     None
                 ),
                 additional_messages=client_callback_messages.to_messages()
@@ -438,34 +431,30 @@ class Handlers:
             self, client_vk_id: int,
             current_chat_peer_id: int,
             order_ids: Tuple[int, ...]) -> Notification:
-        output: List[str] = []
-        for order_id in order_ids:
-            try:
-                order = self.orders_manager.get_order_by_id(order_id)
-            except NoResultFound:
-                output.append(f"Заказа с ID {order_id} нет!")
+        found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+        output: List[str] = [
+            f"Заказ с ID {failed_id} не найден!"
+            for failed_id in found_orders.failed_ids
+        ]
+        request_is_from_client = (
+            current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+        )
+        for order in found_orders.successful_rows:
+            if (
+                request_is_from_client
+                and
+                order.creator_vk_id != client_vk_id
+            ):
+                output.append(f"Заказ с ID {order.id} тебе не принадлежит!")
             else:
-                if (
-                    current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
-                    and
-                    order.creator_vk_id != client_vk_id
-                ):
-                    output.append(f"Заказ с ID {order_id} тебе не принадлежит!")
-                else:
-                    output.append(
-                        await self.helpers.get_order_as_string(
-                            order,
-                            include_creator_info=(
-                                True
-                                if (
-                                    current_chat_peer_id
-                                    ==
-                                    vk_constants.EMPLOYEES_CHAT_PEER_ID
-                                ) else
-                                False
-                            )
-                        )
+                output.append(
+                    await self.helpers.get_order_as_string(
+                        order,
+                        # If request is from client - no need to include creator
+                        # info, because client is the creator
+                        include_creator_info=not request_is_from_client
                     )
+                )
         return Notification(
             text_for_client="\n\n".join(output)
         )

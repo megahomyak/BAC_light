@@ -1,4 +1,5 @@
-from typing import Any, List
+from dataclasses import dataclass
+from typing import Any, List, Iterable
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, Query
@@ -39,6 +40,13 @@ def get_db_session(path_to_sqlite_db: str) -> MySession:
     # checking for staging changes before commit
 
 
+@dataclass
+class FoundResults:
+
+    failed_ids: List[int]
+    successful_rows: List[models.Order]
+
+
 class OrdersManager:
 
     def __init__(self, sqlalchemy_session: MySession) -> None:
@@ -61,13 +69,16 @@ class OrdersManager:
             .all()
         )
 
-    def get_order_by_id(self, order_id: int) -> models.Order:
-        return (
-            self.db_session
-            .query(models.Order)
-            .filter_by(id=order_id)
-            .one()
+    def get_orders_by_ids(self, order_ids: Iterable[int]) -> FoundResults:
+        orders: List[models.Order] = (
+            self._get_query()
+            .filter(models.Order.id.in_(order_ids))
+            .all()
         )
+        failed_ids: List[int] = list(order_ids)
+        for order in orders:
+            failed_ids.remove(order.id)
+        return FoundResults(failed_ids, orders)
 
     def commit(self) -> None:
         self.db_session.commit()
