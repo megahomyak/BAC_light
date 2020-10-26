@@ -87,7 +87,7 @@ class Handlers:
                 order.cancellation_reason = cancellation_reason
                 user_output_str = f"Заказ с ID {order.id} отменен!"
                 callback_str = (
-                    f"заказ с ID {order.id} (и текстом \"{order.text}\")"
+                    f"{order.id} (\"{order.text}\")"
                 )
                 if request_is_from_client:
                     employees_callback.append(
@@ -269,7 +269,7 @@ class Handlers:
                     )
                     client_callback_messages.add_message(
                         order.creator_vk_id,
-                        f"заказ с ID {order.id} (и текстом \"{order.text}\")"
+                        f"{order.id} (\"{order.text}\")"
                     )
                 output.append(output_str)
             self.orders_manager.commit_if_something_is_changed()
@@ -356,7 +356,7 @@ class Handlers:
                     output_str = f"Заказ с ID {order.id} взят!"
                     client_callback_messages.add_message(
                         order.creator_vk_id,
-                        f"заказ с ID {order.id} (и текстом \"{order.text}\")"
+                        f"{order.id} (\"{order.text}\")"
                     )
                 output.append(output_str)
             self.orders_manager.commit_if_something_is_changed()
