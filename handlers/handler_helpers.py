@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import List, Tuple, Any
 
 from sqlalchemy import extract
@@ -7,6 +8,13 @@ from orm import models, db_apis
 from vk import vk_constants
 from vk.vk_related_classes import VKUserInfo, Notification
 from vk.vk_worker import VKWorker
+
+
+@dataclass
+class ResultSection:
+
+    beginning: str
+    row_ids: List[int]
 
 
 class HandlerHelpers:
@@ -162,3 +170,12 @@ class HandlerHelpers:
                     "сотрудники!"
                 )
             )
+
+    @staticmethod
+    def get_order_manipulation_results_as_list(
+            *sections: ResultSection) -> List[str]:
+        return [
+            f"{section.beginning}: {', '.join(map(str, section.row_ids))}"
+            for section in sections
+            if section.row_ids
+        ]

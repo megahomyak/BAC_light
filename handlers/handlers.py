@@ -4,7 +4,7 @@ from typing import Tuple, List, Dict, Callable
 from sqlalchemy import not_
 
 from enums import Sex
-from handlers.handler_helpers import HandlerHelpers
+from handlers.handler_helpers import HandlerHelpers, ResultSection
 from lexer import lexer_classes
 from orm import db_apis
 from orm import models
@@ -53,39 +53,31 @@ class Handlers:
         employees_callback: List[str] = []
         client_callback_messages = UserCallbackMessages()
         found_orders = self.orders_manager.get_orders_by_ids(order_ids)
-        user_output: List[str] = [
-            f"Заказ с ID {failed_id} не найден!"
-            for failed_id in found_orders.failed_ids
-        ]
+        not_owned_by_user_order_ids: List[int] = []
+        paid_order_ids: List[int] = []
+        already_canceled_order_ids: List[int] = []
+        taken_by_other_employee_order_ids: List[int] = []
+        canceled_order_ids: List[int] = []
         request_is_from_client = (
              current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
         )
         for order in found_orders.successful_rows:
             if request_is_from_client and order.creator_vk_id != client_vk_id:
-                user_output_str = (
-                    f"Заказ с ID {order.id} не твой, поэтому его "
-                    f"нельзя отменить!"
-                )
+                not_owned_by_user_order_ids.append(order.id)
             elif order.is_paid:
-                user_output_str = (
-                    f"Заказ с ID {order.id} уже оплачен, "
-                    f"его нельзя отменить!"
-                )
+                paid_order_ids.append(order.id)
             elif order.is_canceled:
-                user_output_str = f"Заказ с ID {order.id} уже отменен!"
+                already_canceled_order_ids.append(order.id)
             elif (
                 order.is_taken and not order.taker_vk_id == client_vk_id
                 and
                 order.creator_vk_id != client_vk_id
             ):
-                user_output_str = (
-                    f"Заказ с ID {order.id} взят другим "
-                    f"сотрудником, поэтому его нельзя отменить!"
-                )
+                taken_by_other_employee_order_ids.append(order.id)
             else:
                 order.canceler_vk_id = client_vk_id
                 order.cancellation_reason = cancellation_reason
-                user_output_str = f"Заказ с ID {order.id} отменен!"
+                canceled_order_ids.append(order.id)
                 callback_str = (
                     f"{order.id} (\"{order.text}\")"
                 )
@@ -98,7 +90,34 @@ class Handlers:
                         order.creator_vk_id,
                         callback_str
                     )
-            user_output.append(user_output_str)
+        user_output = self.helpers.get_order_manipulation_results_as_list(
+            ResultSection(
+                "ID заказов, которых просто нет", found_orders.failed_ids
+            ),
+            ResultSection(
+                "ID оплаченных заказов, их нельзя отменить", paid_order_ids
+            ),
+            ResultSection(
+                "ID уже отмененных заказов", already_canceled_order_ids
+            ),
+            ResultSection(
+                (
+                    "ID заказов, которые тебе не принадлежат, поэтому их "
+                    "нельзя отменить"
+                ),
+                not_owned_by_user_order_ids
+            ),
+            ResultSection(
+                (
+                    "ID заказов, которые уже взяты другим сотрудником, "
+                    "поэтому их нельзя отменить"
+                ),
+                taken_by_other_employee_order_ids
+            ),
+            ResultSection(
+                "ID успешно отмененных заказов", canceled_order_ids
+            )
+        )
         self.orders_manager.commit_if_something_is_changed()
         self.users_manager.commit_if_something_is_changed()
         sender_info = (
@@ -230,48 +249,28 @@ class Handlers:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
             found_orders = self.orders_manager.get_orders_by_ids(order_ids)
-            output: List[str] = [
-                f"Заказ с ID {failed_id} не найден!"
-                for failed_id in found_orders.failed_ids
-            ]
+            already_paid_order_ids: List[int] = []
+            canceled_order_ids: List[int] = []
+            not_taken_order_ids: List[int] = []
+            taken_by_other_employee_order_ids: List[int] = []
+            marked_as_paid_order_ids: List[int] = []
             for order in found_orders.successful_rows:
                 if order.is_paid:
-                    output_str = f"Заказ с ID {order.id} уже оплачен!"
+                    already_paid_order_ids.append(order.id)
                 elif order.is_canceled:
-                    output_str = (
-                        f"Заказ с ID {order.id} отменен, поэтому его "
-                        f"нельзя оплатить!"
-                    )
+                    canceled_order_ids.append(order.id)
                 elif not order.is_taken:
-                    output_str = (
-                        f"Заказ с ID {order.id} не взят, его нельзя "
-                        f"оплатить!"
-                    )
+                    not_taken_order_ids.append(order.id)
                 elif order.taker_vk_id != employee_vk_id:
-                    employee_info = await (
-                        self.users_manager.get_user_info_by_id(
-                            employee_vk_id
-                        )
-                    )
-                    marked_word = (
-                        "взял"
-                        if employee_info.sex is Sex.MALE else
-                        "взяла"
-                    )
-                    output_str = (
-                        f"Заказ с ID {order.id} {marked_word} не ты!"
-                    )
+                    taken_by_other_employee_order_ids.append(order.id)
                 else:
                     order.earnings = earnings_amount
                     order.earning_date = datetime.date.today()
-                    output_str = (
-                        f"Заказ с ID {order.id} отмечен оплаченным."
-                    )
+                    marked_as_paid_order_ids.append(order.id)
                     client_callback_messages.add_message(
                         order.creator_vk_id,
                         f"{order.id} (\"{order.text}\")"
                     )
-                output.append(output_str)
             self.orders_manager.commit_if_something_is_changed()
             self.users_manager.commit_if_something_is_changed()
             additional_messages = ()
@@ -299,6 +298,38 @@ class Handlers:
                     separator=", ",
                     postfix="."
                 )
+            output = self.helpers.get_order_manipulation_results_as_list(
+                ResultSection(
+                    "ID заказов, которых просто нет", found_orders.failed_ids
+                ),
+                ResultSection(
+                    "ID уже оплаченных заказов", already_paid_order_ids
+                ),
+                ResultSection(
+                    (
+                        "ID заказов, которые уже кто-то отменил, поэтому их "
+                        "нельзя оплатить"
+                    ), canceled_order_ids
+                ),
+                ResultSection(
+                    (
+                        "ID заказов, которые еще никто не взял, поэтому их "
+                        "нельзя оплатить"
+                    ), not_taken_order_ids
+                ),
+                ResultSection(
+                    (
+                        "ID заказов, которые взяты не тобой, поэтому их нельзя "
+                        "оплатить"
+                    ), taken_by_other_employee_order_ids
+                ),
+                ResultSection(
+                    (
+                        f"ID заказов, успешно отмеченных оплаченными на сумму "
+                        f"{earnings_amount} руб."
+                    ), marked_as_paid_order_ids
+                )
+            )
             return Notification(
                 text_for_employees=(
                     "\n".join(output)
@@ -340,25 +371,21 @@ class Handlers:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
             found_orders = self.orders_manager.get_orders_by_ids(order_ids)
-            output: List[str] = [
-                f"Заказ с ID {failed_id} не найден!"
-                for failed_id in found_orders.failed_ids
-            ]
+            already_taken_order_ids: List[int] = []
+            canceled_order_ids: List[int] = []
+            taken_order_ids: List[int] = []
             for order in found_orders.successful_rows:
                 if order.is_taken:
-                    output_str = f"Заказ с ID {order.id} уже взят!"
+                    already_taken_order_ids.append(order.id)
                 elif order.is_canceled:
-                    output_str = (
-                        f"Заказ с ID {order.id} отменен, его нельзя взять!"
-                    )
+                    canceled_order_ids.append(order.id)
                 else:
                     order.taker_vk_id = user_vk_id
-                    output_str = f"Заказ с ID {order.id} взят!"
+                    taken_order_ids.append(order.id)
                     client_callback_messages.add_message(
                         order.creator_vk_id,
                         f"{order.id} (\"{order.text}\")"
                     )
-                output.append(output_str)
             self.orders_manager.commit_if_something_is_changed()
             self.users_manager.commit_if_something_is_changed()
             additional_messages = ()
@@ -385,6 +412,20 @@ class Handlers:
                     separator=", ",
                     postfix=". Открой ЛС или напиши сотруднику самостоятельно."
                 )
+            output = self.helpers.get_order_manipulation_results_as_list(
+                ResultSection(
+                    "ID заказов, которых просто нет", found_orders.failed_ids
+                ),
+                ResultSection(
+                    "ID заказов, которые уже взяты", already_taken_order_ids
+                ),
+                ResultSection(
+                    "ID отмененных заказов, их нельзя взять", canceled_order_ids
+                ),
+                ResultSection(
+                    "ID успешно взятых заказов", taken_order_ids
+                )
+            )
             return Notification(
                 text_for_employees=(
                     "\n".join(output)
