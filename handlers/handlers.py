@@ -410,7 +410,10 @@ class Handlers:
                         f"{employee_tag} {taken_word} твои заказы: "
                     ),
                     separator=", ",
-                    postfix=". Открой ЛС или напиши сотруднику самостоятельно."
+                    postfix=(
+                        ". Подожди, пока сотрудник тебе напишет или не медли - "
+                        "напиши сотруднику самостоятельно."
+                    )
                 )
             output = self.helpers.get_order_manipulation_results_as_list(
                 ResultSection(
