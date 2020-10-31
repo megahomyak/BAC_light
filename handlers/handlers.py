@@ -495,8 +495,7 @@ class Handlers:
         )
 
     async def get_order_by_id(
-            self, client_vk_id: int,
-            current_chat_peer_id: int,
+            self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int, ...]) -> Notification:
         found_orders = self.everything_manager.orders_manager.get_orders_by_ids(
             order_ids
