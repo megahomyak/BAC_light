@@ -24,7 +24,7 @@ from vk.vk_worker import VKWorker
 class MainLogic:
 
     def __init__(
-            self, everything_manager: db_apis.EverythingManager,
+            self, everything_manager: db_apis.ManagersContainer,
             vk_worker: VKWorker, handlers: Handlers,
             logger: Optional[simplest_logger.Logger] = None,
             log_command_parsing_errors: bool = True) -> None:
@@ -431,7 +431,7 @@ async def main():
             simplest_logger.Logger("vk_info.log"),
             log_only_user_info_getting=True
         )
-        everything_manager = db_apis.EverythingManager(
+        everything_manager = db_apis.ManagersContainer(
             db_apis.get_db_session("sqlite:///BAC_light.db"),
             vk_worker
         )

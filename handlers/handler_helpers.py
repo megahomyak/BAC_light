@@ -21,7 +21,7 @@ class HandlerHelpers:
 
     def __init__(
             self, vk_worker: VKWorker,
-            everything_manager: db_apis.EverythingManager) -> None:
+            everything_manager: db_apis.ManagersContainer) -> None:
         self.vk_worker = vk_worker
         self.everything_manager = everything_manager
 

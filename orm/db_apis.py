@@ -186,7 +186,7 @@ class CachedVKUsersManager:
         self.db_session.commit_if_something_is_changed()
 
 
-class EverythingManager:
+class ManagersContainer:
 
     """
     A facade for the OrdersManager and CachedVKUsersManager.
