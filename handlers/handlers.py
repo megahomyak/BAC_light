@@ -8,7 +8,6 @@ from handlers.handler_helpers import HandlerHelpers, ResultSection
 from lexer import lexer_classes
 from orm import db_apis
 from orm import models
-from orm.db_apis import CachedVKUsersManager
 from vk import vk_constants
 from vk.vk_related_classes import Notification, UserCallbackMessages
 from vk.vk_worker import VKWorker
@@ -18,13 +17,11 @@ class Handlers:
 
     def __init__(
             self, vk_worker: VKWorker,
-            orders_manager: db_apis.OrdersManager,
             handler_helpers: HandlerHelpers,
-            users_manager: CachedVKUsersManager) -> None:
+            everything_manager: db_apis.EverythingManager) -> None:
         self.vk_worker = vk_worker
-        self.orders_manager = orders_manager
         self.helpers = handler_helpers
-        self.users_manager = users_manager
+        self.everything_manager = everything_manager
 
     async def create_order(
             self, client_vk_id: int, text: str) -> Notification:
@@ -32,10 +29,14 @@ class Handlers:
             creator_vk_id=client_vk_id,
             text=text
         )
-        self.orders_manager.add(order)
-        self.orders_manager.commit()
-        client_info = await self.users_manager.get_user_info_by_id(client_vk_id)
-        self.users_manager.commit_if_something_is_changed()
+        self.everything_manager.orders_manager.add(order)
+        self.everything_manager.orders_manager.commit()
+        client_info = (
+            await self.everything_manager.users_manager.get_user_info_by_id(
+                client_vk_id
+            )
+        )
+        self.everything_manager.users_manager.commit_if_something_is_changed()
         made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
         return Notification(
             text_for_client=f"Заказ с ID {order.id} создан!",
@@ -52,7 +53,9 @@ class Handlers:
             cancellation_reason: str) -> Notification:
         employees_callback: List[str] = []
         client_callback_messages = UserCallbackMessages()
-        found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+        found_orders = (
+            self.everything_manager.orders_manager.get_orders_by_ids(order_ids)
+        )
         not_owned_by_user_order_ids: List[int] = []
         paid_order_ids: List[int] = []
         already_canceled_order_ids: List[int] = []
@@ -118,10 +121,9 @@ class Handlers:
                 "ID успешно отмененных заказов", canceled_order_ids
             )
         )
-        self.orders_manager.commit_if_something_is_changed()
-        self.users_manager.commit_if_something_is_changed()
+        self.everything_manager.commit_if_something_is_changed()
         sender_info = (
-            await self.users_manager.get_user_info_by_id(
+            await self.everything_manager.users_manager.get_user_info_by_id(
                 client_vk_id
             )
         )
@@ -248,7 +250,11 @@ class Handlers:
             earnings_amount: int) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
-            found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+            found_orders = (
+                self.everything_manager.orders_manager.get_orders_by_ids(
+                    order_ids
+                )
+            )
             already_paid_order_ids: List[int] = []
             canceled_order_ids: List[int] = []
             not_taken_order_ids: List[int] = []
@@ -271,12 +277,11 @@ class Handlers:
                         order.creator_vk_id,
                         f"{order.id} (\"{order.text}\")"
                     )
-            self.orders_manager.commit_if_something_is_changed()
-            self.users_manager.commit_if_something_is_changed()
+            self.everything_manager.commit_if_something_is_changed()
             additional_messages = ()
             if client_callback_messages.messages:
-                employee_info = (
-                    await self.users_manager.get_user_info_by_id(
+                employee_info = await (
+                    self.everything_manager.users_manager.get_user_info_by_id(
                         employee_vk_id
                     )
                 )
@@ -370,7 +375,11 @@ class Handlers:
             order_ids: Tuple[int]) -> Notification:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
-            found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+            found_orders = (
+                self.everything_manager.orders_manager.get_orders_by_ids(
+                    order_ids
+                )
+            )
             already_taken_order_ids: List[int] = []
             canceled_order_ids: List[int] = []
             taken_order_ids: List[int] = []
@@ -386,12 +395,11 @@ class Handlers:
                         order.creator_vk_id,
                         f"{order.id} (\"{order.text}\")"
                     )
-            self.orders_manager.commit_if_something_is_changed()
-            self.users_manager.commit_if_something_is_changed()
+            self.everything_manager.commit_if_something_is_changed()
             additional_messages = ()
             if client_callback_messages.messages:
-                employee_info = (
-                    await self.users_manager.get_user_info_by_id(
+                employee_info = await (
+                    self.everything_manager.users_manager.get_user_info_by_id(
                         user_vk_id
                     )
                 )
@@ -485,7 +493,9 @@ class Handlers:
             self, client_vk_id: int,
             current_chat_peer_id: int,
             order_ids: Tuple[int, ...]) -> Notification:
-        found_orders = self.orders_manager.get_orders_by_ids(order_ids)
+        found_orders = self.everything_manager.orders_manager.get_orders_by_ids(
+            order_ids
+        )
         output: List[str] = [
             f"Заказ с ID {failed_id} не найден!"
             for failed_id in found_orders.failed_ids

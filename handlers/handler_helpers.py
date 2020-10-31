@@ -21,11 +21,9 @@ class HandlerHelpers:
 
     def __init__(
             self, vk_worker: VKWorker,
-            users_manager: db_apis.CachedVKUsersManager,
-            orders_manager: db_apis.OrdersManager) -> None:
+            everything_manager: db_apis.EverythingManager) -> None:
         self.vk_worker = vk_worker
-        self.users_manager = users_manager
-        self.orders_manager = orders_manager
+        self.everything_manager = everything_manager
 
     @staticmethod
     def get_tag_from_vk_user_dataclass(user_info: VKUserInfo) -> str:
@@ -45,8 +43,10 @@ class HandlerHelpers:
             self, order: models.Order,
             include_creator_info: bool = True) -> str:
         if include_creator_info:
-            creator_info = await self.users_manager.get_user_info_by_id(
-                order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
+            creator_info = await (
+                self.everything_manager.users_manager.get_user_info_by_id(
+                    order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
+                )
             )
             creator_tag = self.get_tag_from_vk_user_dataclass(creator_info)
             order_contents = [
@@ -58,16 +58,20 @@ class HandlerHelpers:
         else:
             order_contents = [f"Заказ с ID {order.id}:"]
         if order.is_taken:
-            taker_info = await self.users_manager.get_user_info_by_id(
-                order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
+            taker_info = await (
+                self.everything_manager.users_manager.get_user_info_by_id(
+                    order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
+                )
             )
             taker_tag = self.get_tag_from_vk_user_dataclass(taker_info)
             order_contents.append(
                 f"Взят {taker_tag}."
             )
         if order.is_canceled:
-            canceler_info = await self.users_manager.get_user_info_by_id(
-                order.canceler_vk_id, GrammaticalCases.INSTRUMENTAL
+            canceler_info = await (
+                self.everything_manager.users_manager.get_user_info_by_id(
+                    order.canceler_vk_id, GrammaticalCases.INSTRUMENTAL
+                )
             )
             canceler_tag = self.get_tag_from_vk_user_dataclass(
                 canceler_info
@@ -102,7 +106,7 @@ class HandlerHelpers:
 
     def get_monthly_paid_orders_by_month_and_year(
             self, month: int, year: int) -> List[models.Order]:
-        return self.orders_manager.get_orders(
+        return self.everything_manager.orders_manager.get_orders(
             extract("month", models.Order.earning_date) == month,
             extract("year", models.Order.earning_date) == year,
             models.Order.is_paid
@@ -120,7 +124,7 @@ class HandlerHelpers:
             if request_is_from_employee else
             (*filters, models.Order.creator_vk_id == client_vk_id)
         )  # Old filters isn't needed anymore
-        orders = self.orders_manager.get_orders(*filters)
+        orders = self.everything_manager.orders_manager.get_orders(*filters)
         if not orders:
             return Notification(
                 # Here text_for_client will be sent to employees if orders is
@@ -139,7 +143,7 @@ class HandlerHelpers:
                 include_creator_info=request_is_from_employee
             )
         )
-        self.users_manager.commit_if_something_is_changed()
+        self.everything_manager.users_manager.commit_if_something_is_changed()
         return notification_with_orders
 
     async def request_monthly_paid_orders(
@@ -155,7 +159,11 @@ class HandlerHelpers:
                         orders
                     )
                 )
-                self.users_manager.commit_if_something_is_changed()
+                (
+                    self.everything_manager
+                    .users_manager
+                    .commit_if_something_is_changed()
+                )
                 return notification_with_orders
             return Notification(
                 text_for_employees=(

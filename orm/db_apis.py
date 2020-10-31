@@ -184,3 +184,22 @@ class CachedVKUsersManager:
 
     def commit_if_something_is_changed(self) -> None:
         self.db_session.commit_if_something_is_changed()
+
+
+class EverythingManager:
+
+    """
+    A facade for the OrdersManager and CachedVKUsersManager.
+
+    It is needed because managers have one session, so I can check one session
+    for pending changes (otherwise, when I'm using two managers separately, I
+    can't know if their sessions is the same and this is quite bad).
+    """
+
+    def __init__(self, db_session: MySession, vk_worker: VKWorker) -> None:
+        self.db_session = db_session
+        self.orders_manager = OrdersManager(db_session)
+        self.users_manager = CachedVKUsersManager(db_session, vk_worker)
+
+    def commit_if_something_is_changed(self) -> None:
+        self.db_session.commit_if_something_is_changed()

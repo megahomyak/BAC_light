@@ -24,13 +24,12 @@ from vk.vk_worker import VKWorker
 class MainLogic:
 
     def __init__(
-            self, vk_worker: VKWorker,
-            orders_manager: db_apis.OrdersManager,
-            handlers: Handlers,
+            self, everything_manager: db_apis.EverythingManager,
+            vk_worker: VKWorker, handlers: Handlers,
             logger: Optional[simplest_logger.Logger] = None,
             log_command_parsing_errors: bool = True) -> None:
+        self.everything_manager = everything_manager
         self.vk_worker = vk_worker
-        self.orders_manager = orders_manager
         self.logger = logger
         self.log_command_parsing_errors = log_command_parsing_errors
         self.commands: Tuple[Command, ...] = (
@@ -432,25 +431,20 @@ async def main():
             simplest_logger.Logger("vk_info.log"),
             log_only_user_info_getting=True
         )
-        sqlalchemy_session = db_apis.get_db_session("sqlite:///BAC_light.db")
-        orders_manager = db_apis.OrdersManager(
-            sqlalchemy_session
-        )
-        users_manager = db_apis.CachedVKUsersManager(
-            sqlalchemy_session, vk_worker
+        everything_manager = db_apis.EverythingManager(
+            db_apis.get_db_session("sqlite:///BAC_light.db"),
+            vk_worker
         )
         main_logic = MainLogic(
+            everything_manager,
             vk_worker,
-            orders_manager,
             Handlers(
                 vk_worker,
-                orders_manager,
                 HandlerHelpers(
                     vk_worker,
-                    users_manager,
-                    orders_manager
+                    everything_manager
                 ),
-                users_manager
+                everything_manager
             ),
             simplest_logger.Logger("command_errors.log"),
             log_command_parsing_errors=False
