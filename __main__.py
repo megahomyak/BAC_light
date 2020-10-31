@@ -329,12 +329,12 @@ class MainLogic:
                     error_args_amount = parsing_error.args_num
             else:
                 context = Context(vk_message_info)
-                notification_texts: Notification = await command_.handler(
+                notification: Notification = await command_.handler(
                     *command_.get_converted_metadata(context),
                     *command_.get_converted_constant_metadata(constant_context),
                     *args
                 )
-                return notification_texts.to_messages(
+                return notification.to_messages(
                     client_peer_id=current_chat_peer_id
                 )
         if error_args_amount == 0:
