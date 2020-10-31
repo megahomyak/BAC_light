@@ -465,6 +465,7 @@ class Handlers:
             command_descriptions: Dict[str, List[Callable]],
             command_names: Tuple[str, ...]) -> Notification:
         command_descriptions_as_strings = []
+        quoted_not_found_commands: List[str] = []
         for command_name in command_names:
             try:
                 command_descriptions_as_strings.extend(
@@ -477,12 +478,19 @@ class Handlers:
                     )
                 )
             except KeyError:
-                pass
+                quoted_not_found_commands.append(f"\"{command_name}\"")
         return Notification(
-            text_for_client=(
-                "\n\n".join(command_descriptions_as_strings)
-                if command_descriptions_as_strings else
-                "Команды с указанными названиями не найдены!"
+            text_for_client="\n\n".join(
+                (
+                    (
+                        f"Команда с названием "
+                        f"{quoted_not_found_commands[0]} не найдена!"
+                        if len(quoted_not_found_commands) == 1 else
+                        f"Команды с названиями "
+                        f"{', '.join(quoted_not_found_commands)} не найдены!"
+                    ) if quoted_not_found_commands else "",
+                    *command_descriptions_as_strings
+                )
             )
         )
 
