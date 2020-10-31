@@ -106,19 +106,26 @@ class CachedVKUsersManager:
             self, vk_id: int,
             name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE
             ) -> vk_related_classes.VKUserInfo:
+        # noinspection GrazieInspection
+        # because ] in the penultimate explanation string is opened, but
+        # LanguageTool doesn't see the opening square bracket.
         r"""
         Gets user info by ID. If no user info found - downloads it, even with
         the name cases.
 
         Warnings:
             Not even async-safe! Like, really! Here's an example:
+
             [ task1: method is called                               | task2: - ]
+
             [ task1: no user info found, let's wait and download it | task2: - ]
+
             [ task1: *waits*   | task2: method is called                       ]
-            [ task1: *waits*   | task2: no user info found, let's wait and...  ]
-            Hey, but we already made this in task1!
-            \*Joker's trap\*
-            IDK how to fix it actually
+
+            [ task1: *waits*   | task2: no user info found, let's wait and
+            download it! Hey, but we already made this in task1! ]
+
+            IDK how to fix it actually.
 
         Args:
             vk_id: VK ID of user, info of who will be found.
