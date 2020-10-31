@@ -197,7 +197,7 @@ class Command:
             self, context: Context) -> Tuple[Any]:
         """
         Takes context, goes through all metadata elements and gets data from
-        them.
+        them using context.
 
         Args:
             context:
