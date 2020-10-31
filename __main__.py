@@ -440,11 +440,7 @@ async def main():
             everything_manager,
             vk_worker,
             Handlers(
-                vk_worker,
-                HandlerHelpers(
-                    vk_worker,
-                    everything_manager
-                ),
+                HandlerHelpers(everything_manager),
                 everything_manager
             ),
             simplest_logger.Logger("command_errors.log"),

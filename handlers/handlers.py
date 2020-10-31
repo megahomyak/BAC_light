@@ -10,16 +10,13 @@ from orm import db_apis
 from orm import models
 from vk import vk_constants
 from vk.vk_related_classes import Notification, UserCallbackMessages
-from vk.vk_worker import VKWorker
 
 
 class Handlers:
 
     def __init__(
-            self, vk_worker: VKWorker,
-            handler_helpers: HandlerHelpers,
+            self, handler_helpers: HandlerHelpers,
             everything_manager: db_apis.ManagersContainer) -> None:
-        self.vk_worker = vk_worker
         self.helpers = handler_helpers
         self.everything_manager = everything_manager
 

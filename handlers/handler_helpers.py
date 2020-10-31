@@ -7,7 +7,6 @@ from enums import GrammaticalCases
 from orm import models, db_apis
 from vk import vk_constants
 from vk.vk_related_classes import VKUserInfo, Notification
-from vk.vk_worker import VKWorker
 
 
 @dataclass
@@ -19,10 +18,7 @@ class ResultSection:
 
 class HandlerHelpers:
 
-    def __init__(
-            self, vk_worker: VKWorker,
-            everything_manager: db_apis.ManagersContainer) -> None:
-        self.vk_worker = vk_worker
+    def __init__(self, everything_manager: db_apis.ManagersContainer) -> None:
         self.everything_manager = everything_manager
 
     @staticmethod
