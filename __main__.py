@@ -9,7 +9,7 @@ from simple_avk import SimpleAVK
 import exceptions
 from handlers.handler_helpers import HandlerHelpers
 from handlers.handlers import Handlers
-from lexer.lexer_classes import Command, Arg, Context
+from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
     SequenceArgType, IntArgType, CommandsMetadataElement,
@@ -40,6 +40,7 @@ class MainLogic:
                 (
                     VKSenderIDMetadataElement,
                 ),
+                (),
                 (
                     Arg(
                         "текст заказа",
@@ -59,6 +60,7 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 ),
+                (),
                 (
                     Arg(
                         "ID заказов, которые нужно отменить (через запятую)",
@@ -114,6 +116,7 @@ class MainLogic:
                 ("команды", "помощь", "help", "commands"),
                 handlers.get_help_message,
                 "показывает помощь по командам и их написанию",
+                (),
                 (
                     CommandsMetadataElement,
                 )
@@ -154,6 +157,7 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 ),
+                (),
                 (
                     Arg(
                         (
@@ -191,6 +195,7 @@ class MainLogic:
                 (
                     VKPeerIDMetadataElement,
                 ),
+                (),
                 (
                     Arg(
                         "номер месяца",
@@ -212,6 +217,7 @@ class MainLogic:
                 (
                     VKPeerIDMetadataElement,
                 ),
+                (),
                 (
                     Arg(
                         "номер месяца",
@@ -230,6 +236,7 @@ class MainLogic:
                     VKPeerIDMetadataElement,
                     VKSenderIDMetadataElement
                 ),
+                (),
                 (
                     Arg(
                         (
@@ -258,6 +265,7 @@ class MainLogic:
                 ("команды", "помощь", "help", "commands"),
                 handlers.get_help_message_for_specific_commands,
                 "показывает помощь по конкретным командам и их написанию",
+                (),
                 (
                     CommandDescriptionsMetadataElement,
                 ),
@@ -284,6 +292,7 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 ),
+                (),
                 (
                     Arg(
                         "ID заказов (через запятую)",
@@ -306,7 +315,9 @@ class MainLogic:
                         command.get_full_description
                     ]
 
-    async def handle_command(self, vk_message_info: dict) -> List[Message]:
+    async def handle_command(
+            self, vk_message_info: dict,
+            constant_context: ConstantContext) -> List[Message]:
         command = vk_message_info["text"][1:]  # Cutting /
         current_chat_peer_id = vk_message_info["peer_id"]
         error_args_amount = 0
@@ -317,13 +328,10 @@ class MainLogic:
                 if parsing_error.args_num > error_args_amount:
                     error_args_amount = parsing_error.args_num
             else:
-                context = Context(
-                    vk_message_info,
-                    self.commands,
-                    self.commands_description
-                )
+                context = Context(vk_message_info)
                 notification_texts: Notification = await command_.handler(
                     *command_.get_converted_metadata(context),
+                    *command_.get_converted_constant_metadata(constant_context),
                     *args
                 )
                 return notification_texts.to_messages(
@@ -363,9 +371,11 @@ class MainLogic:
             )
         ]
 
-    async def reply_to_vk_message(self, message_info: dict) -> None:
+    async def reply_to_vk_message(
+            self, message_info: dict,
+            constant_context: ConstantContext) -> None:
         await self.vk_worker.multiple_reply(
-            *await self.handle_command(message_info)
+            *await self.handle_command(message_info, constant_context)
         )
 
     async def future_done_callback(
@@ -404,13 +414,17 @@ class MainLogic:
                 )
 
     async def listen_for_vk_events(self) -> NoReturn:
+        constant_context = ConstantContext(
+            self.commands,
+            self.commands_description
+        )
         async for message_info in self.vk_worker.listen_for_messages():
             text: str = message_info["text"]
             peer_id: int = message_info["peer_id"]
             if text.startswith("/"):
                 text = text[1:]  # Cutting /
                 asyncio.create_task(
-                    self.reply_to_vk_message(message_info)
+                    self.reply_to_vk_message(message_info, constant_context)
                 ).add_done_callback(
                     lambda future: asyncio.create_task(
                         self.future_done_callback(

@@ -117,6 +117,19 @@ class Context:
     """
 
     vk_message_info: dict
+
+
+@dataclass
+class ConstantContext:
+
+    # noinspection GrazieInspection
+    # because "dependencies" is the right word! I don't want to change it to
+    # "dependencies'"!!!
+    """
+    Object of this class is created once and then used on commands that need
+    constant metadata to work. Solves the circular dependencies problem.
+    """
+
     commands: Tuple["Command", ...]
     command_descriptions: Dict[str, List[Callable]]
 
@@ -143,6 +156,30 @@ class BaseMetadataElement(ABC):
         pass
 
 
+class BaseConstantMetadataElement(ABC):
+
+    """
+    Class for getting constant additional arguments to throw in the handler,
+    which will help to handle a command.
+    """
+
+    @staticmethod
+    @abstractmethod
+    def get_data_from_constant_context(
+            constant_context: ConstantContext) -> Any:
+        """
+        Returns any value, which can depend on the given constant context.
+
+        Args:
+            constant_context:
+                dict, where keys are str and values are whatever you want
+
+        Returns:
+            Any value
+        """
+        pass
+
+
 @dataclass
 class Command:
 
@@ -150,6 +187,7 @@ class Command:
     handler: Callable
     description: Optional[str] = None
     metadata: Tuple[Type[BaseMetadataElement], ...] = ()
+    constant_metadata: Tuple[Type[BaseConstantMetadataElement], ...] = ()
     arguments: Tuple[Arg, ...] = ()
 
     def convert_command_to_args(
@@ -217,6 +255,27 @@ class Command:
         return tuple(
             one_metadata.get_data_from_context(context)
             for one_metadata in self.metadata
+        )
+
+    def get_converted_constant_metadata(
+            self, constant_context: ConstantContext) -> Tuple[Any]:
+        """
+        Takes constant context, goes through all constant metadata elements and
+        gets data from them using constant context.
+
+        Args:
+            constant_context:
+                constant context, which will be passed to the conversion
+                function of every constant metadata element
+
+        Returns:
+            tuple of data received from the constant metadata elements
+        """
+        return tuple(
+            one_constant_metadata.get_data_from_constant_context(
+                constant_context
+            )
+            for one_constant_metadata in self.constant_metadata
         )
 
     def get_full_description(

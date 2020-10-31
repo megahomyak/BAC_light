@@ -3,7 +3,8 @@ from typing import Any, Tuple, Dict, List, Callable, Optional
 
 from enums import GrammaticalCases
 from lexer.lexer_classes import (
-    Context, BaseArgType, BaseMetadataElement, Command
+    Context, BaseArgType, BaseMetadataElement, Command,
+    BaseConstantMetadataElement, ConstantContext
 )
 
 
@@ -143,15 +144,17 @@ class VKPeerIDMetadataElement(BaseMetadataElement):
         return context.vk_message_info["peer_id"]
 
 
-class CommandsMetadataElement(BaseMetadataElement):
+class CommandsMetadataElement(BaseConstantMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: Context) -> Tuple[Command, ...]:
-        return context.commands
+    def get_data_from_constant_context(
+            constant_context: ConstantContext) -> Tuple[Command, ...]:
+        return constant_context.commands
 
 
-class CommandDescriptionsMetadataElement(BaseMetadataElement):
+class CommandDescriptionsMetadataElement(BaseConstantMetadataElement):
 
     @staticmethod
-    def get_data_from_context(context: Context) -> Dict[str, List[Callable]]:
-        return context.command_descriptions
+    def get_data_from_constant_context(
+            constant_context: ConstantContext) -> Dict[str, List[Callable]]:
+        return constant_context.command_descriptions
