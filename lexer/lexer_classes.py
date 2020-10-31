@@ -109,6 +109,13 @@ class Arg:
 @dataclass
 class Context:
 
+    # noinspection GrazieInspection
+    # because what's wrong with "Stores values", come on...
+    """
+    Stores values, which can be used in some commands and can vary each time the
+    object of this class is created. Solves the circular dependencies problem.
+    """
+
     vk_message_info: dict
     commands: Tuple["Command", ...]
     command_descriptions: Dict[str, List[Callable]]
