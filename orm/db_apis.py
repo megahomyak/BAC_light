@@ -196,10 +196,19 @@ class ManagersContainer:
     can't know if their sessions is the same and this is quite bad).
     """
 
-    def __init__(self, db_session: MySession, vk_worker: VKWorker) -> None:
-        self.db_session = db_session
-        self.orders_manager = OrdersManager(db_session)
-        self.users_manager = CachedVKUsersManager(db_session, vk_worker)
+    def __init__(
+            self, orders_manager: OrdersManager,
+            users_manager: CachedVKUsersManager) -> None:
+        self.orders_manager = orders_manager
+        self.users_manager = users_manager
+        self.session_is_the_same_in_all_managers = (
+            orders_manager.db_session is users_manager.db_session
+        )
 
     def commit_if_something_is_changed(self) -> None:
-        self.db_session.commit_if_something_is_changed()
+        if self.session_is_the_same_in_all_managers:
+            # Working with the db_session of the orders_manager because why not
+            self.orders_manager.commit_if_something_is_changed()
+        else:
+            for db_session in (self.orders_manager, self.users_manager):
+                db_session.commit_if_something_is_changed()
