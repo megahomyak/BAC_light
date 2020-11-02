@@ -25,11 +25,11 @@ from vk.vk_worker import VKWorker
 class MainLogic:
 
     def __init__(
-            self, everything_manager: db_apis.ManagersContainer,
+            self, managers_containter: db_apis.ManagersContainer,
             vk_worker: VKWorker, handlers: Handlers,
             logger: Optional[simplest_logger.Logger] = None,
             log_command_parsing_errors: bool = True) -> None:
-        self.everything_manager = everything_manager
+        self.managers_containter = managers_containter
         self.vk_worker = vk_worker
         self.logger = logger
         self.log_command_parsing_errors = log_command_parsing_errors
@@ -336,9 +336,9 @@ class MainLogic:
                     *args
                 )
                 if handling_result.db_changes is DBSessionChanged.YES:
-                    self.everything_manager.commit()
+                    self.managers_containter.commit()
                 elif handling_result.db_changes is DBSessionChanged.MAYBE:
-                    self.everything_manager.commit_if_something_is_changed()
+                    self.managers_containter.commit_if_something_is_changed()
                 return handling_result.notification.to_messages(
                     client_peer_id=current_chat_peer_id
                 )
@@ -451,16 +451,16 @@ async def main():
             log_only_user_info_getting=True
         )
         db_session = db_apis.get_db_session("sqlite:///BAC_light.db")
-        everything_manager = db_apis.ManagersContainer(
+        managers_containter = db_apis.ManagersContainer(
             db_apis.OrdersManager(db_session),
             db_apis.CachedVKUsersManager(db_session, vk_worker)
         )
         main_logic = MainLogic(
-            everything_manager,
+            managers_containter,
             vk_worker,
             Handlers(
-                HandlerHelpers(everything_manager),
-                everything_manager
+                HandlerHelpers(managers_containter),
+                managers_containter
             ),
             simplest_logger.Logger("command_errors.log"),
             log_command_parsing_errors=False
