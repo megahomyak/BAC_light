@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class Sex(Enum):
@@ -15,3 +15,10 @@ class GrammaticalCases(Enum):
     ACCUSATIVE = "acc"
     INSTRUMENTAL = "ins"
     PREPOSITIONAL = "abl"  # IDK why short name is abl in docs...
+
+
+class DBSessionChanged(Enum):
+
+    NO = auto()
+    MAYBE = auto()
+    YES = auto()

@@ -3,7 +3,8 @@ from typing import Tuple, List, Dict, Callable
 
 from sqlalchemy import not_
 
-from enums import Sex
+from enums import Sex, DBSessionChanged
+from handlers.dataclasses import HandlingResult
 from handlers.handler_helpers import HandlerHelpers, ResultSection
 from lexer import lexer_classes
 from orm import db_apis
@@ -21,33 +22,35 @@ class Handlers:
         self.everything_manager = everything_manager
 
     async def create_order(
-            self, client_vk_id: int, text: str) -> Notification:
+            self, client_vk_id: int, text: str) -> HandlingResult:
         order = models.Order(
             creator_vk_id=client_vk_id,
             text=text
         )
         self.everything_manager.orders_manager.add(order)
-        self.everything_manager.orders_manager.commit()
+        self.everything_manager.orders_manager.flush()
         client_info = (
             await self.everything_manager.users_manager.get_user_info_by_id(
                 client_vk_id
             )
         )
-        self.everything_manager.users_manager.commit_if_something_is_changed()
         made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
-        return Notification(
-            text_for_client=f"Заказ с ID {order.id} создан!",
-            text_for_employees=(
-                f"Клиент "
-                f"{self.helpers.get_tag_from_vk_user_dataclass(client_info)} "
-                f"{made_word} заказ с ID {order.id}: {order.text}."
-            )
+        client_tag = self.helpers.get_tag_from_vk_user_dataclass(client_info)
+        return HandlingResult(
+            Notification(
+                text_for_client=f"Заказ с ID {order.id} создан!",
+                text_for_employees=(
+                    f"Клиент {client_tag} {made_word} заказ с ID {order.id}: "
+                    f"{order.text}."
+                )
+            ),
+            DBSessionChanged.YES
         )
 
     async def cancel_orders(
             self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
-            cancellation_reason: str) -> Notification:
+            cancellation_reason: str) -> HandlingResult:
         employees_callback: List[str] = []
         client_callback_messages = UserCallbackMessages()
         found_orders = (
@@ -118,7 +121,6 @@ class Handlers:
                 "ID успешно отмененных заказов", canceled_order_ids
             )
         )
-        self.everything_manager.commit_if_something_is_changed()
         sender_info = (
             await self.everything_manager.users_manager.get_user_info_by_id(
                 client_vk_id
@@ -146,26 +148,29 @@ class Handlers:
             if client_callback_messages.messages else
             ()
         )
-        return Notification(
-            text_for_employees=(
-                (
-                    f"Клиент {canceler_tag} {canceled_word} заказы: "
-                    + "\n".join(employees_callback)
-                )
-                if employees_callback else
-                None
+        return HandlingResult(
+            Notification(
+                text_for_employees=(
+                    (
+                        f"Клиент {canceler_tag} {canceled_word} заказы: "
+                        + "\n".join(employees_callback)
+                    )
+                    if employees_callback else
+                    None
+                ),
+                text_for_client=(
+                    "\n".join(user_output)
+                    if user_output else
+                    None
+                ),
+                additional_messages=additional_messages
             ),
-            text_for_client=(
-                "\n".join(user_output)
-                if user_output else
-                None
-            ),
-            additional_messages=additional_messages
+            DBSessionChanged.MAYBE
         )
 
     async def get_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> Notification:
+            current_chat_peer_id: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(),
@@ -175,7 +180,7 @@ class Handlers:
 
     async def get_taken_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> Notification:
+            current_chat_peer_id: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
@@ -189,7 +194,7 @@ class Handlers:
 
     async def get_pending_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> Notification:
+            current_chat_peer_id: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
@@ -205,19 +210,24 @@ class Handlers:
 
     @staticmethod
     async def get_help_message(
-            commands: Tuple[lexer_classes.Command, ...]) -> Notification:
-        return Notification(
-            text_for_client=vk_constants.HELP_MESSAGE_BEGINNING + "\n\n".join(
-                [
-                    command.get_full_description(include_heading=True)
-                    for command in commands
-                ]
-            )
+            commands: Tuple[lexer_classes.Command, ...]) -> HandlingResult:
+        return HandlingResult(
+            Notification(
+                text_for_client=(
+                    vk_constants.HELP_MESSAGE_BEGINNING + "\n\n".join(
+                        [
+                            command.get_full_description(include_heading=True)
+                            for command in commands
+                        ]
+                    )
+                )
+            ),
+            DBSessionChanged.NO
         )
 
     async def get_canceled_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> Notification:
+            current_chat_peer_id: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
@@ -229,7 +239,7 @@ class Handlers:
 
     async def get_paid_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> Notification:
+            current_chat_peer_id: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
@@ -244,7 +254,7 @@ class Handlers:
     async def mark_orders_as_paid(
             self, employee_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int],
-            earnings_amount: int) -> Notification:
+            earnings_amount: int) -> HandlingResult:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
             found_orders = (
@@ -274,7 +284,6 @@ class Handlers:
                         order.creator_vk_id,
                         f"{order.id} (\"{order.text}\")"
                     )
-            self.everything_manager.commit_if_something_is_changed()
             additional_messages = ()
             if client_callback_messages.messages:
                 employee_info = await (
@@ -332,23 +341,29 @@ class Handlers:
                     ), marked_as_paid_order_ids
                 )
             )
-            return Notification(
-                text_for_employees=(
-                    "\n".join(output)
-                    if output else
-                    None
+            return HandlingResult(
+                Notification(
+                    text_for_employees=(
+                        "\n".join(output)
+                        if output else
+                        None
+                    ),
+                    additional_messages=additional_messages
                 ),
-                additional_messages=additional_messages
+                DBSessionChanged.MAYBE
             )
         else:
-            return Notification(
-                text_for_client=(
-                    "Отмечать заказы оплаченными могут только сотрудники!"
-                )
+            return HandlingResult(
+                Notification(
+                    text_for_client=(
+                        "Отмечать заказы оплаченными могут только сотрудники!"
+                    )
+                ),
+                DBSessionChanged.NO
             )
 
     async def get_monthly_paid_orders(
-            self, current_chat_peer_id: int) -> Notification:
+            self, current_chat_peer_id: int) -> HandlingResult:
         today = datetime.date.today()
         return await self.helpers.request_monthly_paid_orders(
             current_chat_peer_id, today.month, today.year
@@ -356,20 +371,20 @@ class Handlers:
 
     async def get_monthly_paid_orders_by_month_and_year(
             self, current_chat_peer_id: int,
-            month: int, year: int) -> Notification:
+            month: int, year: int) -> HandlingResult:
         return await self.helpers.request_monthly_paid_orders(
             current_chat_peer_id, month, year
         )
 
     async def get_monthly_paid_orders_by_month(
-            self, current_chat_peer_id: int, month: int) -> Notification:
+            self, current_chat_peer_id: int, month: int) -> HandlingResult:
         return await self.helpers.request_monthly_paid_orders(
             current_chat_peer_id, month, datetime.date.today().year
         )
 
     async def take_orders(
             self, current_chat_peer_id: int, user_vk_id: int,
-            order_ids: Tuple[int]) -> Notification:
+            order_ids: Tuple[int]) -> HandlingResult:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
             found_orders = (
@@ -392,7 +407,6 @@ class Handlers:
                         order.creator_vk_id,
                         f"{order.id} (\"{order.text}\")"
                     )
-            self.everything_manager.commit_if_something_is_changed()
             additional_messages = ()
             if client_callback_messages.messages:
                 employee_info = await (
@@ -434,22 +448,28 @@ class Handlers:
                     "ID успешно взятых заказов", taken_order_ids
                 )
             )
-            return Notification(
-                text_for_employees=(
-                    "\n".join(output)
-                    if output else
-                    None
+            return HandlingResult(
+                Notification(
+                    text_for_employees=(
+                        "\n".join(output)
+                        if output else
+                        None
+                    ),
+                    additional_messages=additional_messages
                 ),
-                additional_messages=additional_messages
+                DBSessionChanged.MAYBE
             )
         else:
-            return Notification(
-                text_for_client="Брать заказы могут только сотрудники!"
+            return HandlingResult(
+                Notification(
+                    text_for_client="Брать заказы могут только сотрудники!"
+                ),
+                DBSessionChanged.NO
             )
 
     async def get_active_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> Notification:
+            current_chat_peer_id: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
@@ -463,7 +483,7 @@ class Handlers:
     @staticmethod
     async def get_help_message_for_specific_commands(
             command_descriptions: Dict[str, List[Callable]],
-            command_names: Tuple[str, ...]) -> Notification:
+            command_names: Tuple[str, ...]) -> HandlingResult:
         command_descriptions_as_strings = []
         quoted_not_found_commands: List[str] = []
         for command_name in command_names:
@@ -479,24 +499,28 @@ class Handlers:
                 )
             except KeyError:
                 quoted_not_found_commands.append(f"\"{command_name}\"")
-        return Notification(
-            text_for_client="\n\n".join(
-                (
+        return HandlingResult(
+            Notification(
+                text_for_client="\n\n".join(
                     (
-                        f"Команда с названием "
-                        f"{quoted_not_found_commands[0]} не найдена!"
-                        if len(quoted_not_found_commands) == 1 else
-                        f"Команды с названиями "
-                        f"{', '.join(quoted_not_found_commands)} не найдены!"
-                    ) if quoted_not_found_commands else "",
-                    *command_descriptions_as_strings
+                        (
+                            f"Команда с названием "
+                            f"{quoted_not_found_commands[0]} не найдена!"
+                            if len(quoted_not_found_commands) == 1 else
+                            f"Команды с названиями "
+                            f"{', '.join(quoted_not_found_commands)} "
+                            f"не найдены!"
+                        ) if quoted_not_found_commands else "",
+                        *command_descriptions_as_strings
+                    )
                 )
-            )
+            ),
+            DBSessionChanged.NO
         )
 
     async def get_order_by_id(
             self, client_vk_id: int, current_chat_peer_id: int,
-            order_ids: Tuple[int, ...]) -> Notification:
+            order_ids: Tuple[int, ...]) -> HandlingResult:
         found_orders = self.everything_manager.orders_manager.get_orders_by_ids(
             order_ids
         )
@@ -523,6 +547,9 @@ class Handlers:
                         include_creator_info=not request_is_from_client
                     )
                 )
-        return Notification(
-            text_for_client="\n\n".join(output)
+        return HandlingResult(
+            Notification(
+                text_for_client="\n\n".join(output)
+            ),
+            DBSessionChanged.MAYBE
         )

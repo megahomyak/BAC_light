@@ -7,8 +7,9 @@ import simplest_logger
 from simple_avk import SimpleAVK
 
 import exceptions
+from enums import DBSessionChanged
 from handlers.handler_helpers import HandlerHelpers
-from handlers.handlers import Handlers
+from handlers.handlers import Handlers, HandlingResult
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
@@ -17,7 +18,7 @@ from lexer.lexer_implementations import (
 )
 from orm import db_apis
 from vk import vk_constants
-from vk.vk_related_classes import Notification, Message
+from vk.vk_related_classes import Message
 from vk.vk_worker import VKWorker
 
 
@@ -329,12 +330,16 @@ class MainLogic:
                     error_args_amount = parsing_error.args_num
             else:
                 context = Context(vk_message_info)
-                notification: Notification = await command_.handler(
+                handling_result: HandlingResult = await command_.handler(
                     *command_.get_converted_metadata(context),
                     *command_.get_converted_constant_metadata(constant_context),
                     *args
                 )
-                return notification.to_messages(
+                if handling_result.db_changes is DBSessionChanged.YES:
+                    self.everything_manager.commit()
+                elif handling_result.db_changes is DBSessionChanged.MAYBE:
+                    self.everything_manager.commit_if_something_is_changed()
+                return handling_result.notification.to_messages(
                     client_peer_id=current_chat_peer_id
                 )
         if error_args_amount == 0:

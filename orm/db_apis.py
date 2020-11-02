@@ -93,6 +93,9 @@ class OrdersManager:
     def add(self, *orders: models.Order) -> None:
         self.db_session.add_all(orders)
 
+    def flush(self) -> None:
+        self.db_session.flush()
+
 
 class CachedVKUsersManager:
 
@@ -185,6 +188,9 @@ class CachedVKUsersManager:
     def commit_if_something_is_changed(self) -> None:
         self.db_session.commit_if_something_is_changed()
 
+    def flush(self) -> None:
+        self.db_session.flush()
+
 
 class ManagersContainer:
 
@@ -215,7 +221,16 @@ class ManagersContainer:
 
     def commit(self) -> None:
         if self.session_is_the_same_in_all_managers:
+            # Working with the db_session of the orders_manager because why not
             self.orders_manager.commit()
         else:
             for manager in (self.orders_manager, self.users_manager):
                 manager.commit()
+
+    def flush(self) -> None:
+        if self.session_is_the_same_in_all_managers:
+            # Working with the db_session of the orders_manager because why not
+            self.orders_manager.flush()
+        else:
+            for manager in (self.orders_manager, self.users_manager):
+                manager.flush()

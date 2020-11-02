@@ -3,7 +3,8 @@ from typing import List, Tuple, Any
 
 from sqlalchemy import extract
 
-from enums import GrammaticalCases
+from enums import GrammaticalCases, DBSessionChanged
+from handlers.dataclasses import HandlingResult
 from orm import models, db_apis
 from vk import vk_constants
 from vk.vk_related_classes import VKUserInfo, Notification
@@ -111,7 +112,7 @@ class HandlerHelpers:
     async def request_orders_as_notification(
             self, client_vk_id: int, current_chat_peer_id: int,
             filters: Tuple[Any, ...], no_orders_found_client_error: str,
-            no_orders_found_employees_error: str) -> Notification:
+            no_orders_found_employees_error: str) -> HandlingResult:
         request_is_from_employee = (
             current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID
         )
@@ -122,14 +123,17 @@ class HandlerHelpers:
         )  # Old filters isn't needed anymore
         orders = self.everything_manager.orders_manager.get_orders(*filters)
         if not orders:
-            return Notification(
-                # Here text_for_client will be sent to employees if orders is
-                # requested in the employees' chat
-                text_for_client=(
-                    no_orders_found_employees_error
-                    if request_is_from_employee else
-                    no_orders_found_client_error
-                )
+            return HandlingResult(
+                Notification(
+                    # Here text_for_client will be sent to employees if orders
+                    # is requested in the employees' chat
+                    text_for_client=(
+                        no_orders_found_employees_error
+                        if request_is_from_employee else
+                        no_orders_found_client_error
+                    )
+                ),
+                DBSessionChanged.NO
             )
         notification_with_orders = (
             await self.get_notification_with_orders(
@@ -140,11 +144,11 @@ class HandlerHelpers:
             )
         )
         self.everything_manager.users_manager.commit_if_something_is_changed()
-        return notification_with_orders
+        return HandlingResult(notification_with_orders, DBSessionChanged.MAYBE)
 
     async def request_monthly_paid_orders(
             self, current_chat_peer_id: int,
-            month: int, year: int) -> Notification:
+            month: int, year: int) -> HandlingResult:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.get_monthly_paid_orders_by_month_and_year(
                 month, year
@@ -160,19 +164,27 @@ class HandlerHelpers:
                     .users_manager
                     .commit_if_something_is_changed()
                 )
-                return notification_with_orders
-            return Notification(
-                text_for_employees=(
-                    f"За {month} месяц {year} года не оплачено еще ни одного "
-                    f"заказа!"
+                return HandlingResult(
+                    notification_with_orders, DBSessionChanged.MAYBE
                 )
+            return HandlingResult(
+                Notification(
+                    text_for_employees=(
+                        f"За {month} месяц {year} года не оплачено еще ни "
+                        f"одного заказа!"
+                    )
+                ),
+                DBSessionChanged.NO
             )
         else:
-            return Notification(
-                text_for_client=(
-                    "Получать месячные оплаченные заказы могут только "
-                    "сотрудники!"
-                )
+            return HandlingResult(
+                Notification(
+                    text_for_client=(
+                        "Получать месячные оплаченные заказы могут только "
+                        "сотрудники!"
+                    )
+                ),
+                DBSessionChanged.NO
             )
 
     @staticmethod
