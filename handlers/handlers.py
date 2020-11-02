@@ -17,9 +17,9 @@ class Handlers:
 
     def __init__(
             self, handler_helpers: HandlerHelpers,
-            managers_containter: db_apis.ManagersContainer) -> None:
+            managers_container: db_apis.ManagersContainer) -> None:
         self.helpers = handler_helpers
-        self.managers_containter = managers_containter
+        self.managers_container = managers_container
 
     async def create_order(
             self, client_vk_id: int, text: str) -> HandlingResult:
@@ -27,10 +27,10 @@ class Handlers:
             creator_vk_id=client_vk_id,
             text=text
         )
-        self.managers_containter.orders_manager.add(order)
-        self.managers_containter.orders_manager.flush()
+        self.managers_container.orders_manager.add(order)
+        self.managers_container.orders_manager.flush()
         client_info = (
-            await self.managers_containter.users_manager.get_user_info_by_id(
+            await self.managers_container.users_manager.get_user_info_by_id(
                 client_vk_id
             )
         )
@@ -54,7 +54,7 @@ class Handlers:
         employees_callback: List[str] = []
         client_callback_messages = UserCallbackMessages()
         found_orders = (
-            self.managers_containter.orders_manager.get_orders_by_ids(order_ids)
+            self.managers_container.orders_manager.get_orders_by_ids(order_ids)
         )
         not_owned_by_user_order_ids: List[int] = []
         paid_order_ids: List[int] = []
@@ -122,7 +122,7 @@ class Handlers:
             )
         )
         sender_info = (
-            await self.managers_containter.users_manager.get_user_info_by_id(
+            await self.managers_container.users_manager.get_user_info_by_id(
                 client_vk_id
             )
         )
@@ -258,7 +258,7 @@ class Handlers:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
             found_orders = (
-                self.managers_containter.orders_manager.get_orders_by_ids(
+                self.managers_container.orders_manager.get_orders_by_ids(
                     order_ids
                 )
             )
@@ -287,7 +287,7 @@ class Handlers:
             additional_messages = ()
             if client_callback_messages.messages:
                 employee_info = await (
-                    self.managers_containter.users_manager.get_user_info_by_id(
+                    self.managers_container.users_manager.get_user_info_by_id(
                         employee_vk_id
                     )
                 )
@@ -388,7 +388,7 @@ class Handlers:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             client_callback_messages = UserCallbackMessages()
             found_orders = (
-                self.managers_containter.orders_manager.get_orders_by_ids(
+                self.managers_container.orders_manager.get_orders_by_ids(
                     order_ids
                 )
             )
@@ -410,7 +410,7 @@ class Handlers:
             additional_messages = ()
             if client_callback_messages.messages:
                 employee_info = await (
-                    self.managers_containter.users_manager.get_user_info_by_id(
+                    self.managers_container.users_manager.get_user_info_by_id(
                         user_vk_id
                     )
                 )
@@ -522,7 +522,7 @@ class Handlers:
             self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int, ...]) -> HandlingResult:
         found_orders = (
-            self.managers_containter.orders_manager.get_orders_by_ids(
+            self.managers_container.orders_manager.get_orders_by_ids(
                 order_ids
             )
         )

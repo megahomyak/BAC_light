@@ -19,8 +19,8 @@ class ResultSection:
 
 class HandlerHelpers:
 
-    def __init__(self, managers_containter: db_apis.ManagersContainer) -> None:
-        self.managers_containter = managers_containter
+    def __init__(self, managers_container: db_apis.ManagersContainer) -> None:
+        self.managers_container = managers_container
 
     @staticmethod
     def get_tag_from_vk_user_dataclass(user_info: VKUserInfo) -> str:
@@ -41,7 +41,7 @@ class HandlerHelpers:
             include_creator_info: bool = True) -> str:
         if include_creator_info:
             creator_info = await (
-                self.managers_containter.users_manager.get_user_info_by_id(
+                self.managers_container.users_manager.get_user_info_by_id(
                     order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
                 )
             )
@@ -56,7 +56,7 @@ class HandlerHelpers:
             order_contents = [f"Заказ с ID {order.id}:"]
         if order.is_taken:
             taker_info = await (
-                self.managers_containter.users_manager.get_user_info_by_id(
+                self.managers_container.users_manager.get_user_info_by_id(
                     order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
                 )
             )
@@ -66,7 +66,7 @@ class HandlerHelpers:
             )
         if order.is_canceled:
             canceler_info = await (
-                self.managers_containter.users_manager.get_user_info_by_id(
+                self.managers_container.users_manager.get_user_info_by_id(
                     order.canceler_vk_id, GrammaticalCases.INSTRUMENTAL
                 )
             )
@@ -103,7 +103,7 @@ class HandlerHelpers:
 
     def get_monthly_paid_orders_by_month_and_year(
             self, month: int, year: int) -> List[models.Order]:
-        return self.managers_containter.orders_manager.get_orders(
+        return self.managers_container.orders_manager.get_orders(
             extract("month", models.Order.earning_date) == month,
             extract("year", models.Order.earning_date) == year,
             models.Order.is_paid
@@ -121,7 +121,7 @@ class HandlerHelpers:
             if request_is_from_employee else
             (*filters, models.Order.creator_vk_id == client_vk_id)
         )  # Old filters isn't needed anymore
-        orders = self.managers_containter.orders_manager.get_orders(*filters)
+        orders = self.managers_container.orders_manager.get_orders(*filters)
         if not orders:
             return HandlingResult(
                 Notification(
@@ -143,7 +143,7 @@ class HandlerHelpers:
                 include_creator_info=request_is_from_employee
             )
         )
-        self.managers_containter.users_manager.commit_if_something_is_changed()
+        self.managers_container.users_manager.commit_if_something_is_changed()
         return HandlingResult(notification_with_orders, DBSessionChanged.MAYBE)
 
     async def request_monthly_paid_orders(
@@ -160,7 +160,7 @@ class HandlerHelpers:
                     )
                 )
                 (
-                    self.managers_containter
+                    self.managers_container
                     .users_manager
                     .commit_if_something_is_changed()
                 )
