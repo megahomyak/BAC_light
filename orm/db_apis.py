@@ -210,5 +210,12 @@ class ManagersContainer:
             # Working with the db_session of the orders_manager because why not
             self.orders_manager.commit_if_something_is_changed()
         else:
-            for db_session in (self.orders_manager, self.users_manager):
-                db_session.commit_if_something_is_changed()
+            for manager in (self.orders_manager, self.users_manager):
+                manager.commit_if_something_is_changed()
+
+    def commit(self) -> None:
+        if self.session_is_the_same_in_all_managers:
+            self.orders_manager.commit()
+        else:
+            for manager in (self.orders_manager, self.users_manager):
+                manager.commit()
