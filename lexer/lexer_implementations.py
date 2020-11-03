@@ -34,10 +34,6 @@ class IntArgType(BaseArgType):
             return "положительных целых чисел"
 
     @property
-    def name(self) -> str:
-        return self.get_name()
-
-    @property
     def regex(self) -> str:
         if self.is_signed:
             return r"-?\d+"
@@ -60,10 +56,6 @@ class MonthNumber(BaseArgType):
             if singular:
                 return "номера месяца"
             return "номеров месяцев"
-
-    @property
-    def name(self) -> str:
-        return self.get_name()
 
     @property
     def regex(self) -> str:
