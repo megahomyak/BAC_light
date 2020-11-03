@@ -585,7 +585,7 @@ class Handlers:
                 month, year
             )
             if orders:
-                earnings: Dict[str, int] = {}
+                earnings: Dict[int, int] = {}
                 total_earnings = 0
                 for order in orders:
                     total_earnings += order.earnings
