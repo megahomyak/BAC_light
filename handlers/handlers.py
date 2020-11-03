@@ -363,24 +363,45 @@ class Handlers:
             )
 
     async def get_monthly_paid_orders(
-            self, current_chat_peer_id: int) -> HandlingResult:
-        today = datetime.date.today()
-        return await self.helpers.request_monthly_paid_orders(
-            current_chat_peer_id, today.month, today.year
-        )
-
-    async def get_monthly_paid_orders_by_month_and_year(
             self, current_chat_peer_id: int,
-            month: int, year: int) -> HandlingResult:
-        return await self.helpers.request_monthly_paid_orders(
-            current_chat_peer_id, month, year
-        )
-
-    async def get_monthly_paid_orders_by_month(
-            self, current_chat_peer_id: int, month: int) -> HandlingResult:
-        return await self.helpers.request_monthly_paid_orders(
-            current_chat_peer_id, month, datetime.date.today().year
-        )
+            year: int, month: int) -> HandlingResult:
+        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
+                month, year
+            )
+            if orders:
+                notification_with_orders = (
+                    await self.helpers.get_notification_with_orders(
+                        orders
+                    )
+                )
+                (
+                    self.managers_container
+                        .users_manager
+                        .commit_if_something_is_changed()
+                )
+                return HandlingResult(
+                    notification_with_orders, DBSessionChanged.MAYBE
+                )
+            return HandlingResult(
+                Notification(
+                    text_for_employees=(
+                        f"За {month} месяц {year} года не оплачено еще ни "
+                        f"одного заказа!"
+                    )
+                ),
+                DBSessionChanged.NO
+            )
+        else:
+            return HandlingResult(
+                Notification(
+                    text_for_client=(
+                        "Получать месячные оплаченные заказы могут только "
+                        "сотрудники!"
+                    )
+                ),
+                DBSessionChanged.NO
+            )
 
     async def take_orders(
             self, current_chat_peer_id: int, user_vk_id: int,

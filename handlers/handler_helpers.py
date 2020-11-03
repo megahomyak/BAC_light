@@ -146,47 +146,6 @@ class HandlerHelpers:
         self.managers_container.users_manager.commit_if_something_is_changed()
         return HandlingResult(notification_with_orders, DBSessionChanged.MAYBE)
 
-    async def request_monthly_paid_orders(
-            self, current_chat_peer_id: int,
-            month: int, year: int) -> HandlingResult:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.get_monthly_paid_orders_by_month_and_year(
-                month, year
-            )
-            if orders:
-                notification_with_orders = (
-                    await self.get_notification_with_orders(
-                        orders
-                    )
-                )
-                (
-                    self.managers_container
-                    .users_manager
-                    .commit_if_something_is_changed()
-                )
-                return HandlingResult(
-                    notification_with_orders, DBSessionChanged.MAYBE
-                )
-            return HandlingResult(
-                Notification(
-                    text_for_employees=(
-                        f"За {month} месяц {year} года не оплачено еще ни "
-                        f"одного заказа!"
-                    )
-                ),
-                DBSessionChanged.NO
-            )
-        else:
-            return HandlingResult(
-                Notification(
-                    text_for_client=(
-                        "Получать месячные оплаченные заказы могут только "
-                        "сотрудники!"
-                    )
-                ),
-                DBSessionChanged.NO
-            )
-
     @staticmethod
     def get_order_manipulation_results_as_list(
             *sections: ResultSection) -> List[str]:

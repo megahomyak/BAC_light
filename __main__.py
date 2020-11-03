@@ -15,7 +15,8 @@ from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
     SequenceArgType, IntArgType, CommandsMetadataElement,
-    CommandDescriptionsMetadataElement
+    CommandDescriptionsMetadataElement, CurrentYearMetadataElement,
+    CurrentMonthMetadataElement
 )
 from orm import db_apis
 from vk import vk_constants
@@ -185,11 +186,13 @@ class MainLogic:
                 ),
                 (
                     VKPeerIDMetadataElement,
+                    CurrentYearMetadataElement,
+                    CurrentMonthMetadataElement
                 )
             ),
             Command(
                 ("месячное", "monthly"),
-                handlers.get_monthly_paid_orders_by_month_and_year,
+                handlers.get_monthly_paid_orders,
                 (
                     "показывает оплаченные заказы за указанный месяц "
                     "указанного года (только для сотрудников)"
@@ -211,13 +214,14 @@ class MainLogic:
             ),
             Command(
                 ("месячное", "monthly"),
-                handlers.get_monthly_paid_orders_by_month,
+                handlers.get_monthly_paid_orders,
                 (
                     "показывает оплаченные заказы за указанный месяц (только "
                     "для сотрудников)"
                 ),
                 (
                     VKPeerIDMetadataElement,
+                    CurrentYearMetadataElement
                 ),
                 (),
                 (
