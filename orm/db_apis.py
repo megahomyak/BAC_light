@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from typing import Any, List, Iterable
 
@@ -104,6 +105,7 @@ class CachedVKUsersManager:
             vk_worker: VKWorker) -> None:
         self.db_session = sqlalchemy_session
         self.vk_worker = vk_worker
+        self.asyncio_lock = asyncio.Lock()
 
     async def get_user_info_by_id(
             self, vk_id: int,
@@ -116,20 +118,6 @@ class CachedVKUsersManager:
         Gets user info by ID. If no user info found - downloads it, even with
         the name cases.
 
-        Warnings:
-            Not even async-safe! Like, really! Here's an example:
-
-            [ task1: method is called                               | task2: - ]
-
-            [ task1: no user info found, let's wait and download it | task2: - ]
-
-            [ task1: *waits*   | task2: method is called                       ]
-
-            [ task1: *waits*   | task2: no user info found, let's wait and
-            download it! Hey, but we already made this in task1! ]
-
-            IDK how to fix it actually.
-
         Args:
             vk_id: VK ID of user, info of who will be found.
             name_case: case of user's name and surname.
@@ -137,50 +125,51 @@ class CachedVKUsersManager:
         Returns:
             info about the specified user
         """
-        try:
-            user_info: models.CachedVKUser = (
-                self.db_session
-                .query(models.CachedVKUser)
-                .filter(models.CachedVKUser.vk_id == vk_id)
-                .one()
-            )
-        except NoResultFound:
-            user_info_from_vk = await self.vk_worker.get_user_info(
-                vk_id, name_case
-            )
-            cached_vk_user = models.CachedVKUser(
-                vk_id=vk_id,
-                sex=user_info_from_vk["sex"]
-            )
-            cached_vk_user.names = [
-                models.UserNameAndSurname(
-                    case=name_case,
-                    name=user_info_from_vk["first_name"],
-                    surname=user_info_from_vk["last_name"]
-                )
-            ]
-            self.db_session.add(cached_vk_user)
-            return cached_vk_user.get_as_vk_user_info_dataclass(name_case)
-        else:
+        async with self.asyncio_lock:
             try:
-                user_info_dataclass = user_info.get_as_vk_user_info_dataclass(
-                    name_case
+                user_info: models.CachedVKUser = (
+                    self.db_session
+                    .query(models.CachedVKUser)
+                    .filter(models.CachedVKUser.vk_id == vk_id)
+                    .one()
                 )
-            except exceptions.NameCaseNotFound:
+            except NoResultFound:
                 user_info_from_vk = await self.vk_worker.get_user_info(
                     vk_id, name_case
                 )
-                user_info.names.append(
+                cached_vk_user = models.CachedVKUser(
+                    vk_id=vk_id,
+                    sex=user_info_from_vk["sex"]
+                )
+                cached_vk_user.names = [
                     models.UserNameAndSurname(
-                        vk_user_id=user_info.id,
                         case=name_case,
                         name=user_info_from_vk["first_name"],
                         surname=user_info_from_vk["last_name"]
                     )
-                )
-                return user_info.get_as_vk_user_info_dataclass(name_case)
+                ]
+                self.db_session.add(cached_vk_user)
+                return cached_vk_user.get_as_vk_user_info_dataclass(name_case)
             else:
-                return user_info_dataclass
+                try:
+                    user_info_dataclass = (
+                        user_info.get_as_vk_user_info_dataclass(name_case)
+                    )
+                except exceptions.NameCaseNotFound:
+                    user_info_from_vk = await self.vk_worker.get_user_info(
+                        vk_id, name_case
+                    )
+                    user_info.names.append(
+                        models.UserNameAndSurname(
+                            vk_user_id=user_info.id,
+                            case=name_case,
+                            name=user_info_from_vk["first_name"],
+                            surname=user_info_from_vk["last_name"]
+                        )
+                    )
+                    return user_info.get_as_vk_user_info_dataclass(name_case)
+                else:
+                    return user_info_dataclass
 
     def commit(self) -> None:
         self.db_session.commit()
