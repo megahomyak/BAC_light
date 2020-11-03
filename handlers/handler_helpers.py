@@ -57,7 +57,7 @@ class HandlerHelpers:
         if order.is_taken:
             taker_info = await (
                 self.managers_container.users_manager.get_user_info_by_id(
-                    order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
+                    order.taker_vk_id, GrammaticalCases.INSTRUMENTAL
                 )
             )
             taker_tag = self.get_tag_from_vk_user_dataclass(taker_info)
