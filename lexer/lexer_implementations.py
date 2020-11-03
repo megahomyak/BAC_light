@@ -64,6 +64,10 @@ class MonthNumber(BaseArgType):
     def convert(self, arg: str) -> int:
         return int(arg)
 
+    @property
+    def description(self) -> str:
+        return "число от 1 до 12 (еще можно писать 04 и аналогичное)"
+
 
 class StringArgType(BaseArgType):
 
