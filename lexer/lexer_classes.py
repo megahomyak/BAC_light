@@ -1,3 +1,4 @@
+import datetime
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -117,6 +118,7 @@ class Context:
     """
 
     vk_message_info: dict
+    current_datetime: datetime.date
 
 
 @dataclass

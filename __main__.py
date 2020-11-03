@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import traceback
 from typing import NoReturn, Optional, List, Tuple, Dict, Callable
 
@@ -329,7 +330,7 @@ class MainLogic:
                 if parsing_error.args_num > error_args_amount:
                     error_args_amount = parsing_error.args_num
             else:
-                context = Context(vk_message_info)
+                context = Context(vk_message_info, datetime.date.today())
                 handling_result: HandlingResult = await command_.handler(
                     *command_.get_converted_metadata(context),
                     *command_.get_converted_constant_metadata(constant_context),
