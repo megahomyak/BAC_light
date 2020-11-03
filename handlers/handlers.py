@@ -594,7 +594,7 @@ class Handlers:
                     except KeyError:
                         earnings[order.taker_vk_id] = order.earnings
                 earnings_as_strings: List[str] = []
-                for employee_vk_id, taker_earnings in earnings:
+                for employee_vk_id, taker_earnings in earnings.items():
                     employee_info = await (
                         self.managers_container.users_manager
                         .get_user_info_by_id(
