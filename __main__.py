@@ -307,6 +307,59 @@ class MainLogic:
                         )
                     ),
                 )
+            ),
+            Command(
+                ("доход", "earnings", "income", "revenue"),
+                handlers.get_monthly_earnings,
+                (
+                    "показывает доход за месяц (только для сотрудников)"
+                ),
+                (
+                    VKPeerIDMetadataElement,
+                    CurrentYearMetadataElement,
+                    CurrentMonthMetadataElement
+                )
+            ),
+            Command(
+                ("доход", "earnings", "income", "revenue"),
+                handlers.get_monthly_earnings,
+                (
+                    "показывает доход за указанный месяц указанного года "
+                    "(только для сотрудников)"
+                ),
+                (
+                    VKPeerIDMetadataElement,
+                ),
+                (),
+                (
+                    Arg(
+                        "номер года",
+                        IntArgType()
+                    ),
+                    Arg(
+                        "номер месяца",
+                        MonthNumber()
+                    )
+                )
+            ),
+            Command(
+                ("доход", "earnings", "income", "revenue"),
+                handlers.get_monthly_earnings,
+                (
+                    "показывает доход за указанный месяц (только для "
+                    "сотрудников)"
+                ),
+                (
+                    VKPeerIDMetadataElement,
+                    CurrentYearMetadataElement
+                ),
+                (),
+                (
+                    Arg(
+                        "номер месяца",
+                        MonthNumber()
+                    ),
+                )
             )
         )
         self.commands_description: Dict[str, List[Callable]] = {}
