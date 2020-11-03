@@ -47,6 +47,32 @@ class IntArgType(BaseArgType):
         return int(arg)
 
 
+class MonthNumber(BaseArgType):
+
+    def _get_name(
+            self, case: GrammaticalCases = GrammaticalCases.NOMINATIVE,
+            singular: bool = True) -> str:
+        if case is GrammaticalCases.NOMINATIVE:
+            if singular:
+                return "номер месяца"
+            return "номера месяцев"
+        elif case is GrammaticalCases.GENITIVE:
+            if singular:
+                return "номера месяца"
+            return "номеров месяцев"
+
+    @property
+    def name(self) -> str:
+        return self.get_name()
+
+    @property
+    def regex(self) -> str:
+        return r"(?:0?[1-9]|1[012])"
+
+    def convert(self, arg: str) -> int:
+        return int(arg)
+
+
 class StringArgType(BaseArgType):
 
     def _get_name(
