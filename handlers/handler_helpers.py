@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Any, Dict
+from typing import List, Tuple, Any
 
 from sqlalchemy import extract
 
-from enums import GrammaticalCases, DBSessionChanged, Sex
+from enums import GrammaticalCases, DBSessionChanged
 from handlers.dataclasses import HandlingResult
 from orm import models, db_apis
 from vk import vk_constants
@@ -154,67 +154,3 @@ class HandlerHelpers:
             for section in sections
             if section.row_ids
         ]
-
-    async def request_monthly_earnings(
-            self, current_chat_peer_id: int,
-            month: int, year: int) -> HandlingResult:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.get_monthly_paid_orders_by_month_and_year(
-                month, year
-            )
-            if orders:
-                earnings: Dict[str, int] = {}
-                total_earnings = 0
-                for order in orders:
-                    total_earnings += order.earnings
-                    try:
-                        earnings[order.taker_vk_id] += order.earnings
-                    except KeyError:
-                        earnings[order.taker_vk_id] = order.earnings
-                earnings_as_strings: List[str] = []
-                for employee_vk_id, taker_earnings in earnings:
-                    employee_info = await (
-                        self.managers_container.users_manager
-                        .get_user_info_by_id(
-                            employee_vk_id
-                        )
-                    )  # This looks ugly and not pythonic :(
-                    earned_word = (
-                        "заработал"
-                        if employee_info.sex is Sex.MALE else
-                        "заработала"
-                    )
-                    employee_tag = self.get_tag_from_vk_user_dataclass(
-                        employee_info
-                    )
-                    earnings_as_strings.append(
-                        f"{employee_tag} {earned_word} {taker_earnings} руб."
-                    )
-                return HandlingResult(
-                    Notification(
-                        text_for_employees="\n".join(
-                            (
-                                f"Общий доход: {total_earnings} руб.",
-                                *earnings_as_strings
-                            )
-                        )
-                    ),
-                    DBSessionChanged.MAYBE
-                )
-            return HandlingResult(
-                Notification(
-                    text_for_employees=(
-                        f"За {month} месяц {year} года не заработано ни рубля!"
-                    )
-                ),
-                DBSessionChanged.NO
-            )
-        else:
-            return HandlingResult(
-                Notification(
-                    text_for_client=(
-                        "Получать месячный доход могут только сотрудники!"
-                    )
-                ),
-                DBSessionChanged.NO
-            )
