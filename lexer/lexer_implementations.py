@@ -158,3 +158,17 @@ class CommandDescriptionsMetadataElement(BaseConstantMetadataElement):
     def get_data_from_constant_context(
             constant_context: ConstantContext) -> Dict[str, List[Callable]]:
         return constant_context.command_descriptions
+
+
+class CurrentYearMetadataElement(BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: Context) -> int:
+        return context.current_datetime.year
+
+
+class CurrentMonthMetadataElement(BaseMetadataElement):
+
+    @staticmethod
+    def get_data_from_context(context: Context) -> int:
+        return context.current_datetime.month
