@@ -16,7 +16,7 @@ from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
     SequenceArgType, IntArgType, CommandsMetadataElement,
     CommandDescriptionsMetadataElement, CurrentYearMetadataElement,
-    CurrentMonthMetadataElement
+    CurrentMonthMetadataElement, MonthNumber
 )
 from orm import db_apis
 from vk import vk_constants
@@ -203,12 +203,12 @@ class MainLogic:
                 (),
                 (
                     Arg(
-                        "номер месяца",
+                        "номер года",
                         IntArgType()
                     ),
                     Arg(
-                        "номер года",
-                        IntArgType()
+                        "номер месяца",
+                        MonthNumber()
                     )
                 )
             ),
@@ -227,7 +227,7 @@ class MainLogic:
                 (
                     Arg(
                         "номер месяца",
-                        IntArgType()
+                        MonthNumber()
                     ),
                 )
             ),
