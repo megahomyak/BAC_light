@@ -579,7 +579,7 @@ class Handlers:
 
     async def get_monthly_earnings(
             self, current_chat_peer_id: int,
-            month: int, year: int) -> HandlingResult:
+            year: int, month: int) -> HandlingResult:
         if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
             orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
                 month, year
