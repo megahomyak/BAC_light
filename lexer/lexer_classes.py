@@ -310,16 +310,28 @@ class Command:
                 if argument.description is not None else
                 ""
             )
-            temp_type_desc = (
-                f" - {argument.type.description}"
-                if argument.type.description is not None else
-                ""
-            )
+            if argument.type.name == argument.name:
+                temp_type_name = (
+                    f" ({argument.type.description})"
+                    if (
+                        include_type_descriptions
+                        and
+                        argument.type.description is not None
+                    ) else
+                    ""
+                )
+            else:
+                temp_type_name = (
+                    f" ({argument.type.name} - {argument.type.description})"
+                    if (
+                        include_type_descriptions
+                        and
+                        argument.type.description is not None
+                    ) else
+                    f" ({argument.type.name})"
+                )
             args.append(
-                f"{argument.name} ({argument.type.name}"
-                f"{temp_type_desc}){temp_desc}"
-                if include_type_descriptions else
-                f"{argument.name} ({argument.type.name}){temp_desc}"
+                f"{argument.name}{temp_type_name}{temp_desc}"
             )
         args_str = (
             "Аргументы:\n{}".format("\n".join(args))
