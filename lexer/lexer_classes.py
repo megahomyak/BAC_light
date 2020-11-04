@@ -218,10 +218,7 @@ class Command:
                     ]  # Something like (\d\d)
                 ]  # Something like (?:command) (\d\d)
             ) + ("$" if args_num == len(self.arguments) else "")
-            rgx_result = re.match(
-                pattern=pattern,
-                string=command
-            )
+            rgx_result = re.match(pattern, command)
             if rgx_result is None:
                 raise exceptions.ParsingError(args_num)
         # noinspection PyArgumentList
