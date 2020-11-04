@@ -5,9 +5,8 @@ from typing import AsyncGenerator, Optional, Any
 import simplest_logger
 from simple_avk import SimpleAVK
 
-from enums import Sex
 from vk import vk_constants
-from vk.enums import GrammaticalCases
+from vk.enums import GrammaticalCases, Sex
 from vk.vk_related_classes import Message
 
 

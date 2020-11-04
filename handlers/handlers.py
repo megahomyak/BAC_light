@@ -3,13 +3,14 @@ from typing import Tuple, List, Dict, Callable
 
 from sqlalchemy import not_
 
-from enums import Sex, DBSessionChanged
+from enums import DBSessionChanged
 from handlers.dataclasses import HandlingResult
 from handlers.handler_helpers import HandlerHelpers, ResultSection
 from lexer import lexer_classes
 from orm import db_apis
 from orm import models
 from vk import vk_constants
+from vk.enums import Sex
 from vk.vk_related_classes import Notification, UserCallbackMessages
 
 

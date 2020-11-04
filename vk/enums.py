@@ -9,3 +9,9 @@ class GrammaticalCases(Enum):
     ACCUSATIVE = "acc"
     INSTRUMENTAL = "ins"
     PREPOSITIONAL = "abl"  # IDK why short name is abl in docs...
+
+
+class Sex(Enum):
+
+    MALE = 2
+    FEMALE = 1

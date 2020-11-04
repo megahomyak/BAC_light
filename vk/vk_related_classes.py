@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Tuple, Iterable
 
-import enums
+import vk.enums
 from vk import vk_constants
 
 
@@ -54,7 +54,7 @@ class VKUserInfo:
     id: int
     name: str
     surname: str
-    sex: enums.Sex
+    sex: vk.enums.Sex
 
 
 class UserCallbackMessages:
