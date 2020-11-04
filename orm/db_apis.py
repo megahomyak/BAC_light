@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session, Query
 from sqlalchemy.orm.exc import NoResultFound
 
 import exceptions
-from enums import GrammaticalCases
 from orm import models
 from vk import vk_related_classes
+from vk.enums import GrammaticalCases
 from vk.vk_worker import VKWorker
 
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional, Any, Tuple, Callable, Type, Dict, List
 
 import exceptions
-from enums import GrammaticalCases
+from vk.enums import GrammaticalCases
 
 
 class BaseArgType(ABC):
