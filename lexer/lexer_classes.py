@@ -240,8 +240,7 @@ class Command:
             )
         )
 
-    def get_converted_metadata(
-            self, context: Context) -> Tuple[Any]:
+    def get_converted_metadata(self, context: Context) -> tuple:
         """
         Takes context, goes through all metadata elements and gets data from
         them using context.
@@ -260,7 +259,7 @@ class Command:
         )
 
     def get_converted_constant_metadata(
-            self, constant_context: ConstantContext) -> Tuple[Any]:
+            self, constant_context: ConstantContext) -> tuple:
         """
         Takes constant context, goes through all constant metadata elements and
         gets data from them using constant context.

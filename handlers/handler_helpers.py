@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Any
+from typing import List
 
 from sqlalchemy import extract
 
@@ -111,7 +111,7 @@ class HandlerHelpers:
 
     async def request_orders_as_notification(
             self, client_vk_id: int, current_chat_peer_id: int,
-            filters: Tuple[Any, ...], no_orders_found_client_error: str,
+            filters: tuple, no_orders_found_client_error: str,
             no_orders_found_employees_error: str) -> HandlingResult:
         request_is_from_employee = (
             current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID

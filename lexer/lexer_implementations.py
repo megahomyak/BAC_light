@@ -1,5 +1,5 @@
 import re
-from typing import Any, Tuple, Dict, List, Callable, Optional
+from typing import Tuple, Dict, List, Callable, Optional
 
 from enums import GrammaticalCases
 from lexer.lexer_classes import (
@@ -145,7 +145,7 @@ class SequenceArgType(BaseArgType):
         self.element_type = element_type
         self.separator = separator
 
-    def convert(self, arg: str) -> Tuple[Any, ...]:
+    def convert(self, arg: str) -> tuple:
         return tuple(
             self.element_type.convert(element)
             for element in re.split(self.separator, arg)
