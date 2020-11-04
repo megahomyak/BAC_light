@@ -158,7 +158,6 @@ class MainLogic:
                 ),
                 (
                     VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
                 ),
                 (),
                 (
@@ -175,7 +174,8 @@ class MainLogic:
                         "выручка (с каждого указанного заказа)",
                         IntArgType(is_signed=False)
                     )
-                )
+                ),
+                is_not_allowed_for_clients=True
             ),
             Command(
                 ("месячное", "monthly"),
@@ -185,10 +185,10 @@ class MainLogic:
                     "сотрудников)"
                 ),
                 (
-                    VKPeerIDMetadataElement,
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
-                )
+                ),
+                is_not_allowed_for_clients=True
             ),
             Command(
                 ("месячное", "monthly"),
@@ -197,9 +197,7 @@ class MainLogic:
                     "показывает оплаченные заказы за указанный месяц "
                     "указанного года (только для сотрудников)"
                 ),
-                (
-                    VKPeerIDMetadataElement,
-                ),
+                (),
                 (),
                 (
                     Arg(
@@ -210,7 +208,8 @@ class MainLogic:
                         "номер месяца",
                         MonthNumber()
                     )
-                )
+                ),
+                is_not_allowed_for_clients=True
             ),
             Command(
                 ("месячное", "monthly"),
@@ -220,8 +219,7 @@ class MainLogic:
                     "для сотрудников)"
                 ),
                 (
-                    VKPeerIDMetadataElement,
-                    CurrentYearMetadataElement
+                    CurrentYearMetadataElement,
                 ),
                 (),
                 (
@@ -229,7 +227,8 @@ class MainLogic:
                         "номер месяца",
                         MonthNumber()
                     ),
-                )
+                ),
+                is_not_allowed_for_clients=True
             ),
             Command(
                 ("взять", "take"),
@@ -239,8 +238,7 @@ class MainLogic:
                     "взятии клиентам (только для сотрудников)"
                 ),
                 (
-                    VKPeerIDMetadataElement,
-                    VKSenderIDMetadataElement
+                    VKSenderIDMetadataElement,
                 ),
                 (),
                 (
@@ -253,7 +251,8 @@ class MainLogic:
                             IntArgType()
                         )
                     ),
-                )
+                ),
+                is_not_allowed_for_clients=True
             ),
             Command(
                 ("активные", "active"),
@@ -315,10 +314,10 @@ class MainLogic:
                     "показывает доход за месяц (только для сотрудников)"
                 ),
                 (
-                    VKPeerIDMetadataElement,
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
-                )
+                ),
+                is_not_allowed_for_clients=True
             ),
             Command(
                 ("доход", "earnings", "income", "revenue"),
@@ -327,9 +326,7 @@ class MainLogic:
                     "показывает доход за указанный месяц указанного года "
                     "(только для сотрудников)"
                 ),
-                (
-                    VKPeerIDMetadataElement,
-                ),
+                (),
                 (),
                 (
                     Arg(
@@ -340,7 +337,8 @@ class MainLogic:
                         "номер месяца",
                         MonthNumber()
                     )
-                )
+                ),
+                is_not_allowed_for_clients=True
             ),
             Command(
                 ("доход", "earnings", "income", "revenue"),
@@ -350,8 +348,7 @@ class MainLogic:
                     "сотрудников)"
                 ),
                 (
-                    VKPeerIDMetadataElement,
-                    CurrentYearMetadataElement
+                    CurrentYearMetadataElement,
                 ),
                 (),
                 (
@@ -359,7 +356,8 @@ class MainLogic:
                         "номер месяца",
                         MonthNumber()
                     ),
-                )
+                ),
+                is_not_allowed_for_clients=True
             )
         )
         self.commands_description: Dict[str, List[Callable]] = {}
@@ -382,16 +380,31 @@ class MainLogic:
         error_args_amount = 0
         for command_ in self.commands:
             try:
-                args = command_.convert_command_to_args(command)
+                converted_command = command_.convert_command_to_args(command)
             except exceptions.ParsingError as parsing_error:
                 if parsing_error.args_num > error_args_amount:
                     error_args_amount = parsing_error.args_num
             else:
+                if (
+                    command_.is_not_allowed_for_clients
+                    and
+                    current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+                ):
+                    return [
+                        Message(
+                            (
+                                f"Команда \"{converted_command.name}\" "
+                                f"доступна только сотрудникам (ее нужно "
+                                f"написать в чате для сотрудников)!"
+                            ),
+                            current_chat_peer_id
+                        )
+                    ]
                 context = Context(vk_message_info, datetime.date.today())
                 handling_result: HandlingResult = await command_.handler(
                     *command_.get_converted_metadata(context),
                     *command_.get_converted_constant_metadata(constant_context),
-                    *args
+                    *converted_command.arguments
                 )
                 if handling_result.db_changes is DBSessionChanged.YES:
                     self.managers_container.commit()

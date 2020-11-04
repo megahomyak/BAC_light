@@ -252,241 +252,210 @@ class Handlers:
         )
 
     async def mark_orders_as_paid(
-            self, employee_vk_id: int, current_chat_peer_id: int,
-            order_ids: Tuple[int],
+            self, employee_vk_id: int, order_ids: Tuple[int],
             earnings_amount: int) -> HandlingResult:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            client_callback_messages = UserCallbackMessages()
-            found_orders = (
-                self.managers_container.orders_manager.get_orders_by_ids(
-                    order_ids
+        client_callback_messages = UserCallbackMessages()
+        found_orders = (
+            self.managers_container.orders_manager.get_orders_by_ids(
+                order_ids
+            )
+        )
+        already_paid_order_ids: List[int] = []
+        canceled_order_ids: List[int] = []
+        not_taken_order_ids: List[int] = []
+        taken_by_other_employee_order_ids: List[int] = []
+        marked_as_paid_order_ids: List[int] = []
+        for order in found_orders.successful_rows:
+            if order.is_paid:
+                already_paid_order_ids.append(order.id)
+            elif order.is_canceled:
+                canceled_order_ids.append(order.id)
+            elif not order.is_taken:
+                not_taken_order_ids.append(order.id)
+            elif order.taker_vk_id != employee_vk_id:
+                taken_by_other_employee_order_ids.append(order.id)
+            else:
+                order.earnings = earnings_amount
+                order.earning_date = datetime.date.today()
+                marked_as_paid_order_ids.append(order.id)
+                client_callback_messages.add_message(
+                    order.creator_vk_id,
+                    f"{order.id} (\"{order.text}\")"
+                )
+        additional_messages = ()
+        if client_callback_messages.messages:
+            employee_info = await (
+                self.managers_container.users_manager.get_user_info_by_id(
+                    employee_vk_id
                 )
             )
-            already_paid_order_ids: List[int] = []
-            canceled_order_ids: List[int] = []
-            not_taken_order_ids: List[int] = []
-            taken_by_other_employee_order_ids: List[int] = []
-            marked_as_paid_order_ids: List[int] = []
-            for order in found_orders.successful_rows:
-                if order.is_paid:
-                    already_paid_order_ids.append(order.id)
-                elif order.is_canceled:
-                    canceled_order_ids.append(order.id)
-                elif not order.is_taken:
-                    not_taken_order_ids.append(order.id)
-                elif order.taker_vk_id != employee_vk_id:
-                    taken_by_other_employee_order_ids.append(order.id)
-                else:
-                    order.earnings = earnings_amount
-                    order.earning_date = datetime.date.today()
-                    marked_as_paid_order_ids.append(order.id)
-                    client_callback_messages.add_message(
-                        order.creator_vk_id,
-                        f"{order.id} (\"{order.text}\")"
-                    )
-            additional_messages = ()
-            if client_callback_messages.messages:
-                employee_info = await (
-                    self.managers_container.users_manager.get_user_info_by_id(
-                        employee_vk_id
-                    )
-                )
-                employee_tag = (
-                    self.helpers.get_tag_from_vk_user_dataclass(
-                        employee_info
-                    )
-                )
-                marked_word = (
-                    "отметил"
-                    if employee_info.sex == Sex.MALE else
-                    "отметила"
-                )
-                additional_messages = client_callback_messages.to_messages(
-                    prefix=(
-                        f"{employee_tag} {marked_word} оплаченными твои заказы "
-                        f"на сумму {earnings_amount} руб.: "
-                    ),
-                    separator=", ",
-                    postfix="."
-                )
-            output = self.helpers.get_order_manipulation_results_as_list(
-                ResultSection(
-                    "ID заказов, которых просто нет", found_orders.failed_ids
-                ),
-                ResultSection(
-                    "ID уже оплаченных заказов", already_paid_order_ids
-                ),
-                ResultSection(
-                    (
-                        "ID заказов, которые уже кто-то отменил, поэтому их "
-                        "нельзя оплатить"
-                    ), canceled_order_ids
-                ),
-                ResultSection(
-                    (
-                        "ID заказов, которые еще никто не взял, поэтому их "
-                        "нельзя оплатить"
-                    ), not_taken_order_ids
-                ),
-                ResultSection(
-                    (
-                        "ID заказов, которые взяты не тобой, поэтому их нельзя "
-                        "оплатить"
-                    ), taken_by_other_employee_order_ids
-                ),
-                ResultSection(
-                    (
-                        f"ID заказов, успешно отмеченных оплаченными на сумму "
-                        f"{earnings_amount} руб."
-                    ), marked_as_paid_order_ids
+            employee_tag = (
+                self.helpers.get_tag_from_vk_user_dataclass(
+                    employee_info
                 )
             )
-            return HandlingResult(
-                Notification(
-                    text_for_employees=(
-                        "\n".join(output)
-                        if output else
-                        None
-                    ),
-                    additional_messages=additional_messages
-                ),
-                DBSessionChanged.MAYBE
+            marked_word = (
+                "отметил"
+                if employee_info.sex == Sex.MALE else
+                "отметила"
             )
-        else:
-            return HandlingResult(
-                Notification(
-                    text_for_client=(
-                        "Отмечать заказы оплаченными могут только сотрудники!"
-                    )
+            additional_messages = client_callback_messages.to_messages(
+                prefix=(
+                    f"{employee_tag} {marked_word} оплаченными твои заказы "
+                    f"на сумму {earnings_amount} руб.: "
                 ),
-                DBSessionChanged.NO
+                separator=", ",
+                postfix="."
             )
+        output = self.helpers.get_order_manipulation_results_as_list(
+            ResultSection(
+                "ID заказов, которых просто нет", found_orders.failed_ids
+            ),
+            ResultSection(
+                "ID уже оплаченных заказов", already_paid_order_ids
+            ),
+            ResultSection(
+                (
+                    "ID заказов, которые уже кто-то отменил, поэтому их "
+                    "нельзя оплатить"
+                ), canceled_order_ids
+            ),
+            ResultSection(
+                (
+                    "ID заказов, которые еще никто не взял, поэтому их "
+                    "нельзя оплатить"
+                ), not_taken_order_ids
+            ),
+            ResultSection(
+                (
+                    "ID заказов, которые взяты не тобой, поэтому их нельзя "
+                    "оплатить"
+                ), taken_by_other_employee_order_ids
+            ),
+            ResultSection(
+                (
+                    f"ID заказов, успешно отмеченных оплаченными на сумму "
+                    f"{earnings_amount} руб."
+                ), marked_as_paid_order_ids
+            )
+        )
+        return HandlingResult(
+            Notification(
+                text_for_employees=(
+                    "\n".join(output)
+                    if output else
+                    None
+                ),
+                additional_messages=additional_messages
+            ),
+            DBSessionChanged.MAYBE
+        )
 
     async def get_monthly_paid_orders(
-            self, current_chat_peer_id: int,
-            year: int, month: int) -> HandlingResult:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
-                month, year
+            self, year: int, month: int) -> HandlingResult:
+        orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
+            month, year
+        )
+        if orders:
+            notification_with_orders = (
+                await self.helpers.get_notification_with_orders(
+                    orders
+                )
             )
-            if orders:
-                notification_with_orders = (
-                    await self.helpers.get_notification_with_orders(
-                        orders
-                    )
-                )
-                (
-                    self.managers_container
-                    .users_manager
-                    .commit_if_something_is_changed()
-                )
-                return HandlingResult(
-                    notification_with_orders, DBSessionChanged.MAYBE
-                )
+            (
+                self.managers_container
+                .users_manager
+                .commit_if_something_is_changed()
+            )
             return HandlingResult(
-                Notification(
-                    text_for_employees=(
-                        f"За {month} месяц {year} года не оплачено еще ни "
-                        f"одного заказа!"
-                    )
-                ),
-                DBSessionChanged.NO
+                notification_with_orders, DBSessionChanged.MAYBE
             )
-        else:
-            return HandlingResult(
-                Notification(
-                    text_for_client=(
-                        "Получать месячные оплаченные заказы могут только "
-                        "сотрудники!"
-                    )
-                ),
-                DBSessionChanged.NO
-            )
+        return HandlingResult(
+            Notification(
+                text_for_employees=(
+                    f"За {month} месяц {year} года не оплачено еще ни "
+                    f"одного заказа!"
+                )
+            ),
+            DBSessionChanged.NO
+        )
 
     async def take_orders(
-            self, current_chat_peer_id: int, user_vk_id: int,
-            order_ids: Tuple[int]) -> HandlingResult:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            client_callback_messages = UserCallbackMessages()
-            found_orders = (
-                self.managers_container.orders_manager.get_orders_by_ids(
-                    order_ids
+            self, user_vk_id: int, order_ids: Tuple[int]) -> HandlingResult:
+        # Allowed only for employees
+        client_callback_messages = UserCallbackMessages()
+        found_orders = (
+            self.managers_container.orders_manager.get_orders_by_ids(
+                order_ids
+            )
+        )
+        already_taken_order_ids: List[int] = []
+        canceled_order_ids: List[int] = []
+        taken_order_ids: List[int] = []
+        for order in found_orders.successful_rows:
+            if order.is_taken:
+                already_taken_order_ids.append(order.id)
+            elif order.is_canceled:
+                canceled_order_ids.append(order.id)
+            else:
+                order.taker_vk_id = user_vk_id
+                taken_order_ids.append(order.id)
+                client_callback_messages.add_message(
+                    order.creator_vk_id,
+                    f"{order.id} (\"{order.text}\")"
+                )
+        additional_messages = ()
+        if client_callback_messages.messages:
+            employee_info = await (
+                self.managers_container.users_manager.get_user_info_by_id(
+                    user_vk_id
                 )
             )
-            already_taken_order_ids: List[int] = []
-            canceled_order_ids: List[int] = []
-            taken_order_ids: List[int] = []
-            for order in found_orders.successful_rows:
-                if order.is_taken:
-                    already_taken_order_ids.append(order.id)
-                elif order.is_canceled:
-                    canceled_order_ids.append(order.id)
-                else:
-                    order.taker_vk_id = user_vk_id
-                    taken_order_ids.append(order.id)
-                    client_callback_messages.add_message(
-                        order.creator_vk_id,
-                        f"{order.id} (\"{order.text}\")"
-                    )
-            additional_messages = ()
-            if client_callback_messages.messages:
-                employee_info = await (
-                    self.managers_container.users_manager.get_user_info_by_id(
-                        user_vk_id
-                    )
-                )
-                employee_tag = (
-                    self.helpers.get_tag_from_vk_user_dataclass(
-                        employee_info
-                    )
-                )
-                taken_word = (
-                    "взял"
-                    if employee_info.sex == Sex.MALE else
-                    "взяла"
-                )
-                additional_messages = client_callback_messages.to_messages(
-                    prefix=(
-                        f"{employee_tag} {taken_word} твои заказы: "
-                    ),
-                    separator=", ",
-                    postfix=(
-                        ". Подожди, пока сотрудник тебе напишет или не медли - "
-                        "напиши сотруднику самостоятельно."
-                    )
-                )
-            output = self.helpers.get_order_manipulation_results_as_list(
-                ResultSection(
-                    "ID заказов, которых просто нет", found_orders.failed_ids
-                ),
-                ResultSection(
-                    "ID заказов, которые уже взяты", already_taken_order_ids
-                ),
-                ResultSection(
-                    "ID отмененных заказов, их нельзя взять", canceled_order_ids
-                ),
-                ResultSection(
-                    "ID успешно взятых заказов", taken_order_ids
+            employee_tag = (
+                self.helpers.get_tag_from_vk_user_dataclass(
+                    employee_info
                 )
             )
-            return HandlingResult(
-                Notification(
-                    text_for_employees=(
-                        "\n".join(output)
-                        if output else
-                        None
-                    ),
-                    additional_messages=additional_messages
-                ),
-                DBSessionChanged.MAYBE
+            taken_word = (
+                "взял"
+                if employee_info.sex == Sex.MALE else
+                "взяла"
             )
-        else:
-            return HandlingResult(
-                Notification(
-                    text_for_client="Брать заказы могут только сотрудники!"
+            additional_messages = client_callback_messages.to_messages(
+                prefix=(
+                    f"{employee_tag} {taken_word} твои заказы: "
                 ),
-                DBSessionChanged.NO
+                separator=", ",
+                postfix=(
+                    ". Подожди, пока сотрудник тебе напишет или не медли - "
+                    "напиши сотруднику самостоятельно."
+                )
             )
+        output = self.helpers.get_order_manipulation_results_as_list(
+            ResultSection(
+                "ID заказов, которых просто нет", found_orders.failed_ids
+            ),
+            ResultSection(
+                "ID заказов, которые уже взяты", already_taken_order_ids
+            ),
+            ResultSection(
+                "ID отмененных заказов, их нельзя взять", canceled_order_ids
+            ),
+            ResultSection(
+                "ID успешно взятых заказов", taken_order_ids
+            )
+        )
+        return HandlingResult(
+            Notification(
+                text_for_employees=(
+                    "\n".join(output)
+                    if output else
+                    None
+                ),
+                additional_messages=additional_messages
+            ),
+            DBSessionChanged.MAYBE
+        )
 
     async def get_active_orders(
             self, client_vk_id: int,
@@ -578,65 +547,55 @@ class Handlers:
         )
 
     async def get_monthly_earnings(
-            self, current_chat_peer_id: int,
-            year: int, month: int) -> HandlingResult:
-        if current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID:
-            orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
-                month, year
-            )
-            if orders:
-                earnings: Dict[int, int] = {}
-                total_earnings = 0
-                for order in orders:
-                    total_earnings += order.earnings
-                    try:
-                        earnings[order.taker_vk_id] += order.earnings
-                    except KeyError:
-                        earnings[order.taker_vk_id] = order.earnings
-                earnings_as_strings: List[str] = []
-                for employee_vk_id, taker_earnings in earnings.items():
-                    employee_info = await (
-                        self.managers_container.users_manager
-                        .get_user_info_by_id(
-                            employee_vk_id
-                        )
-                    )  # This looks ugly and not pythonic :(
-                    earned_word = (
-                        "заработал"
-                        if employee_info.sex is Sex.MALE else
-                        "заработала"
+            self, year: int, month: int) -> HandlingResult:
+        # Allowed only for employees
+        orders = self.helpers.get_monthly_paid_orders_by_month_and_year(
+            month, year
+        )
+        if orders:
+            earnings: Dict[int, int] = {}
+            total_earnings = 0
+            for order in orders:
+                total_earnings += order.earnings
+                try:
+                    earnings[order.taker_vk_id] += order.earnings
+                except KeyError:
+                    earnings[order.taker_vk_id] = order.earnings
+            earnings_as_strings: List[str] = []
+            for employee_vk_id, taker_earnings in earnings.items():
+                employee_info = await (
+                    self.managers_container.users_manager
+                    .get_user_info_by_id(
+                        employee_vk_id
                     )
-                    employee_tag = self.helpers.get_tag_from_vk_user_dataclass(
-                        employee_info
-                    )
-                    earnings_as_strings.append(
-                        f"{employee_tag} {earned_word} {taker_earnings} руб."
-                    )
-                return HandlingResult(
-                    Notification(
-                        text_for_employees="\n".join(
-                            (
-                                f"Общий доход: {total_earnings} руб.",
-                                *earnings_as_strings
-                            )
-                        )
-                    ),
-                    DBSessionChanged.MAYBE
+                )  # This looks ugly and not pythonic :(
+                earned_word = (
+                    "заработал"
+                    if employee_info.sex is Sex.MALE else
+                    "заработала"
+                )
+                employee_tag = self.helpers.get_tag_from_vk_user_dataclass(
+                    employee_info
+                )
+                earnings_as_strings.append(
+                    f"{employee_tag} {earned_word} {taker_earnings} руб."
                 )
             return HandlingResult(
                 Notification(
-                    text_for_employees=(
-                        f"За {month} месяц {year} года не заработано ни рубля!"
+                    text_for_employees="\n".join(
+                        (
+                            f"Общий доход: {total_earnings} руб.",
+                            *earnings_as_strings
+                        )
                     )
                 ),
-                DBSessionChanged.NO
+                DBSessionChanged.MAYBE
             )
-        else:
-            return HandlingResult(
-                Notification(
-                    text_for_client=(
-                        "Получать месячный доход могут только сотрудники!"
-                    )
-                ),
-                DBSessionChanged.NO
-            )
+        return HandlingResult(
+            Notification(
+                text_for_employees=(
+                    f"За {month} месяц {year} года не заработано ни рубля!"
+                )
+            ),
+            DBSessionChanged.NO
+        )

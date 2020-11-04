@@ -183,6 +183,13 @@ class BaseConstantMetadataElement(ABC):
 
 
 @dataclass
+class ConvertedCommand:
+
+    name: str
+    arguments: list
+
+
+@dataclass
 class Command:
 
     names: Tuple[str, ...]
@@ -191,9 +198,10 @@ class Command:
     metadata: Tuple[Type[BaseMetadataElement], ...] = ()
     constant_metadata: Tuple[Type[BaseConstantMetadataElement], ...] = ()
     arguments: Tuple[Arg, ...] = ()
+    is_not_allowed_for_clients: bool = False
 
     def convert_command_to_args(
-            self, command: str, separator: str = " ") -> Tuple[Any, ...]:
+            self, command: str, separator: str = " ") -> ConvertedCommand:
         """
         Takes some str, converts it to tuple with some values.
 
@@ -211,7 +219,7 @@ class Command:
             names = '|'.join(re.escape(name) for name in self.names)
             pattern = separator.join(
                 [
-                    f"(?i:{names})",
+                    f"({names})",
                     *[
                         f"({arg.type.regex})"
                         for arg in self.arguments[:args_num]
@@ -221,20 +229,25 @@ class Command:
             rgx_result = re.match(pattern, command)
             if rgx_result is None:
                 raise exceptions.ParsingError(args_num)
+        # noinspection PyUnboundLocalVariable
+        # because range(len(self.arguments) + 1) will be at least with length of
+        # 1
+        rgx_groups = rgx_result.groups()
         # noinspection PyArgumentList
         # because IDK why it thinks that `arg` argument is already filled
         # (like `self`)
-        # noinspection PyUnboundLocalVariable
-        # because range will be at least with length of 1
-        return tuple(
-            converter(group)
-            for group, converter in zip(
-                rgx_result.groups(),
-                [
-                    arg.type.convert
-                    for arg in self.arguments
-                ]
-            )
+        return ConvertedCommand(
+            name=rgx_groups[0],
+            arguments=[
+                converter(group)
+                for group, converter in zip(
+                    rgx_groups[1:],
+                    [
+                        arg.type.convert
+                        for arg in self.arguments
+                    ]
+                )
+            ]
         )
 
     def get_converted_metadata(self, context: Context) -> tuple:
