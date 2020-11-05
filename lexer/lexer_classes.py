@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, Any, Tuple, Callable, Type, Dict, List
 
+import exceptions
 import lexer.exceptions
 from enums import GrammaticalCases
 
@@ -71,7 +72,7 @@ class BaseArgType(ABC):
         """
         name = self._get_name(case, singular)
         if name is None:
-            raise NotImplementedError(
+            raise exceptions.NameCaseNotFound(
                 f"There is no {case} for the name of {self.__class__.__name__}!"
             )
         return name
