@@ -26,3 +26,6 @@ HELP_MESSAGE_BEGINNING = (
     if _help_message_beginning else
     ""
 )
+BIG_SEQUENCES_LIMIT = int(
+    _constants_config["ORDERS_OUTPUT"]["big_sequences_limit"]
+)

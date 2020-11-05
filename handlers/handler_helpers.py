@@ -92,10 +92,13 @@ class HandlerHelpers:
 
     async def get_notification_with_orders(
             self, orders: List[models.Order],
-            include_creator_info: bool = True) -> Notification:
+            include_creator_info: bool = True,
+            limit_for_header: Optional[int] = None) -> Notification:
         orders_as_strings = await self.get_orders_as_strings(
             orders, include_creator_info
         )
+        if limit_for_header is not None:
+            orders_as_strings.insert(0, f"Лимит - {limit_for_header} заказов.")
         return Notification(
             text_for_client="\n\n".join(
                 orders_as_strings
@@ -145,7 +148,8 @@ class HandlerHelpers:
                 orders,
                 # If client requested the orders - creator info isn't needed,
                 # because client is the creator
-                include_creator_info=request_is_from_employee
+                include_creator_info=request_is_from_employee,
+                limit_for_header=limit
             )
         )
         self.managers_container.users_manager.commit_if_something_is_changed()

@@ -176,7 +176,8 @@ class Handlers:
             client_vk_id, current_chat_peer_id,
             filters=(),
             no_orders_found_client_error="У тебя еще нет заказов!",
-            no_orders_found_employees_error="Заказов еще нет!"
+            no_orders_found_employees_error="Заказов еще нет!",
+            limit=vk_constants.BIG_SEQUENCES_LIMIT
         )
 
     async def get_taken_orders(
@@ -235,7 +236,8 @@ class Handlers:
                 models.Order.is_canceled,
             ),
             no_orders_found_client_error="Среди твоих заказов нет отмененных!",
-            no_orders_found_employees_error="Отмененных заказов еще нет!"
+            no_orders_found_employees_error="Отмененных заказов еще нет!",
+            limit=vk_constants.BIG_SEQUENCES_LIMIT
         )
 
     async def get_paid_orders(
@@ -249,7 +251,8 @@ class Handlers:
             no_orders_found_client_error="Среди твоих заказов нет отмененных!",
             no_orders_found_employees_error=(
                 "Оплаченных заказов еще нет! (Грустно!)"
-            )
+            ),
+            limit=vk_constants.BIG_SEQUENCES_LIMIT
         )
 
     async def mark_orders_as_paid(
