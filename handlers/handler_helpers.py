@@ -3,9 +3,9 @@ from typing import List
 
 from sqlalchemy import extract
 
-from enums import DBSessionChanged
 from handlers.dataclasses import HandlingResult
 from orm import models, db_apis
+from orm.enums import DBSessionChanged
 from vk import vk_constants
 from vk.enums import GrammaticalCases
 from vk.vk_related_classes import VKUserInfo, Notification

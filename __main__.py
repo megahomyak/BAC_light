@@ -8,7 +8,6 @@ import simplest_logger
 from simple_avk import SimpleAVK
 
 import exceptions
-from enums import DBSessionChanged
 from handlers.handler_helpers import HandlerHelpers
 from handlers.handlers import Handlers, HandlingResult
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
@@ -19,6 +18,7 @@ from lexer.lexer_implementations import (
     CurrentMonthMetadataElement, MonthNumber
 )
 from orm import db_apis
+from orm.enums import DBSessionChanged
 from vk import vk_constants
 from vk.vk_related_classes import Message
 from vk.vk_worker import VKWorker

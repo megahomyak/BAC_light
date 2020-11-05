@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from enums import DBSessionChanged
+from orm.enums import DBSessionChanged
 from vk.vk_related_classes import Notification
 
 
