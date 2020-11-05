@@ -198,6 +198,7 @@ class Command:
     description: Optional[str] = None
     metadata: Tuple[Type[BaseMetadataElement], ...] = ()
     constant_metadata: Tuple[Type[BaseConstantMetadataElement], ...] = ()
+    fillers: tuple = ()
     arguments: Tuple[Arg, ...] = ()
     is_not_allowed_for_clients: bool = False
 

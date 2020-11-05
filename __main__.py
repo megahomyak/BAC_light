@@ -64,6 +64,7 @@ class MainLogic:
                     VKPeerIDMetadataElement
                 ),
                 (),
+                (),
                 (
                     Arg(
                         "ID заказов, которые нужно отменить (через запятую)",
@@ -160,6 +161,7 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                 ),
                 (),
+                (),
                 (
                     Arg(
                         (
@@ -197,6 +199,7 @@ class MainLogic:
                     "показывает оплаченные заказы за указанный месяц "
                     "указанного года (только для сотрудников)"
                 ),
+                (),
                 (),
                 (),
                 (
@@ -328,6 +331,7 @@ class MainLogic:
                 ),
                 (),
                 (),
+                (),
                 (
                     Arg(
                         "номер года",
@@ -404,6 +408,7 @@ class MainLogic:
                 handling_result: HandlingResult = await command_.handler(
                     *command_.get_converted_metadata(context),
                     *command_.get_converted_constant_metadata(constant_context),
+                    *command_.fillers,
                     *converted_command.arguments
                 )
                 if handling_result.db_changes is DBSessionChanged.YES:
