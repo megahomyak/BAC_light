@@ -1,6 +1,6 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Any, List, Iterable
+from typing import Any, List, Iterable, Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, Query
@@ -60,15 +60,15 @@ class OrdersManager:
             .order_by(models.Order.id.desc())
         )
 
-    def get_orders(self, *filters: Any) -> List[models.Order]:
-        return (
-            self._get_query()
-            .filter(*filters)
-            .all()
-        ) if filters else (
-            self._get_query()
-            .all()
-        )
+    def get_orders(
+            self, *filters: Any,
+            limit: Optional[int] = None) -> List[models.Order]:
+        query = self._get_query()
+        if filters:
+            query = query.filter(*filters)
+        if limit is not None:
+            query = query.limit(limit)
+        return query.all()
 
     def get_orders_by_ids(self, order_ids: Iterable[int]) -> FoundResults:
         orders: List[models.Order] = (

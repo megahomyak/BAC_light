@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import extract
 
@@ -113,7 +113,8 @@ class HandlerHelpers:
     async def request_orders_as_notification(
             self, client_vk_id: int, current_chat_peer_id: int,
             filters: tuple, no_orders_found_client_error: str,
-            no_orders_found_employees_error: str) -> HandlingResult:
+            no_orders_found_employees_error: str,
+            limit: Optional[int] = None) -> HandlingResult:
         request_is_from_employee = (
             current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID
         )
@@ -122,7 +123,10 @@ class HandlerHelpers:
             if request_is_from_employee else
             (*filters, models.Order.creator_vk_id == client_vk_id)
         )  # Old filters isn't needed anymore
-        orders = self.managers_container.orders_manager.get_orders(*filters)
+        orders = self.managers_container.orders_manager.get_orders(
+            *filters,
+            limit=limit
+        )
         if not orders:
             return HandlingResult(
                 Notification(
