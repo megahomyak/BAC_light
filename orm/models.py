@@ -7,7 +7,8 @@ from sqlalchemy.orm import relationship
 
 import exceptions
 import vk.vk_related_classes
-from vk.enums import GrammaticalCases, Sex
+from enums import GrammaticalCases
+from vk.enums import Sex
 
 DeclarativeBase = declarative_base()
 

@@ -1,11 +1,11 @@
 import re
 from typing import Tuple, Dict, List, Callable, Optional
 
+from enums import GrammaticalCases
 from lexer.lexer_classes import (
     Context, BaseArgType, BaseMetadataElement, Command,
     BaseConstantMetadataElement, ConstantContext
 )
-from vk.enums import GrammaticalCases
 
 
 class IntArgType(BaseArgType):
