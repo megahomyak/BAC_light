@@ -152,7 +152,6 @@ class HandlerHelpers:
                 limit_for_header=limit
             )
         )
-        self.managers_container.users_manager.commit_if_something_is_changed()
         return HandlingResult(notification_with_orders, DBSessionChanged.MAYBE)
 
     @staticmethod
