@@ -43,7 +43,7 @@ class IntArgType(BaseArgType):
         return int(arg)
 
 
-class MonthNumber(BaseArgType):
+class MonthNumberArgType(BaseArgType):
 
     def _get_name(
             self, case: GrammaticalCases = GrammaticalCases.NOMINATIVE,

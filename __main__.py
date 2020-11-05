@@ -15,7 +15,7 @@ from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
     SequenceArgType, IntArgType, CommandsMetadataElement,
     CommandDescriptionsMetadataElement, CurrentYearMetadataElement,
-    CurrentMonthMetadataElement, MonthNumber
+    CurrentMonthMetadataElement, MonthNumberArgType
 )
 from orm import db_apis
 from orm.enums import DBSessionChanged
@@ -206,7 +206,7 @@ class MainLogic:
                     ),
                     Arg(
                         "номер месяца",
-                        MonthNumber()
+                        MonthNumberArgType()
                     )
                 ),
                 is_not_allowed_for_clients=True
@@ -225,7 +225,7 @@ class MainLogic:
                 (
                     Arg(
                         "номер месяца",
-                        MonthNumber()
+                        MonthNumberArgType()
                     ),
                 ),
                 is_not_allowed_for_clients=True
@@ -335,7 +335,7 @@ class MainLogic:
                     ),
                     Arg(
                         "номер месяца",
-                        MonthNumber()
+                        MonthNumberArgType()
                     )
                 ),
                 is_not_allowed_for_clients=True
@@ -354,7 +354,7 @@ class MainLogic:
                 (
                     Arg(
                         "номер месяца",
-                        MonthNumber()
+                        MonthNumberArgType()
                     ),
                 ),
                 is_not_allowed_for_clients=True
