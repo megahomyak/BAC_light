@@ -82,13 +82,51 @@ class MainLogic:
                 ("заказы", "orders"),
                 handlers.get_orders,
                 (
-                    "показывает все заказы (если спрашивает клиент - "
-                    "только заказы этого же клиента)"
+                    f"показывает заказы с лимитом "
+                    f"{vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT} (если "
+                    f"спрашивает клиент - только заказы этого же клиента)"
                 ),
                 (
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
+                ),
+                (),
+                (vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT,)  # limit=
+            ),
+            Command(
+                ("заказы", "orders"),
+                handlers.get_orders,
+                (
+                    "показывает заказы с указанным лимитом (если спрашивает "
+                    "клиент - только заказы этого же клиента)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                ),
+                (),
+                (),
+                (
+                    Arg(
+                        "лимит выдачи",
+                        IntArgType(is_signed=False),
+                        "сколько максимум описаний заказов будет отправлено"
+                    ),
                 )
+            ),
+            Command(
+                ("все заказы", "all orders"),
+                handlers.get_orders,
+                (
+                    "показывает все заказы (если спрашивает клиент - только "
+                    "заказы этого же клиента)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                    VKPeerIDMetadataElement
+                ),
+                (),
+                (None,)  # limit=None, so there is no limit!
             ),
             Command(
                 ("взятые", "взятые заказы", "taken", "taken orders"),

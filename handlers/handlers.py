@@ -171,13 +171,14 @@ class Handlers:
 
     async def get_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> HandlingResult:
+            current_chat_peer_id: int,
+            limit: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(),
             no_orders_found_client_error="У тебя еще нет заказов!",
             no_orders_found_employees_error="Заказов еще нет!",
-            limit=vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT
+            limit=limit
         )
 
     async def get_taken_orders(
