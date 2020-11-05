@@ -7,7 +7,7 @@ import aiohttp
 import simplest_logger
 from simple_avk import SimpleAVK
 
-import exceptions
+import lexer.exceptions
 from handlers.handler_helpers import HandlerHelpers
 from handlers.handlers import Handlers, HandlingResult
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
@@ -381,7 +381,7 @@ class MainLogic:
         for command_ in self.commands:
             try:
                 converted_command = command_.convert_command_to_args(command)
-            except exceptions.ParsingError as parsing_error:
+            except lexer.exceptions.ParsingError as parsing_error:
                 if parsing_error.args_num > error_args_amount:
                     error_args_amount = parsing_error.args_num
             else:

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, Any, Tuple, Callable, Type, Dict, List
 
-import exceptions
+import lexer.exceptions
 from vk.enums import GrammaticalCases
 
 
@@ -228,7 +228,7 @@ class Command:
             ) + ("$" if args_num == len(self.arguments) else "")
             rgx_result = re.match(pattern, command)
             if rgx_result is None:
-                raise exceptions.ParsingError(args_num)
+                raise lexer.exceptions.ParsingError(args_num)
         # noinspection PyUnboundLocalVariable
         # because range(len(self.arguments) + 1) will be at least with length of
         # 1
