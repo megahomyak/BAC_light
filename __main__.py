@@ -41,6 +41,14 @@ class MainLogic:
             *lexer.generators.get_getter_commands(
                 ("заказы",), ("orders",), "заказы", handlers.get_orders
             ),
+            *lexer.generators.get_getter_commands(
+                ("отмененные",), ("canceled",),
+                "отмененные заказы", handlers.get_canceled_orders
+            ),
+            *lexer.generators.get_getter_commands(
+                ("оплаченные",), ("paid",),
+                "оплаченные заказы", handlers.get_paid_orders
+            ),
             Command(
                 ("заказ", "order", "заказать"),
                 handlers.create_order,
@@ -117,30 +125,6 @@ class MainLogic:
                 (),
                 (
                     CommandsMetadataElement,
-                )
-            ),
-            Command(
-                ("отмененные", "canceled"),
-                handlers.get_canceled_orders,
-                (
-                    "показывает все отмененные заказы (если спрашивает клиент "
-                    "- только заказы этого же клиента)"
-                ),
-                (
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                )
-            ),
-            Command(
-                ("оплаченные", "paid"),
-                handlers.get_paid_orders,
-                (
-                    "показывает все оплаченные заказы (если спрашивает клиент "
-                    "- только заказы этого же клиента)"
-                ),
-                (
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
                 )
             ),
             Command(

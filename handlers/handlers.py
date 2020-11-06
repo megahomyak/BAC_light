@@ -230,7 +230,8 @@ class Handlers:
 
     async def get_canceled_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> HandlingResult:
+            current_chat_peer_id: int,
+            limit: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
@@ -238,12 +239,13 @@ class Handlers:
             ),
             no_orders_found_client_error="Среди твоих заказов нет отмененных!",
             no_orders_found_employees_error="Отмененных заказов еще нет!",
-            limit=vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT
+            limit=limit
         )
 
     async def get_paid_orders(
             self, client_vk_id: int,
-            current_chat_peer_id: int) -> HandlingResult:
+            current_chat_peer_id: int,
+            limit: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
@@ -253,7 +255,7 @@ class Handlers:
             no_orders_found_employees_error=(
                 "Оплаченных заказов еще нет! (Грустно!)"
             ),
-            limit=vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT
+            limit=limit
         )
 
     async def mark_orders_as_paid(
