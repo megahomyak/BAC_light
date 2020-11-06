@@ -1,6 +1,6 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Any, List, Iterable, Optional
+from typing import Any, List, Iterable, Optional, Union
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, Query
@@ -108,13 +108,13 @@ class CachedVKUsersManager:
         self.asyncio_lock = asyncio.Lock()
 
     async def get_user_info_by_id(
-            self, vk_id: int,
+            self, vk_id: Union[int, str],
             name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE
             ) -> vk_related_classes.VKUserInfo:
         # noinspection GrazieInspection
         # because ] in the penultimate explanation string is opened, but
         # LanguageTool doesn't see the opening square bracket.
-        r"""
+        """
         Gets user info by ID. If no user info found - downloads it, even with
         the name cases.
 
@@ -127,6 +127,14 @@ class CachedVKUsersManager:
         """
         async with self.asyncio_lock:
             try:
+                vk_id = int(vk_id)
+            except ValueError:
+                user_info_from_vk = await self.vk_worker.get_user_info(
+                    vk_id, name_case
+                )
+            else:
+                user_info_from_vk = None
+            try:
                 user_info: models.CachedVKUser = (
                     self.db_session
                     .query(models.CachedVKUser)
@@ -134,25 +142,26 @@ class CachedVKUsersManager:
                     .one()
                 )
             except NoResultFound:
-                user_info_from_vk = await self.vk_worker.get_user_info(
-                    vk_id, name_case
-                )
+                if user_info_from_vk is None:
+                    user_info_from_vk = await self.vk_worker.get_user_info(
+                        vk_id, name_case
+                    )
                 cached_vk_user = models.CachedVKUser(
-                    vk_id=vk_id,
-                    sex=user_info_from_vk["sex"]
+                    vk_id=user_info_from_vk.id,
+                    sex=user_info_from_vk.sex
                 )
                 cached_vk_user.names = [
                     models.UserNameAndSurname(
                         case=name_case,
-                        name=user_info_from_vk["first_name"],
-                        surname=user_info_from_vk["last_name"]
+                        name=user_info_from_vk.name,
+                        surname=user_info_from_vk.surname
                     )
                 ]
                 self.db_session.add(cached_vk_user)
-                return cached_vk_user.get_as_vk_user_info_dataclass(name_case)
+                return user_info_from_vk
             else:
                 try:
-                    user_info_dataclass = (
+                    return (
                         user_info.get_as_vk_user_info_dataclass(name_case)
                     )
                 except exceptions.NameCaseNotFound:
@@ -163,13 +172,11 @@ class CachedVKUsersManager:
                         models.UserNameAndSurname(
                             vk_user_id=user_info.id,
                             case=name_case,
-                            name=user_info_from_vk["first_name"],
-                            surname=user_info_from_vk["last_name"]
+                            name=user_info_from_vk.name,
+                            surname=user_info_from_vk.surname
                         )
                     )
-                    return user_info.get_as_vk_user_info_dataclass(name_case)
-                else:
-                    return user_info_dataclass
+                    return user_info_from_vk
 
     def commit(self) -> None:
         self.db_session.commit()
