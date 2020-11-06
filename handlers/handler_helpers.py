@@ -55,6 +55,19 @@ class HandlerHelpers:
             ]
         else:
             order_contents = [f"Заказ с ID {order.id}:"]
+        if order.real_creator_vk_id:
+            real_creator_info = await (
+                self.managers_container.users_manager.get_user_info_by_id(
+                    order.real_creator_vk_id, GrammaticalCases.INSTRUMENTAL
+                )
+            )
+            real_creator_tag = self.get_tag_from_vk_user_dataclass(
+                real_creator_info
+            )
+            order_contents.append(
+                f"По-настоящему создан {real_creator_tag} "
+                f"(клиент попросил сотрудника добавить заказ оффлайн)."
+            )
         if order.is_taken:
             taker_info = await (
                 self.managers_container.users_manager.get_user_info_by_id(
