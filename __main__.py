@@ -160,10 +160,7 @@ class MainLogic:
             Command(
                 ("месячное", "monthly"),
                 handlers.get_monthly_paid_orders,
-                (
-                    "показывает оплаченные заказы за месяц (только для "
-                    "сотрудников)"
-                ),
+                "показывает оплаченные заказы за месяц",
                 (
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
@@ -175,7 +172,7 @@ class MainLogic:
                 handlers.get_monthly_paid_orders,
                 (
                     "показывает оплаченные заказы за указанный месяц "
-                    "указанного года (только для сотрудников)"
+                    "указанного года"
                 ),
                 (),
                 (),
@@ -217,7 +214,7 @@ class MainLogic:
                 handlers.take_orders,
                 (
                     "отмечает заказы как взятые и отсылает уведомления о "
-                    "взятии клиентам (только для сотрудников)"
+                    "взятии клиентам"
                 ),
                 (
                     VKSenderIDMetadataElement,
@@ -295,9 +292,7 @@ class MainLogic:
             Command(
                 ("доход", "earnings", "income", "revenue"),
                 handlers.get_monthly_earnings,
-                (
-                    "показывает доход за месяц (только для сотрудников)"
-                ),
+                "показывает доход за месяц",
                 (
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
@@ -307,10 +302,7 @@ class MainLogic:
             Command(
                 ("доход", "earnings", "income", "revenue"),
                 handlers.get_monthly_earnings,
-                (
-                    "показывает доход за указанный месяц указанного года "
-                    "(только для сотрудников)"
-                ),
+                "показывает доход за указанный месяц указанного года",
                 (),
                 (),
                 (),
@@ -329,10 +321,7 @@ class MainLogic:
             Command(
                 ("доход", "earnings", "income", "revenue"),
                 handlers.get_monthly_earnings,
-                (
-                    "показывает доход за указанный месяц (только для "
-                    "сотрудников)"
-                ),
+                "показывает доход за указанный месяц",
                 (
                     CurrentYearMetadataElement,
                 ),

@@ -308,8 +308,11 @@ class Command:
             generated description
         """
         heading_str = (
-            f"Описание команды '{self.names[0]}': "
-            f"{self.description}"
+            f"Описание команды '{self.names[0]}': {self.description}" + (
+                " (только для сотрудников)"  # (only for employees)
+                if self.is_not_allowed_for_clients else
+                ""
+            )
         ) if include_heading else None
         aliases_str = (
             f"Псевдонимы: {', '.join(self.names[1:])}"
