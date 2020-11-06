@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import AsyncGenerator, Optional, Any
+from typing import AsyncGenerator, Optional, Any, Union
 
 import simplest_logger
 from simple_avk import SimpleAVK
@@ -74,7 +74,7 @@ class VKWorker:
         )
 
     async def get_user_info(
-            self, user_vk_id: int,
+            self, user_vk_id: Union[int, str],
             name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE) -> dict:
         if self.logger is not None:
             self.logger.info(
