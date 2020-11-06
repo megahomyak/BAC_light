@@ -10,6 +10,7 @@ from simple_avk import SimpleAVK
 import lexer.exceptions
 from handlers.handler_helpers import HandlerHelpers
 from handlers.handlers import Handlers, HandlingResult
+from lexer.enums import IntTypes
 from lexer.generators import get_getter_commands
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
@@ -167,7 +168,7 @@ class MainLogic:
                     ),
                     Arg(
                         "выручка (с каждого указанного заказа)",
-                        IntArgType(is_signed=False)
+                        IntArgType(IntTypes.UNSIGNED)
                     )
                 ),
                 is_not_allowed_for_clients=True

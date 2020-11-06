@@ -1,5 +1,6 @@
 from typing import Tuple, Callable
 
+from lexer.enums import IntTypes
 from lexer.lexer_classes import Command, Arg
 from lexer.lexer_implementations import (
     VKPeerIDMetadataElement,
@@ -75,7 +76,7 @@ def get_getter_commands(
             (
                 Arg(
                     "лимит выдачи",
-                    IntArgType(is_signed=False),
+                    IntArgType(IntTypes.GREATER_THAN_ZERO),
                     "сколько максимум описаний заказов будет отправлено"
                 ),
             )  # limit= (specified in argument)

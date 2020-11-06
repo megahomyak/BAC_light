@@ -2,6 +2,7 @@ import re
 from typing import Tuple, Dict, List, Callable, Optional
 
 from enums import GrammaticalCases
+from lexer.enums import IntTypes
 from lexer.lexer_classes import (
     Context, BaseArgType, BaseMetadataElement, Command,
     BaseConstantMetadataElement, ConstantContext
@@ -10,34 +11,44 @@ from lexer.lexer_classes import (
 
 class IntArgType(BaseArgType):
 
-    def __init__(self, is_signed: bool = True) -> None:
-        self.is_signed = is_signed
+    def __init__(self, type_: IntTypes = IntTypes.SIGNED) -> None:
+        self.type = type_
 
     def _get_name(
             self, case: GrammaticalCases = GrammaticalCases.NOMINATIVE,
             singular: bool = True) -> str:
         if case is GrammaticalCases.NOMINATIVE:
             if singular:
-                if self.is_signed:
+                if self.type is IntTypes.SIGNED:
                     return "целое число"
-                return "положительное целое число"
-            if self.is_signed:
+                elif self.type is IntTypes.UNSIGNED:
+                    return "положительное целое число"
+                return "целое число больше нуля"
+            if self.type is IntTypes.SIGNED:
                 return "целые числа"
-            return "положительные целые числа"
+            elif self.type is IntTypes.UNSIGNED:
+                return "положительные целые числа"
+            return "целые числа больше нуля"
         elif case is GrammaticalCases.GENITIVE:
             if singular:
-                if self.is_signed:
+                if self.type is IntTypes.SIGNED:
                     return "целого числа"
-                return "положительного целого числа"
-            if self.is_signed:
+                elif self.type is IntTypes.UNSIGNED:
+                    return "положительного целого числа"
+                return "целого числа больше нуля"
+            if self.type is IntTypes.SIGNED:
                 return "целых чисел"
-            return "положительных целых чисел"
+            elif self.type is IntTypes.UNSIGNED:
+                return "положительных целых чисел"
+            return "целых чисел больше нуля"
 
     @property
     def regex(self) -> str:
-        if self.is_signed:
+        if self.type is IntTypes.SIGNED:
             return r"-?\d+"
-        return r"\d+"
+        elif self.type is IntTypes.UNSIGNED:
+            return r"\d+"
+        return r"[1-9]\d*"
 
     def convert(self, arg: str) -> int:
         return int(arg)
