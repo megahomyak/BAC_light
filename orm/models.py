@@ -23,6 +23,9 @@ class Order(DeclarativeBase):
     id = Column(Integer, primary_key=True)
 
     creator_vk_id = Column(Integer, nullable=False)
+    real_creator_vk_id = Column(Integer)
+    # ^^^^^ VK ID of the employee who created the order at the client's offline
+    # request
     text = Column(String, nullable=False)
 
     taker_vk_id = Column(Integer)
@@ -56,6 +59,14 @@ class Order(DeclarativeBase):
     @is_paid.expression
     def is_paid(cls):
         return cls.earnings.isnot(None)
+
+    @hybrid_property
+    def is_requested_offline(self) -> bool:
+        return self.real_creator_vk_id is not None
+
+    @is_requested_offline.expression
+    def is_requested_offline(cls):
+        return cls.real_creator_vk_id.isnot(None)
 
 
 class UserNameAndSurname(DeclarativeBase):
