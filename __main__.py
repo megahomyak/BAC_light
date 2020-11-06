@@ -10,6 +10,7 @@ from simple_avk import SimpleAVK
 import lexer.exceptions
 from handlers.handler_helpers import HandlerHelpers
 from handlers.handlers import Handlers, HandlingResult
+from lexer.generators import GetterCommandGenerator
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
@@ -36,6 +37,9 @@ class MainLogic:
         self.logger = logger
         self.log_command_parsing_errors = log_command_parsing_errors
         self.commands: Tuple[Command, ...] = (
+            *GetterCommandGenerator(
+                ("заказы",), ("orders",), "заказы", handlers.get_orders
+            ).to_commands(),
             Command(
                 ("заказ", "order", "заказать"),
                 handlers.create_order,
@@ -78,56 +82,6 @@ class MainLogic:
                         StringArgType()
                     )
                 )
-            ),
-            Command(
-                ("заказы", "orders"),
-                handlers.get_orders,
-                (
-                    f"показывает заказы с лимитом "
-                    f"{vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT} (если "
-                    f"спрашивает клиент - только заказы этого же клиента)"
-                ),
-                (
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                ),
-                (),
-                (vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT,)  # limit=
-            ),
-            Command(
-                ("заказы", "orders"),
-                handlers.get_orders,
-                (
-                    "показывает заказы с указанным лимитом (если спрашивает "
-                    "клиент - только заказы этого же клиента)"
-                ),
-                (
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                ),
-                (),
-                (),
-                (
-                    Arg(
-                        "лимит выдачи",
-                        IntArgType(is_signed=False),
-                        "сколько максимум описаний заказов будет отправлено"
-                    ),
-                )
-            ),
-            Command(
-                ("все заказы", "all orders"),
-                handlers.get_orders,
-                (
-                    "показывает все заказы (если спрашивает клиент - только "
-                    "заказы этого же клиента)"
-                ),
-                (
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                ),
-                (),
-                (None,)  # limit=None, so there is no limit!
             ),
             Command(
                 ("взятые", "взятые заказы", "taken", "taken orders"),
