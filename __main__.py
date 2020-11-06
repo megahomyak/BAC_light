@@ -38,14 +38,14 @@ class MainLogic:
         self.logger = logger
         self.log_command_parsing_errors = log_command_parsing_errors
         self.commands: Tuple[Command, ...] = (
-            *lexer.generators.get_getter_commands(
+            *lexer.generators.get_getter_commands_for_common_orders(
                 ("заказы",), ("orders",), "заказы", handlers.get_orders
             ),
-            *lexer.generators.get_getter_commands(
+            *lexer.generators.get_getter_commands_for_common_orders(
                 ("отмененные",), ("canceled",),
                 "отмененные заказы", handlers.get_canceled_orders
             ),
-            *lexer.generators.get_getter_commands(
+            *lexer.generators.get_getter_commands_for_common_orders(
                 ("оплаченные",), ("paid",),
                 "оплаченные заказы", handlers.get_paid_orders
             ),

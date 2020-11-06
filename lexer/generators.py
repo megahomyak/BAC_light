@@ -9,7 +9,7 @@ from lexer.lexer_implementations import (
 from vk import vk_constants
 
 
-def get_getter_commands(
+def get_getter_commands_for_common_orders(
         ru_names: Tuple[str, ...],
         eng_names: Tuple[str, ...],
         orders_name: str,  # Like "оплаченные заказы" ("paid orders")
