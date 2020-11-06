@@ -44,6 +44,7 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                 ),
                 (),
+                (),
                 (
                     Arg(
                         "текст заказа",
@@ -263,6 +264,7 @@ class MainLogic:
                     CurrentYearMetadataElement,
                 ),
                 (),
+                (),
                 (
                     Arg(
                         "номер месяца",
@@ -281,6 +283,7 @@ class MainLogic:
                 (
                     VKSenderIDMetadataElement,
                 ),
+                (),
                 (),
                 (
                     Arg(
@@ -315,6 +318,7 @@ class MainLogic:
                 (
                     CommandDescriptionsMetadataElement,
                 ),
+                (),
                 (
                     Arg(
                         (
@@ -338,6 +342,7 @@ class MainLogic:
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 ),
+                (),
                 (),
                 (
                     Arg(
@@ -392,6 +397,7 @@ class MainLogic:
                 (
                     CurrentYearMetadataElement,
                 ),
+                (),
                 (),
                 (
                     Arg(
