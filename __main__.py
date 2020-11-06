@@ -155,7 +155,7 @@ class MainLogic:
                         IntArgType(IntTypes.UNSIGNED)
                     )
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             ),
             Command(
                 ("месячное", "monthly"),
@@ -165,7 +165,7 @@ class MainLogic:
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             ),
             Command(
                 ("месячное", "monthly"),
@@ -187,7 +187,7 @@ class MainLogic:
                         MonthNumberArgType()
                     )
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             ),
             Command(
                 ("месячное", "monthly"),
@@ -207,7 +207,7 @@ class MainLogic:
                         MonthNumberArgType()
                     ),
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             ),
             Command(
                 ("взять", "take"),
@@ -232,7 +232,7 @@ class MainLogic:
                         )
                     ),
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             ),
             Command(
                 ("активные", "active"),
@@ -297,7 +297,7 @@ class MainLogic:
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             ),
             Command(
                 ("доход", "earnings", "income", "revenue"),
@@ -316,7 +316,7 @@ class MainLogic:
                         MonthNumberArgType()
                     )
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             ),
             Command(
                 ("доход", "earnings", "income", "revenue"),
@@ -333,7 +333,7 @@ class MainLogic:
                         MonthNumberArgType()
                     ),
                 ),
-                is_not_allowed_for_clients=True
+                allowed_only_for_employees=True
             )
         )
         self.commands_description: Dict[str, List[Callable]] = {}
@@ -362,7 +362,7 @@ class MainLogic:
                     error_args_amount = parsing_error.args_num
             else:
                 if (
-                    command_.is_not_allowed_for_clients
+                    command_.allowed_only_for_employees
                     and
                     current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
                 ):

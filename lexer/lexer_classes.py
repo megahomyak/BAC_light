@@ -200,7 +200,7 @@ class Command:
     constant_metadata: Tuple[Type[BaseConstantMetadataElement], ...] = ()
     fillers: tuple = ()
     arguments: Tuple[Arg, ...] = ()
-    is_not_allowed_for_clients: bool = False
+    allowed_only_for_employees: bool = False
 
     def convert_command_to_args(
             self, command: str, separator: str = " ") -> ConvertedCommand:
@@ -310,7 +310,7 @@ class Command:
         heading_str = (
             f"Описание команды '{self.names[0]}': {self.description}" + (
                 " (только для сотрудников)"  # (only for employees)
-                if self.is_not_allowed_for_clients else
+                if self.allowed_only_for_employees else
                 ""
             )
         ) if include_heading else None
