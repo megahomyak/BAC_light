@@ -111,7 +111,15 @@ class HandlerHelpers:
             orders, include_creator_info
         )
         if limit_for_header is not None:
-            orders_as_strings.insert(0, f"Лимит - {limit_for_header} заказов.")
+            if limit_for_header == 1:  # limit_for_header is greater than 0
+                orders_word = "заказ"
+            elif limit_for_header in (2, 3, 4):
+                orders_word = "заказа"
+            else:
+                orders_word = "заказов"
+            orders_as_strings.insert(
+                0, f"Лимит - {limit_for_header} {orders_word}."
+            )
         return Notification(
             text_for_client="\n\n".join(
                 orders_as_strings
