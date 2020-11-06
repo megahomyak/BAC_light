@@ -76,6 +76,21 @@ class VKWorker:
     async def get_user_info(
             self, user_vk_id: Union[int, str],
             name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE) -> dict:
+        """
+        Gets info about VK user from VK.
+
+        Warnings:
+            The sex field contains a Sex enum, not exactly a value received from
+            VK!
+
+        Args:
+            user_vk_id: id of a VK user
+            name_case: element of enums.GrammaticalCases
+
+        Returns:
+            slightly changed (check Warnings) first element of a json, which is
+            received from VK
+        """
         if self.logger is not None:
             self.logger.info(
                 f"Запрос информации о пользователе с VK ID {user_vk_id} с "
