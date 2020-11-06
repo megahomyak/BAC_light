@@ -13,8 +13,7 @@ def get_getter_commands(
         ru_names: Tuple[str, ...],
         eng_names: Tuple[str, ...],
         orders_name: str,  # Like "оплаченные заказы" ("paid orders")
-        handler: Callable
-        ) -> Tuple[Command, Command, Command]:
+        handler: Callable) -> Tuple[Command, Command, Command]:
     """
     Function, which will help to make repeating Commands, which are needed to
     get some orders.
