@@ -8,10 +8,10 @@ import simplest_logger
 from simple_avk import SimpleAVK
 
 import lexer.exceptions
+import lexer.generators
 from handlers.handler_helpers import HandlerHelpers
 from handlers.handlers import Handlers, HandlingResult
 from lexer.enums import IntTypes
-from lexer.generators import get_getter_commands
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
@@ -38,7 +38,7 @@ class MainLogic:
         self.logger = logger
         self.log_command_parsing_errors = log_command_parsing_errors
         self.commands: Tuple[Command, ...] = (
-            *get_getter_commands(
+            *lexer.generators.get_getter_commands(
                 ("заказы",), ("orders",), "заказы", handlers.get_orders
             ),
             Command(
