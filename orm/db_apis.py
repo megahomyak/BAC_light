@@ -203,30 +203,34 @@ class ManagersContainer:
             users_manager: CachedVKUsersManager) -> None:
         self.orders_manager = orders_manager
         self.users_manager = users_manager
-        self.session_is_the_same_in_all_managers = (
-            orders_manager.db_session is users_manager.db_session
+        self.managers = (
+            self.orders_manager, self.users_manager
+        )
+        self.session_is_same_in_all_managers = all(
+            self.managers[i - 1].db_session is self.managers[i].db_session
+            for i in range(1, len(self.managers))
         )
 
     def commit_if_something_is_changed(self) -> None:
-        if self.session_is_the_same_in_all_managers:
+        if self.session_is_same_in_all_managers:
             # Working with the db_session of the orders_manager because why not
             self.orders_manager.commit_if_something_is_changed()
         else:
-            for manager in (self.orders_manager, self.users_manager):
+            for manager in self.managers:
                 manager.commit_if_something_is_changed()
 
     def commit(self) -> None:
-        if self.session_is_the_same_in_all_managers:
+        if self.session_is_same_in_all_managers:
             # Working with the db_session of the orders_manager because why not
             self.orders_manager.commit()
         else:
-            for manager in (self.orders_manager, self.users_manager):
+            for manager in self.managers:
                 manager.commit()
 
     def flush(self) -> None:
-        if self.session_is_the_same_in_all_managers:
+        if self.session_is_same_in_all_managers:
             # Working with the db_session of the orders_manager because why not
             self.orders_manager.flush()
         else:
-            for manager in (self.orders_manager, self.users_manager):
+            for manager in self.managers:
                 manager.flush()
