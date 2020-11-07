@@ -6,7 +6,7 @@ import simplest_logger
 from simple_avk import SimpleAVK
 
 from enums import GrammaticalCases
-from vk import vk_constants
+from vk import vk_constants, vk_related_classes
 from vk.enums import Sex
 from vk.vk_related_classes import Message
 
@@ -75,7 +75,8 @@ class VKWorker:
 
     async def get_user_info(
             self, user_vk_id: Union[int, str],
-            name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE) -> dict:
+            name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE
+            ) -> vk_related_classes.VKUserInfo:
         """
         Gets info about VK user from VK.
 
@@ -105,5 +106,9 @@ class VKWorker:
             }
         )
         user_info = user_info[0]
-        user_info["sex"] = Sex.FEMALE if user_info["sex"] == 1 else Sex.MALE
-        return user_info
+        return vk_related_classes.VKUserInfo(
+            user_info["id"],
+            user_info["first_name"],
+            user_info["last_name"],
+            Sex.FEMALE if user_info["sex"] == 1 else Sex.MALE
+        )
