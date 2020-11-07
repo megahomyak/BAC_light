@@ -92,7 +92,7 @@ class CachedVKUser(DeclarativeBase):
     __tablename__ = "vk_users"
 
     id = Column(Integer, primary_key=True)
-    vk_id = Column(Integer, nullable=False)
+    vk_id = Column(Integer, nullable=False, unique=True)
 
     sex = Column(Enum(Sex), nullable=False)
 
