@@ -128,10 +128,23 @@ class CachedVKUsersManager:
         async with self.asyncio_lock:
             try:
                 vk_id = int(vk_id)
+                # If vk_id is a number:
+                #     Try to find row by vk_id in the database
+                #     If there is no row:
+                #         Get user info from vk
+                #         Add a row
+                #     [get from database - (download - add)?]
+                # Else:
+                #     Get user info from vk
+                #     Try to find row by .id in the database
+                #     If there is no row:
+                #         Add a row from the existing user info
+                #     [download - get from database - (add)?]
             except ValueError:
                 user_info_from_vk = await self.vk_worker.get_user_info(
                     vk_id, name_case
                 )
+                vk_id = user_info_from_vk.id
             else:
                 user_info_from_vk = None
             try:
