@@ -66,7 +66,7 @@ class HandlerHelpers:
             )
             order_contents.append(
                 f"По-настоящему создан {real_creator_tag} "
-                f"(клиент попросил сотрудника добавить заказ оффлайн)."
+                f"(клиент оффлайн попросил сотрудника добавить заказ)."
             )
         if order.is_taken:
             taker_info = await (
