@@ -615,7 +615,7 @@ class Handlers:
                     client_vk_id_or_tag, GrammaticalCases.GENITIVE
                 )
             )
-        except simple_avk.VKError:
+        except simple_avk.MethodError:
             return HandlingResult(
                 Notification(
                     text_for_employees=(
