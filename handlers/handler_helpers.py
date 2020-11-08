@@ -41,12 +41,13 @@ class HandlerHelpers:
             self, order: models.Order,
             include_creator_info: bool = True) -> str:
         if include_creator_info:
-            creator_info = await (
-                self.managers_container.users_manager.get_user_info_by_id(
-                    order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
+            creator_tag = self.get_tag_from_vk_user_dataclass(
+                await (
+                    self.managers_container.users_manager.get_user_info_by_id(
+                        order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
+                    )
                 )
             )
-            creator_tag = self.get_tag_from_vk_user_dataclass(creator_info)
             order_contents = [
                 f"Заказ с ID {order.id}:",
                 (
@@ -56,36 +57,35 @@ class HandlerHelpers:
         else:
             order_contents = [f"Заказ с ID {order.id}:"]
         if order.real_creator_vk_id:
-            real_creator_info = await (
-                self.managers_container.users_manager.get_user_info_by_id(
-                    order.real_creator_vk_id, GrammaticalCases.INSTRUMENTAL
-                )
-            )
             real_creator_tag = self.get_tag_from_vk_user_dataclass(
-                real_creator_info
+                await (
+                    self.managers_container.users_manager.get_user_info_by_id(
+                        order.real_creator_vk_id, GrammaticalCases.INSTRUMENTAL
+                    )
+                )
             )
             order_contents.append(
                 f"По-настоящему создан {real_creator_tag} "
                 f"(клиент оффлайн попросил сотрудника добавить заказ)."
             )
         if order.is_taken:
-            taker_info = await (
-                self.managers_container.users_manager.get_user_info_by_id(
-                    order.taker_vk_id, GrammaticalCases.INSTRUMENTAL
+            taker_tag = self.get_tag_from_vk_user_dataclass(
+                await (
+                    self.managers_container.users_manager.get_user_info_by_id(
+                        order.taker_vk_id, GrammaticalCases.INSTRUMENTAL
+                    )
                 )
             )
-            taker_tag = self.get_tag_from_vk_user_dataclass(taker_info)
             order_contents.append(
                 f"Взят {taker_tag}."
             )
         if order.is_canceled:
-            canceler_info = await (
-                self.managers_container.users_manager.get_user_info_by_id(
-                    order.canceler_vk_id, GrammaticalCases.INSTRUMENTAL
-                )
-            )
             canceler_tag = self.get_tag_from_vk_user_dataclass(
-                canceler_info
+                await (
+                    self.managers_container.users_manager.get_user_info_by_id(
+                        order.canceler_vk_id, GrammaticalCases.INSTRUMENTAL
+                    )
+                )
             )
             if order.creator_vk_id == order.canceler_vk_id:
                 maybe_creator_postfix = " (создателем)"
