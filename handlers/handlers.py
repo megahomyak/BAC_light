@@ -607,8 +607,6 @@ class Handlers:
     async def create_order_offline(
             self, employee_vk_id: int, client_vk_id_or_tag: str,
             text: str) -> HandlingResult:
-        if client_vk_id_or_tag.startswith("@"):  # VK tag
-            client_vk_id_or_tag = client_vk_id_or_tag[1:]
         try:
             client_info = await (
                 self.managers_container.users_manager.get_user_info_by_id(
