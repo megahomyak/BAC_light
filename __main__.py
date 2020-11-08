@@ -477,7 +477,7 @@ class MainLogic:
                         ).format()
                     )
                 )
-            await self.vk_worker.multiple_reply(
+            await self.vk_worker.reply(
                 Message(
                     f"Тут у юзера при обработке команды \"{text}\" произошла "
                     f"ошибка \"{str(exc)}\", это в логах тоже есть, "
@@ -486,7 +486,7 @@ class MainLogic:
                 )
             )
             if peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID:
-                await self.vk_worker.multiple_reply(
+                await self.vk_worker.reply(
                     Message(
                         f"При обработке команды \"{text}\" произошла ошибка. "
                         f"Она была залоггирована, админы - уведомлены.",
