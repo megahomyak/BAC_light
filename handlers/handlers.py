@@ -1,8 +1,10 @@
 import datetime
 from typing import Tuple, List, Dict, Callable
 
+import simple_avk
 from sqlalchemy import not_
 
+from enums import GrammaticalCases
 from handlers.dataclasses import HandlingResult
 from handlers.handler_helpers import HandlerHelpers, ResultSection
 from lexer import lexer_classes
@@ -11,7 +13,7 @@ from orm import models
 from orm.enums import DBSessionChanged
 from vk import vk_constants
 from vk.enums import Sex
-from vk.vk_related_classes import Notification, UserCallbackMessages
+from vk.vk_related_classes import Notification, UserCallbackMessages, Message
 
 
 class Handlers:
@@ -601,3 +603,61 @@ class Handlers:
             ),
             DBSessionChanged.NO
         )
+
+    async def create_order_offline(
+            self, employee_vk_id: int, client_vk_id_or_tag: str,
+            text: str) -> HandlingResult:
+        if client_vk_id_or_tag.startswith("@"):  # VK tag
+            client_vk_id_or_tag = client_vk_id_or_tag[1:]
+        try:
+            client_info = await (
+                self.managers_container.users_manager.get_user_info_by_id(
+                    client_vk_id_or_tag, GrammaticalCases.GENITIVE
+                )
+            )
+        except simple_avk.VKError:
+            return HandlingResult(
+                Notification(
+                    text_for_employees=(
+                        f"Пользователя с VK ID {client_vk_id_or_tag} нет!"
+                    )
+                ),
+                DBSessionChanged.NO
+            )
+        else:
+            client_vk_id = client_info.id
+            order = models.Order(
+                creator_vk_id=client_vk_id,
+                real_creator_vk_id=employee_vk_id,
+                text=text
+            )
+            self.managers_container.orders_manager.add(order)
+            self.managers_container.orders_manager.flush()
+            full_client_tag = self.helpers.get_tag_from_vk_user_dataclass(
+                client_info
+            )
+            employee_tag = self.helpers.get_tag_from_vk_user_dataclass(
+                await self.managers_container.users_manager.get_user_info_by_id(
+                    employee_vk_id, GrammaticalCases.INSTRUMENTAL
+                )
+            )
+            return HandlingResult(
+                Notification(
+                    text_for_employees=(
+                        f"Заказ с ID {order.id} создан от лица "
+                        f"{full_client_tag}!"
+                    ),
+                    additional_messages=[
+                        Message(
+                            (
+                                f"От твоего лица {employee_tag} создан заказ с "
+                                f"ID {order.id} и текстом {text}! Если вы не "
+                                f"просили этого делать - напишите "
+                                f"администрации."
+                            ),
+                            client_vk_id
+                        )
+                    ]
+                ),
+                DBSessionChanged.YES
+            )

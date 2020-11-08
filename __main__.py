@@ -334,6 +334,36 @@ class MainLogic:
                     ),
                 ),
                 allowed_only_for_employees=True
+            ),
+            Command(
+                ("оффлайн", "offline"),
+                handlers.create_order_offline,
+                (
+                    "создает новый заказ от лица указанного клиента "
+                    "(на тот случай, если клиент хочет сделать заказ оффлайн)"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                ),
+                (),
+                (),
+                (
+                    Arg(
+                        "тэг или айди клиента в ВК",
+                        StringArgType(),
+                        (
+                            "тэг или айди клиента, за которого будет сделан "
+                            "заказ. Может быть в разных форматах: megahomyak, "
+                            "@megahomyak, 326673124, id326673124, "
+                            "@id326673124..."
+                        )
+                    ),
+                    Arg(
+                        "текст заказа",
+                        StringArgType()
+                    )
+                ),
+                allowed_only_for_employees=True
             )
         )
         self.commands_description: Dict[str, List[Callable]] = {}
