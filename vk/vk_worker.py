@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import AsyncGenerator, Optional, Any, Union
+from typing import AsyncGenerator, Optional, Any, Union, Tuple
 
 import simplest_logger
 from simple_avk import SimpleAVK
@@ -65,8 +65,9 @@ class VKWorker:
                 f"{message.text}"
             )
 
-    async def multiple_reply(self, *messages: Message) -> None:
-        await asyncio.gather(
+    async def multiple_reply(
+            self, *messages: Message) -> Tuple[asyncio.Future, ...]:
+        return await asyncio.gather(
             *(
                 self.reply(message)
                 for message in messages
