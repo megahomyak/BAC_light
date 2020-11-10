@@ -75,7 +75,7 @@ class UserNameAndSurname(DeclarativeBase):
 
     id = Column(Integer, primary_key=True)
 
-    vk_user_id = Column(Integer, ForeignKey("vk_users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("vk_users.id"), nullable=False)
 
     case = Column(Enum(GrammaticalCases), nullable=False)
 
