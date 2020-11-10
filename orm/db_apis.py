@@ -184,7 +184,7 @@ class CachedVKUsersManager:
                     )
                     user_info.names.append(
                         models.UserNameAndSurname(
-                            vk_user_id=user_info.id,
+                            user_vk_id=user_info.id,
                             case=name_case,
                             name=user_info_from_vk.name,
                             surname=user_info_from_vk.surname
