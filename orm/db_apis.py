@@ -200,6 +200,11 @@ class CachedVKUsersManager:
     def flush(self) -> None:
         self.db_session.flush()
 
+    def delete_user_info(self, *filters: Any) -> None:
+        self.db_session.delete(
+            self.db_session.query(models.CachedVKUser).filter(*filters).all()
+        )
+
 
 class ManagersContainer:
 
