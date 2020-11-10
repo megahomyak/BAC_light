@@ -466,22 +466,23 @@ class MainLogic:
         )
         ids_of_people_who_blacklisted_the_bot = []
         for reply in done_replies:
+            exception = reply.exception
             # noinspection PyUnresolvedReferences
             # because IDK why when I write this code below, which starts with a
             # [^], my IDE thinks that reply.exception is None and it can't have
             # a __class__ property EVEN WHEN None HAVE A __class__ PROPERTY!!!
             if (
-                reply.exception.__class__ is simple_avk.MethodError
+                exception.__class__ is simple_avk.MethodError
                 and
                 # Can't send messages to user without permission
-                reply.exception.error_code == 901
+                exception.error_code == 901
             ):
                 ids_of_people_who_blacklisted_the_bot.append(
                     reply.message.peer_id
                 )
             else:
-                if reply.exception is not None:  # [^] For the comment above
-                    raise reply.exception
+                if exception is not None:  # [^] For the comment above
+                    raise exception
         if ids_of_people_who_blacklisted_the_bot:
             users = [
                 await (
