@@ -33,7 +33,7 @@ class Handlers:
         self.managers_container.orders_manager.add(order)
         self.managers_container.orders_manager.flush()
         client_info = (
-            await self.managers_container.users_manager.get_user_info_by_id(
+            await self.managers_container.users_manager.get_user_info_by_vk_id(
                 client_vk_id
             )
         )
@@ -125,7 +125,7 @@ class Handlers:
             )
         )
         sender_info = (
-            await self.managers_container.users_manager.get_user_info_by_id(
+            await self.managers_container.users_manager.get_user_info_by_vk_id(
                 client_vk_id
             )
         )
@@ -294,7 +294,7 @@ class Handlers:
         additional_messages = ()
         if client_callback_messages.messages:
             employee_info = await (
-                self.managers_container.users_manager.get_user_info_by_id(
+                self.managers_container.users_manager.get_user_info_by_vk_id(
                     employee_vk_id
                 )
             )
@@ -411,7 +411,7 @@ class Handlers:
         additional_messages = ()
         if client_callback_messages.messages:
             employee_info = await (
-                self.managers_container.users_manager.get_user_info_by_id(
+                self.managers_container.users_manager.get_user_info_by_vk_id(
                     user_vk_id
                 )
             )
@@ -569,7 +569,7 @@ class Handlers:
             for employee_vk_id, taker_earnings in earnings.items():
                 employee_info = await (
                     self.managers_container.users_manager
-                    .get_user_info_by_id(
+                    .get_user_info_by_vk_id(
                         employee_vk_id
                     )
                 )  # This looks ugly and not pythonic :(
@@ -609,7 +609,7 @@ class Handlers:
             text: str) -> HandlingResult:
         try:
             client_info = await (
-                self.managers_container.users_manager.get_user_info_by_id(
+                self.managers_container.users_manager.get_user_info_by_vk_id(
                     client_vk_id_or_tag, GrammaticalCases.GENITIVE
                 )
             )
@@ -635,8 +635,11 @@ class Handlers:
                 client_info
             )
             employee_tag = self.helpers.get_tag_from_vk_user_dataclass(
-                await self.managers_container.users_manager.get_user_info_by_id(
-                    employee_vk_id, GrammaticalCases.INSTRUMENTAL
+                await (
+                    self.managers_container.users_manager
+                    .get_user_info_by_vk_id(
+                        employee_vk_id, GrammaticalCases.INSTRUMENTAL
+                    )
                 )
             )
             return HandlingResult(

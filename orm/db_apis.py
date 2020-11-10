@@ -107,7 +107,7 @@ class CachedVKUsersManager:
         self.vk_worker = vk_worker
         self.asyncio_lock = asyncio.Lock()
 
-    async def get_user_info_by_id(
+    async def get_user_info_by_vk_id(
             self, vk_id: Union[int, str],
             name_case: GrammaticalCases = GrammaticalCases.NOMINATIVE
             ) -> vk_related_classes.VKUserInfo:

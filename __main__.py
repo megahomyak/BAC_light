@@ -487,7 +487,7 @@ class MainLogic:
                 await (
                     self.managers_container
                     .users_manager
-                    .get_user_info_by_id(id_, GrammaticalCases.GENITIVE)
+                    .get_user_info_by_vk_id(id_, GrammaticalCases.GENITIVE)
                 )
                 for id_ in ids_of_people_who_blacklisted_the_bot
             ]

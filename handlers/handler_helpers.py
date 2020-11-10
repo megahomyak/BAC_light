@@ -43,7 +43,8 @@ class HandlerHelpers:
         if include_creator_info:
             creator_tag = self.get_tag_from_vk_user_dataclass(
                 await (
-                    self.managers_container.users_manager.get_user_info_by_id(
+                    self.managers_container.users_manager
+                    .get_user_info_by_vk_id(
                         order.creator_vk_id, GrammaticalCases.INSTRUMENTAL
                     )
                 )
@@ -59,7 +60,8 @@ class HandlerHelpers:
         if order.real_creator_vk_id:
             real_creator_tag = self.get_tag_from_vk_user_dataclass(
                 await (
-                    self.managers_container.users_manager.get_user_info_by_id(
+                    self.managers_container.users_manager
+                    .get_user_info_by_vk_id(
                         order.real_creator_vk_id, GrammaticalCases.INSTRUMENTAL
                     )
                 )
@@ -71,7 +73,8 @@ class HandlerHelpers:
         if order.is_taken:
             taker_tag = self.get_tag_from_vk_user_dataclass(
                 await (
-                    self.managers_container.users_manager.get_user_info_by_id(
+                    self.managers_container.users_manager
+                    .get_user_info_by_vk_id(
                         order.taker_vk_id, GrammaticalCases.INSTRUMENTAL
                     )
                 )
@@ -82,7 +85,8 @@ class HandlerHelpers:
         if order.is_canceled:
             canceler_tag = self.get_tag_from_vk_user_dataclass(
                 await (
-                    self.managers_container.users_manager.get_user_info_by_id(
+                    self.managers_container.users_manager
+                    .get_user_info_by_vk_id(
                         order.canceler_vk_id, GrammaticalCases.INSTRUMENTAL
                     )
                 )
