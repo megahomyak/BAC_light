@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Tuple, Iterable
+from typing import Optional, List, Dict, Tuple, Iterable, Union
+
+import simple_avk
 
 import vk.enums
 from vk import vk_constants
@@ -81,3 +83,10 @@ class UserCallbackMessages:
             Message(f"{prefix}{separator.join(texts)}{postfix}", client_vk_id_)
             for client_vk_id_, texts in self.messages.items()
         )
+
+
+@dataclass
+class DoneReply:
+
+    exception: Optional[Union[BaseException, simple_avk.MethodError]]
+    message: Message

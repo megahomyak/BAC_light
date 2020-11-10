@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import AsyncGenerator, Optional, Any, Union, Tuple
+from typing import AsyncGenerator, Optional, Any, Union, List
 
 import simplest_logger
 from simple_avk import SimpleAVK
@@ -8,7 +8,7 @@ from simple_avk import SimpleAVK
 from enums import GrammaticalCases
 from vk import vk_constants, vk_related_classes
 from vk.enums import Sex
-from vk.vk_related_classes import Message
+from vk.vk_related_classes import Message, DoneReply
 
 
 class VKWorker:
@@ -66,13 +66,17 @@ class VKWorker:
             )
 
     async def multiple_reply(
-            self, *messages: Message) -> Tuple[asyncio.Future, ...]:
-        return await asyncio.gather(
+            self, *messages: Message) -> List[DoneReply]:
+        exceptions = await asyncio.gather(
             *(
                 self.reply(message)
                 for message in messages
-            )
+            ), return_exceptions=True
         )
+        return [
+            DoneReply(exception, message)
+            for message, exception in zip(messages, exceptions)
+        ]
 
     async def get_user_info(
             self, user_vk_id: Union[int, str],
