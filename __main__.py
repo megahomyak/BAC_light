@@ -1,7 +1,11 @@
 import asyncio
 import datetime
+import inspect
 import traceback
-from typing import NoReturn, Optional, List, Tuple, Dict, Callable
+from typing import (
+    NoReturn, Optional, List, Tuple, Dict, Callable, Union,
+    Coroutine
+)
 
 import aiohttp
 import simple_avk
@@ -409,12 +413,18 @@ class MainLogic:
                         )
                     ]
                 context = Context(vk_message_info, datetime.date.today())
-                handling_result: HandlingResult = await command_.handler(
-                    *command_.get_converted_metadata(context),
-                    *command_.get_converted_constant_metadata(constant_context),
-                    *command_.fillers,
-                    *converted_command.arguments
+                handling_result: Union[HandlingResult, Coroutine] = (
+                    command_.handler(
+                        *command_.get_converted_metadata(context),
+                        *command_.get_converted_constant_metadata(
+                            constant_context
+                        ),
+                        *command_.fillers,
+                        *converted_command.arguments
+                    )
                 )
+                if inspect.isawaitable(handling_result):
+                    handling_result: HandlingResult = await handling_result
                 if handling_result.db_changes is DBSessionChanged.YES:
                     self.managers_container.commit()
                 elif handling_result.db_changes is DBSessionChanged.MAYBE:
