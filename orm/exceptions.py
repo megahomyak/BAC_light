@@ -1,0 +1,3 @@
+class NoRowsFound(Exception):
+
+    pass
