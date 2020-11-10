@@ -97,7 +97,11 @@ class CachedVKUser(DeclarativeBase):
     sex = Column(Enum(Sex), nullable=False)
 
     names: List[UserNameAndSurname] = (
-        relationship("UserNameAndSurname", back_populates="vk_user")
+        relationship(
+            "UserNameAndSurname",
+            back_populates="vk_user",
+            cascade="delete, save-update"
+        )
     )
 
     def get_as_vk_user_info_dataclass(
