@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, Query
 from sqlalchemy.orm.exc import NoResultFound
 
 import exceptions
+import orm.exceptions
 from enums import GrammaticalCases
 from orm import models
 from vk import vk_related_classes
@@ -201,9 +202,16 @@ class CachedVKUsersManager:
         self.db_session.flush()
 
     def delete_user_info(self, *filters: Any) -> None:
-        self.db_session.delete(
-            self.db_session.query(models.CachedVKUser).filter(*filters).all()
+        instances = (
+            self.db_session
+            .query(models.CachedVKUser)
+            .filter(*filters)
+            .all()
         )
+        if not instances:
+            raise orm.exceptions.NoRowsFound()
+        for instance in instances:
+            self.db_session.delete(instance)
 
 
 class ManagersContainer:
