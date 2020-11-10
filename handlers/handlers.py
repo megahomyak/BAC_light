@@ -85,7 +85,7 @@ class Handlers:
                 order.cancellation_reason = cancellation_reason
                 canceled_order_ids.append(order.id)
                 callback_str = (
-                    f"{order.id} (\"{order.text}\")"
+                    f"ID {order.id} (\"{order.text}\")"
                 )
                 if request_is_from_client:
                     employees_callback.append(
@@ -289,7 +289,7 @@ class Handlers:
                 marked_as_paid_order_ids.append(order.id)
                 client_callback_messages.add_message(
                     order.creator_vk_id,
-                    f"{order.id} (\"{order.text}\")"
+                    f"ID {order.id} (\"{order.text}\")"
                 )
         additional_messages = ()
         if client_callback_messages.messages:
@@ -406,7 +406,7 @@ class Handlers:
                 taken_order_ids.append(order.id)
                 client_callback_messages.add_message(
                     order.creator_vk_id,
-                    f"{order.id} (\"{order.text}\")"
+                    f"ID {order.id} (\"{order.text}\")"
                 )
         additional_messages = ()
         if client_callback_messages.messages:
