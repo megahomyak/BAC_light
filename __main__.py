@@ -38,7 +38,8 @@ class MainLogic:
             self, managers_container: db_apis.ManagersContainer,
             vk_worker: VKWorker, handlers: Handlers,
             logger: Optional[simplest_logger.Logger] = None,
-            log_command_parsing_errors: bool = True) -> None:
+            log_command_parsing_errors: bool = True,
+            commit_changes: bool = True) -> None:
         self.managers_container = managers_container
         self.vk_worker = vk_worker
         self.logger = logger
@@ -46,6 +47,7 @@ class MainLogic:
         self.get_tag_from_vk_user_dataclass = (
             handlers.helpers.get_tag_from_vk_user_dataclass
         )
+        self.commit_changes = commit_changes
         self.commands: Tuple[Command, ...] = (
             *lexer.generators.get_getter_commands_for_common_orders(
                 ("заказы",), ("orders",), "заказы", handlers.get_orders
@@ -426,10 +428,11 @@ class MainLogic:
                 )
                 if inspect.isawaitable(handling_result):
                     handling_result: HandlingResult = await handling_result
-                if handling_result.db_changes is DBSessionChanged.YES:
-                    self.managers_container.commit()
-                elif handling_result.db_changes is DBSessionChanged.MAYBE:
-                    self.managers_container.commit_if_something_is_changed()
+                if self.commit_changes:
+                    if handling_result.db_changes is DBSessionChanged.YES:
+                        self.managers_container.commit()
+                    elif handling_result.db_changes is DBSessionChanged.MAYBE:
+                        self.managers_container.commit_if_something_is_changed()
                 return handling_result.notification.to_messages(
                     client_peer_id=current_chat_peer_id
                 )
