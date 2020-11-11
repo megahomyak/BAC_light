@@ -29,3 +29,9 @@ HELP_MESSAGE_BEGINNING = (
 DEFAULT_BIG_ORDER_SEQUENCES_LIMIT = int(
     _constants_config["ORDERS_OUTPUT"]["default_big_order_sequences_limit"]
 )
+
+
+# Unpacking memo_for_users.txt
+
+with open("vk/memo_for_users.txt", "r", encoding="utf-8") as f:
+    MEMO_FOR_USERS = f.read()

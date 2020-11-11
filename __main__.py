@@ -396,6 +396,11 @@ class MainLogic:
                 (
                     VKSenderIDMetadataElement,
                 )
+            ),
+            Command(
+                ("памятка", "memo"),
+                handlers.get_memo,
+                "показывает памятку по использованию бота"
             )
         )
         self.commands_description: Dict[str, List[Callable]] = {}

@@ -709,3 +709,15 @@ class Handlers:
             ),
             DBSessionChanged.YES
         )
+
+    @staticmethod
+    def get_memo() -> HandlingResult:
+        return HandlingResult(
+            Notification(
+                text_for_client=(
+                    f"Памятка по использованию бота:\n\n"
+                    f"{vk_constants.MEMO_FOR_USERS}"
+                )
+            ),
+            DBSessionChanged.NO
+        )
