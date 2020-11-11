@@ -6,7 +6,6 @@ from sqlalchemy import extract
 from enums import GrammaticalCases
 from handlers.dataclasses import HandlingResult
 from orm import models, db_apis
-from orm.enums import DBSessionChanged
 from vk import vk_constants
 from vk.vk_related_classes import VKUserInfo, Notification
 
@@ -166,7 +165,7 @@ class HandlerHelpers:
                         no_orders_found_client_error
                     )
                 ),
-                DBSessionChanged.NO
+                commit_needed=False
             )
         notification_with_orders = (
             await self.get_notification_with_orders(
@@ -177,7 +176,7 @@ class HandlerHelpers:
                 limit_for_header=limit
             )
         )
-        return HandlingResult(notification_with_orders, DBSessionChanged.MAYBE)
+        return HandlingResult(notification_with_orders, commit_needed=True)
 
     @staticmethod
     def get_order_manipulation_results_as_list(

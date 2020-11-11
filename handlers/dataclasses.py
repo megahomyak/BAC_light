@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from orm.enums import DBSessionChanged
 from vk.vk_related_classes import Notification
 
 
@@ -8,4 +7,4 @@ from vk.vk_related_classes import Notification
 class HandlingResult:
 
     notification: Notification
-    db_changes: DBSessionChanged
+    commit_needed: bool

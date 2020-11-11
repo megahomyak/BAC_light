@@ -11,7 +11,6 @@ from handlers.handler_helpers import HandlerHelpers, ResultSection
 from lexer import lexer_classes
 from orm import db_apis
 from orm import models
-from orm.enums import DBSessionChanged
 from vk import vk_constants
 from vk.enums import Sex
 from vk.vk_related_classes import Notification, UserCallbackMessages, Message
@@ -58,13 +57,13 @@ class Handlers:
                         f"{order.id}: {order.text}."
                     )
                 ),
-                DBSessionChanged.YES
+                commit_needed=True
             )
         return HandlingResult(
             Notification(
                 text_for_employees=f"Заказ с ID {order.id} создан!"
             ),
-            DBSessionChanged.YES
+            commit_needed=True
         )
 
     async def cancel_orders(
@@ -185,7 +184,7 @@ class Handlers:
                 ),
                 additional_messages=additional_messages
             ),
-            DBSessionChanged.MAYBE
+            commit_needed=True
         )
 
     async def get_orders(
@@ -244,7 +243,7 @@ class Handlers:
                     )
                 )
             ),
-            DBSessionChanged.NO
+            commit_needed=False
         )
 
     async def get_canceled_orders(
@@ -374,7 +373,7 @@ class Handlers:
                 ),
                 additional_messages=additional_messages
             ),
-            DBSessionChanged.MAYBE
+            commit_needed=True
         )
 
     async def get_monthly_paid_orders(
@@ -389,7 +388,7 @@ class Handlers:
                 )
             )
             return HandlingResult(
-                notification_with_orders, DBSessionChanged.MAYBE
+                notification_with_orders, commit_needed=True
             )
         return HandlingResult(
             Notification(
@@ -398,7 +397,7 @@ class Handlers:
                     f"одного заказа!"
                 )
             ),
-            DBSessionChanged.NO
+            commit_needed=False
         )
 
     async def take_orders(
@@ -475,7 +474,7 @@ class Handlers:
                 ),
                 additional_messages=additional_messages
             ),
-            DBSessionChanged.MAYBE
+            commit_needed=True
         )
 
     async def get_active_orders(
@@ -526,7 +525,7 @@ class Handlers:
                     )
                 )
             ),
-            DBSessionChanged.NO
+            commit_needed=False
         )
 
     async def get_order_by_id(
@@ -564,7 +563,7 @@ class Handlers:
             Notification(
                 text_for_client="\n\n".join(output)
             ),
-            DBSessionChanged.MAYBE
+            commit_needed=True
         )
 
     async def get_monthly_earnings(
@@ -610,7 +609,7 @@ class Handlers:
                         )
                     )
                 ),
-                DBSessionChanged.MAYBE
+                commit_needed=True
             )
         return HandlingResult(
             Notification(
@@ -618,7 +617,7 @@ class Handlers:
                     f"За {month} месяц {year} года не заработано ни рубля!"
                 )
             ),
-            DBSessionChanged.NO
+            commit_needed=False
         )
 
     async def create_order_offline(
@@ -637,7 +636,7 @@ class Handlers:
                         f"Пользователя с VK ID {client_vk_id_or_tag} нет!"
                     )
                 ),
-                DBSessionChanged.NO
+                commit_needed=False
             )
         else:
             client_vk_id = client_info.id
@@ -677,7 +676,7 @@ class Handlers:
                         )
                     ]
                 ),
-                DBSessionChanged.YES
+                commit_needed=True
             )
 
     async def clear_cache(self, user_vk_id: int) -> HandlingResult:
@@ -697,7 +696,7 @@ class Handlers:
                         f"сохранены)"
                     )
                 ),
-                DBSessionChanged.NO
+                commit_needed=False
             )
         return HandlingResult(
             Notification(
@@ -707,7 +706,7 @@ class Handlers:
                     f"сохранены)"
                 )
             ),
-            DBSessionChanged.YES
+            commit_needed=True
         )
 
     @staticmethod
@@ -719,5 +718,5 @@ class Handlers:
                     f"{vk_constants.MEMO_FOR_USERS}"
                 )
             ),
-            DBSessionChanged.NO
+            commit_needed=False
         )

@@ -15,25 +15,10 @@ from vk import vk_related_classes
 from vk.vk_worker import VKWorker
 
 
-class MySession(Session):
-
-    """
-    Added only a commit_if_something_is_changed method to the sqlalchemy's
-    Session class, the rest remains the same.
-    """
-
-    def commit_if_something_is_changed(self) -> None:
-        """
-        Makes a commit if there are staging changes.
-        """
-        if self.new or self.dirty or self.deleted:
-            self.commit()
-
-
-def get_db_session(path_to_sqlite_db: str) -> MySession:
+def get_db_session(path_to_sqlite_db: str) -> Session:
     sql_engine = create_engine(path_to_sqlite_db)
     models.DeclarativeBase.metadata.create_all(sql_engine)
-    return MySession(sql_engine)
+    return Session(sql_engine)
 
 
 @dataclass
@@ -45,7 +30,7 @@ class FoundResults:
 
 class OrdersManager:
 
-    def __init__(self, sqlalchemy_session: MySession) -> None:
+    def __init__(self, sqlalchemy_session: Session) -> None:
         self.db_session = sqlalchemy_session
 
     def _get_query(self) -> Query:
@@ -79,9 +64,6 @@ class OrdersManager:
     def commit(self) -> None:
         self.db_session.commit()
 
-    def commit_if_something_is_changed(self) -> None:
-        self.db_session.commit_if_something_is_changed()
-
     def delete(self, *orders: models.Order) -> None:
         for order in orders:
             self.db_session.delete(order)
@@ -96,7 +78,7 @@ class OrdersManager:
 class CachedVKUsersManager:
 
     def __init__(
-            self, sqlalchemy_session: MySession, vk_worker: VKWorker,
+            self, sqlalchemy_session: Session, vk_worker: VKWorker,
             logger: Optional[simplest_logger.Logger] = None) -> None:
         self.db_session = sqlalchemy_session
         self.vk_worker = vk_worker
@@ -206,9 +188,6 @@ class CachedVKUsersManager:
     def commit(self) -> None:
         self.db_session.commit()
 
-    def commit_if_something_is_changed(self) -> None:
-        self.db_session.commit_if_something_is_changed()
-
     def flush(self) -> None:
         self.db_session.flush()
 
@@ -247,14 +226,6 @@ class ManagersContainer:
             self.managers[i - 1].db_session is self.managers[i].db_session
             for i in range(1, len(self.managers))
         )
-
-    def commit_if_something_is_changed(self) -> None:
-        if self.session_is_same_in_all_managers:
-            # Working with the db_session of the orders_manager because why not
-            self.orders_manager.commit_if_something_is_changed()
-        else:
-            for manager in self.managers:
-                manager.commit_if_something_is_changed()
 
     def commit(self) -> None:
         if self.session_is_same_in_all_managers:

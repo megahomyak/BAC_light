@@ -25,7 +25,6 @@ from lexer.lexer_implementations import (
     CurrentMonthMetadataElement, MonthNumberArgType
 )
 from orm import db_apis
-from orm.enums import DBSessionChanged
 from vk import vk_constants
 from vk.enums import Sex
 from vk.vk_related_classes import Message
@@ -455,11 +454,8 @@ class MainLogic:
                 )
                 if inspect.isawaitable(handling_result):
                     handling_result: HandlingResult = await handling_result
-                if self.commit_changes:
-                    if handling_result.db_changes is DBSessionChanged.YES:
-                        self.managers_container.commit()
-                    elif handling_result.db_changes is DBSessionChanged.MAYBE:
-                        self.managers_container.commit_if_something_is_changed()
+                if self.commit_changes and handling_result.commit_needed:
+                    self.managers_container.commit()
                 return handling_result.notification.to_messages(
                     client_peer_id=current_chat_peer_id
                 )
