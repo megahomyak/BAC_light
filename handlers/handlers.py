@@ -25,27 +25,40 @@ class Handlers:
         self.managers_container = managers_container
 
     async def create_order(
-            self, client_vk_id: int, text: str) -> HandlingResult:
+            self, current_chat_peer_id: int,
+            client_vk_id: int, text: str) -> HandlingResult:
         order = models.Order(
             creator_vk_id=client_vk_id,
             text=text
         )
         self.managers_container.orders_manager.add(order)
         self.managers_container.orders_manager.flush()
-        client_info = (
-            await self.managers_container.users_manager.get_user_info_by_vk_id(
-                client_vk_id
+        if current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            client_info = (
+                await (
+                    self.managers_container.users_manager
+                    .get_user_info_by_vk_id(
+                        client_vk_id
+                    )
+                )
             )
-        )
-        made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
-        client_tag = self.helpers.get_tag_from_vk_user_dataclass(client_info)
+            made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
+            client_tag = self.helpers.get_tag_from_vk_user_dataclass(
+                client_info
+            )
+            return HandlingResult(
+                Notification(
+                    text_for_client=f"Заказ с ID {order.id} создан!",
+                    text_for_employees=(
+                        f"Клиент {client_tag} {made_word} заказ с ID "
+                        f"{order.id}: {order.text}."
+                    )
+                ),
+                DBSessionChanged.YES
+            )
         return HandlingResult(
             Notification(
-                text_for_client=f"Заказ с ID {order.id} создан!",
-                text_for_employees=(
-                    f"Клиент {client_tag} {made_word} заказ с ID {order.id}: "
-                    f"{order.text}."
-                )
+                text_for_employees=f"Заказ с ID {order.id} создан!"
             ),
             DBSessionChanged.YES
         )

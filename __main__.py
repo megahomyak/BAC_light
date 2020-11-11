@@ -63,6 +63,7 @@ class MainLogic:
                 handlers.create_order,
                 "создает новый заказ",
                 (
+                    VKPeerIDMetadataElement,
                     VKSenderIDMetadataElement,
                 ),
                 (),
