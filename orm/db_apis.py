@@ -23,13 +23,8 @@ class MySession(Session):
 
     def commit_if_something_is_changed(self) -> None:
         """
-        Makes a commit if there are staging (non-flushed) changes.
-
-        Warnings:
-            If autoflush is enabled - it wouldn't work!
+        Makes a commit if there are staging changes.
         """
-        # If autoflush is enabled - this lists will be empty, so that can lead
-        # to the situation, where commit isn't working
         if self.new or self.dirty or self.deleted:
             self.commit()
 
@@ -37,9 +32,7 @@ class MySession(Session):
 def get_db_session(path_to_sqlite_db: str) -> MySession:
     sql_engine = create_engine(path_to_sqlite_db)
     models.DeclarativeBase.metadata.create_all(sql_engine)
-    return MySession(sql_engine, autoflush=False)
-    # autoflush is disabled because I check for non-flushed objects when
-    # checking for staging changes before commit
+    return MySession(sql_engine)
 
 
 @dataclass
