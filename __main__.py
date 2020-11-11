@@ -374,6 +374,22 @@ class MainLogic:
                     )
                 ),
                 allowed_only_for_employees=True
+            ),
+            Command(
+                (
+                    "очистить кеш", "очистить кэш", "удалить кеш",
+                    "удалить кэш", "clear cache", "delete cache", "remove cache"
+                ),
+                handlers.clear_cache,
+                (
+                    "удаляет всю информацию, которую бот сохранил о твоей "
+                    "странице ВК (заказы остаются). Может быть полезно при "
+                    "смене имени, фамилии или пола в ВК, чтобы бот обновил "
+                    "свою базу данных"
+                ),
+                (
+                    VKSenderIDMetadataElement,
+                )
             )
         )
         self.commands_description: Dict[str, List[Callable]] = {}
@@ -623,7 +639,8 @@ async def main():
             vk_worker,
             Handlers(
                 HandlerHelpers(managers_container),
-                managers_container
+                managers_container,
+                vk_worker
             ),
             simplest_logger.Logger("command_errors.log"),
             log_command_parsing_errors=False

@@ -4,6 +4,7 @@ from typing import Tuple, List, Dict, Callable
 import simple_avk
 from sqlalchemy import not_
 
+import orm.exceptions
 from enums import GrammaticalCases
 from handlers.dataclasses import HandlingResult
 from handlers.handler_helpers import HandlerHelpers, ResultSection
@@ -14,15 +15,18 @@ from orm.enums import DBSessionChanged
 from vk import vk_constants
 from vk.enums import Sex
 from vk.vk_related_classes import Notification, UserCallbackMessages, Message
+from vk.vk_worker import VKWorker
 
 
 class Handlers:
 
     def __init__(
             self, handler_helpers: HandlerHelpers,
-            managers_container: db_apis.ManagersContainer) -> None:
+            managers_container: db_apis.ManagersContainer,
+            vk_worker: VKWorker) -> None:
         self.helpers = handler_helpers
         self.managers_container = managers_container
+        self.vk_worker = vk_worker
 
     async def create_order(
             self, current_chat_peer_id: int,
@@ -675,3 +679,33 @@ class Handlers:
                 ),
                 DBSessionChanged.YES
             )
+
+    async def clear_cache(self, user_vk_id: int) -> HandlingResult:
+        user_tag = self.helpers.get_tag_from_vk_user_dataclass(
+            await self.vk_worker.get_user_info(user_vk_id)
+        )
+        try:
+            self.managers_container.users_manager.delete_user_info(
+                models.CachedVKUser.vk_id == user_vk_id
+            )
+        except orm.exceptions.NoRowsFound:
+            return HandlingResult(
+                Notification(
+                    text_for_client=(
+                        f"{user_tag}, информация о тебе не сохранена! (Сейчас "
+                        f"твои имя и фамилия были скачаны временно, не "
+                        f"сохранены)"
+                    )
+                ),
+                DBSessionChanged.NO
+            )
+        return HandlingResult(
+            Notification(
+                text_for_client=(
+                    f"{user_tag}, твои имена очищены! (Сейчас "
+                    f"твои имя и фамилия были скачаны временно, не "
+                    f"сохранены)"
+                )
+            ),
+            DBSessionChanged.YES
+        )
