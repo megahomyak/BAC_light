@@ -625,14 +625,16 @@ async def main():
                 aiohttp_session,
                 vk_constants.TOKEN,
                 vk_constants.GROUP_ID
-            ),
-            simplest_logger.Logger("vk_info.log"),
-            log_only_user_info_getting=True
+            )
         )
         db_session = db_apis.get_db_session("sqlite:///BAC_light.db")
         managers_container = db_apis.ManagersContainer(
             db_apis.OrdersManager(db_session),
-            db_apis.CachedVKUsersManager(db_session, vk_worker)
+            db_apis.CachedVKUsersManager(
+                db_session,
+                vk_worker,
+                simplest_logger.Logger("users_caching.log")
+            )
         )
         main_logic = MainLogic(
             managers_container,

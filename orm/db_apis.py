@@ -2,6 +2,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any, List, Iterable, Optional, Union
 
+import simplest_logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, Query
 from sqlalchemy.orm.exc import NoResultFound
@@ -95,11 +96,12 @@ class OrdersManager:
 class CachedVKUsersManager:
 
     def __init__(
-            self, sqlalchemy_session: MySession,
-            vk_worker: VKWorker) -> None:
+            self, sqlalchemy_session: MySession, vk_worker: VKWorker,
+            logger: Optional[simplest_logger.Logger] = None) -> None:
         self.db_session = sqlalchemy_session
         self.vk_worker = vk_worker
         self.asyncio_lock = asyncio.Lock()
+        self.logger = logger
 
     async def get_user_info_by_vk_id(
             self, vk_id: Union[int, str],
@@ -157,14 +159,22 @@ class CachedVKUsersManager:
                     vk_id=user_info_from_vk.id,
                     sex=user_info_from_vk.sex
                 )
+                name = user_info_from_vk.name
+                surname = user_info_from_vk.surname
                 cached_vk_user.names = [
                     models.UserNameAndSurname(
                         case=name_case,
-                        name=user_info_from_vk.name,
-                        surname=user_info_from_vk.surname
+                        name=name,
+                        surname=surname
                     )
                 ]
                 self.db_session.add(cached_vk_user)
+                if self.logger is not None:
+                    self.logger.info(
+                        f"Info about VK user with VK ID {vk_id} and name and "
+                        f"surname in case {name_case} ({name} {surname}) added "
+                        f"to the database session"
+                    )
                 return user_info_from_vk
             else:
                 try:
@@ -175,14 +185,22 @@ class CachedVKUsersManager:
                     user_info_from_vk = await self.vk_worker.get_user_info(
                         vk_id, name_case
                     )
+                    name = user_info_from_vk.name
+                    surname = user_info_from_vk.surname
                     user_info.names.append(
                         models.UserNameAndSurname(
                             user_vk_id=user_info.id,
                             case=name_case,
-                            name=user_info_from_vk.name,
-                            surname=user_info_from_vk.surname
+                            name=name,
+                            surname=surname
                         )
                     )
+                    if self.logger is not None:
+                        self.logger.info(
+                            f"Name and surname of VK user with VK ID {vk_id} "
+                            f"in case {name_case} ({name} {surname}) added to "
+                            f"the database session"
+                        )
                     return user_info_from_vk
 
     def commit(self) -> None:
