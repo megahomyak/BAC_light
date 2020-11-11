@@ -63,7 +63,10 @@ class MainLogic:
             Command(
                 ("заказ", "order", "заказать"),
                 handlers.create_order,
-                "создает новый заказ",
+                (
+                    "создает новый заказ (заказ содержит только текст, "
+                    "картинки туда не попадают!)"
+                ),
                 (
                     VKPeerIDMetadataElement,
                     VKSenderIDMetadataElement,
