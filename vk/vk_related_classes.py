@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Tuple, Iterable, Union
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict, Union
 
 import simple_avk
 
@@ -17,7 +17,7 @@ class Message:
 class Notification:
     text_for_employees: Optional[str] = None
     text_for_client: Optional[str] = None
-    additional_messages: Iterable[Message] = ()
+    additional_messages: List[Message] = field(default_factory=list)
 
     def to_messages(self, client_peer_id: int) -> List[Message]:
         messages = []
@@ -74,11 +74,11 @@ class UserCallbackMessages:
 
     def to_messages(
             self, separator: str = "\n\n",
-            prefix: str = "", postfix: str = "") -> Tuple[Message, ...]:
-        return tuple(
+            prefix: str = "", postfix: str = "") -> List[Message]:
+        return [
             Message(f"{prefix}{separator.join(texts)}{postfix}", client_vk_id_)
             for client_vk_id_, texts in self.messages.items()
-        )
+        ]
 
 
 @dataclass
