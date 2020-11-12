@@ -25,7 +25,7 @@ from lexer.lexer_implementations import (
     CurrentMonthMetadataElement, MonthNumberArgType
 )
 from orm import db_apis
-from vk import vk_constants
+from vk import vk_config
 from vk.enums import Sex
 from vk.vk_related_classes import Message
 from vk.vk_worker import VKWorker
@@ -429,7 +429,7 @@ class MainLogic:
                 if (
                     command_.allowed_only_for_employees
                     and
-                    current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
                 ):
                     return [
                         Message(
@@ -471,7 +471,7 @@ class MainLogic:
             chat_name = (
                 "чате для сотрудников"
                 if (
-                    current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID
                 ) else
                 "ЛС"
             )
@@ -575,7 +575,7 @@ class MainLogic:
             if self.logger is not None:
                 chat_name = (
                     "чате для сотрудников"
-                    if peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID else
+                    if peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else
                     "ЛС"
                 )
                 self.logger.error(
@@ -590,10 +590,10 @@ class MainLogic:
                     f"Тут у юзера при обработке команды \"{text}\" произошла "
                     f"ошибка \"{str(exc)}\", это в логах тоже есть, "
                     f"гляньте, разберитесь...",
-                    vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    vk_config.EMPLOYEES_CHAT_PEER_ID
                 )
             )
-            if peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID:
+            if peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID:
                 await self.vk_worker.reply(
                     Message(
                         f"При обработке команды \"{text}\" произошла ошибка. "
@@ -630,8 +630,8 @@ async def main():
         vk_worker = VKWorker(
             simple_avk.SimpleAVK(
                 aiohttp_session,
-                vk_constants.TOKEN,
-                vk_constants.GROUP_ID
+                vk_config.TOKEN,
+                vk_config.GROUP_ID
             )
         )
         db_session = db_apis.get_db_session("sqlite:///BAC_light.db")

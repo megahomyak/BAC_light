@@ -11,7 +11,7 @@ from handlers.handler_helpers import HandlerHelpers, ResultSection
 from lexer import lexer_classes
 from orm import db_apis
 from orm import models
-from vk import vk_constants
+from vk import vk_config
 from vk.enums import Sex
 from vk.vk_related_classes import Notification, UserCallbackMessages, Message
 from vk.vk_worker import VKWorker
@@ -36,7 +36,7 @@ class Handlers:
         )
         self.managers_container.orders_manager.add(order)
         self.managers_container.orders_manager.flush()
-        if current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID:
+        if current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID:
             client_info = (
                 await (
                     self.managers_container.users_manager
@@ -81,7 +81,7 @@ class Handlers:
         taken_by_other_employee_order_ids: List[int] = []
         canceled_order_ids: List[int] = []
         request_is_from_client = (
-             current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+            current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
         )
         for order in found_orders.successful_rows:
             if request_is_from_client and order.creator_vk_id != client_vk_id:
@@ -235,7 +235,7 @@ class Handlers:
         return HandlingResult(
             Notification(
                 text_for_client=(
-                    vk_constants.HELP_MESSAGE_BEGINNING + "\n\n".join(
+                    vk_config.HELP_MESSAGE_BEGINNING + "\n\n".join(
                         [
                             command.get_full_description(include_heading=True)
                             for command in commands
@@ -541,7 +541,7 @@ class Handlers:
             for failed_id in found_orders.failed_ids
         ]
         request_is_from_client = (
-            current_chat_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+            current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
         )
         for order in found_orders.successful_rows:
             if (
@@ -715,7 +715,7 @@ class Handlers:
             Notification(
                 text_for_client=(
                     f"Памятка по использованию бота:\n\n"
-                    f"{vk_constants.MEMO_FOR_USERS}"
+                    f"{vk_config.MEMO_FOR_USERS}"
                 )
             ),
             commit_needed=False

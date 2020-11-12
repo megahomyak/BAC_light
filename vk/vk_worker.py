@@ -6,7 +6,7 @@ import simplest_logger
 from simple_avk import SimpleAVK
 
 from enums import GrammaticalCases
-from vk import vk_constants, vk_related_classes
+from vk import vk_config, vk_related_classes
 from vk.enums import Sex
 from vk.vk_related_classes import Message, DoneReply
 
@@ -38,11 +38,11 @@ class VKWorker:
 
     async def reply(self, message: Message) -> None:
         text_parts = (
-            message.text[i:i + vk_constants.SYMBOLS_PER_MESSAGE]
+            message.text[i:i + vk_config.SYMBOLS_PER_MESSAGE]
             for i in range(
                 0,
                 len(message.text),
-                vk_constants.SYMBOLS_PER_MESSAGE
+                vk_config.SYMBOLS_PER_MESSAGE
             )
         )
         for part in text_parts:

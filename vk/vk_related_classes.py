@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Tuple, Iterable, Union
 import simple_avk
 
 import vk.enums
-from vk import vk_constants
+from vk import vk_config
 
 
 @dataclass
@@ -32,7 +32,7 @@ class Notification:
             self.text_for_employees is not None
             and
             (
-                client_peer_id != vk_constants.EMPLOYEES_CHAT_PEER_ID
+                client_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
                 or
                 self.text_for_client is None
             )
@@ -40,7 +40,7 @@ class Notification:
             messages.append(
                 Message(
                     self.text_for_employees,
-                    vk_constants.EMPLOYEES_CHAT_PEER_ID
+                    vk_config.EMPLOYEES_CHAT_PEER_ID
                 )
             )
         if self.additional_messages is not None:

@@ -6,7 +6,7 @@ from lexer.lexer_implementations import (
     VKPeerIDMetadataElement,
     VKSenderIDMetadataElement, IntArgType
 )
-from vk import vk_constants
+from vk import vk_config
 
 
 def get_getter_commands_for_common_orders(
@@ -40,12 +40,12 @@ def get_getter_commands_for_common_orders(
             handler,
             (
                 f"показывает {orders_name} с лимитом в "
-                f"{vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT} заказов "
+                f"{vk_config.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT} заказов "
                 f"(если спрашивает клиент - только заказы этого же клиента)"
             ),
             metadata,
             (),
-            (vk_constants.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT,)  # limit=
+            (vk_config.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT,)  # limit=
         ),
         Command(  # Without limit
             (

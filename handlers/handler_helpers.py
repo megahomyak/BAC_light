@@ -6,7 +6,7 @@ from sqlalchemy import extract
 from enums import GrammaticalCases
 from handlers.dataclasses import HandlingResult
 from orm import models, db_apis
-from vk import vk_constants
+from vk import vk_config
 from vk.vk_related_classes import VKUserInfo, Notification
 
 
@@ -142,7 +142,7 @@ class HandlerHelpers:
             no_orders_found_employees_error: str,
             limit: Optional[int] = None) -> HandlingResult:
         request_is_from_employee = (
-            current_chat_peer_id == vk_constants.EMPLOYEES_CHAT_PEER_ID
+                current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID
         )
         filters = (
             filters
