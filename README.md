@@ -14,8 +14,8 @@ Simplified, it works as follows:
 
 # What to make before launch
 
-Create a file `vk_secrets.ini` in the `vk` directory with the following contents
-(you need to fill the {forms}):
+Create a file `vk_secrets.ini` in the `vk/config` directory with the following
+contents (you need to fill the {forms}):
 
     [SECRETS]
     token = {VK group token (allow group control and messages access)}

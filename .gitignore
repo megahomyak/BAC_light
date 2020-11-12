@@ -5,7 +5,7 @@ BAC_light.iml
 
 
 # Sssssh, it's a secret...
-vk/vk_secrets.ini
+vk/config/vk_secrets.ini
 
 
 # Intellij IDEA project files
