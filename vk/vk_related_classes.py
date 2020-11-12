@@ -9,14 +9,12 @@ from vk import vk_constants
 
 @dataclass
 class Message:
-
     text: str
     peer_id: int
 
 
 @dataclass
 class Notification:
-
     text_for_employees: Optional[str] = None
     text_for_client: Optional[str] = None
     additional_messages: Iterable[Message] = ()
@@ -52,7 +50,6 @@ class Notification:
 
 @dataclass
 class VKUserInfo:
-
     id: int
     name: str
     surname: str
@@ -60,7 +57,6 @@ class VKUserInfo:
 
 
 class UserCallbackMessages:
-
     """
     This class is needed to register callback messages, which will be sent to
     clients, for example, when employee takes multiple orders.
@@ -87,6 +83,5 @@ class UserCallbackMessages:
 
 @dataclass
 class DoneReply:
-
     exception: Optional[Union[BaseException, simple_avk.MethodError]]
     message: Message

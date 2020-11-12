@@ -12,7 +12,6 @@ from vk.vk_related_classes import VKUserInfo, Notification
 
 @dataclass
 class ResultSection:
-
     beginning: str
     row_ids: List[int]
 

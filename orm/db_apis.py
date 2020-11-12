@@ -23,7 +23,6 @@ def get_db_session(path_to_sqlite_db: str) -> Session:
 
 @dataclass
 class FoundResults:
-
     failed_ids: List[int]
     successful_rows: List[models.Order]
 
@@ -205,7 +204,6 @@ class CachedVKUsersManager:
 
 
 class ManagersContainer:
-
     """
     A facade for the OrdersManager and CachedVKUsersManager.
 

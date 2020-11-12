@@ -17,7 +17,6 @@ DeclarativeBase = declarative_base()
 # Because when the first argument is named `cls`, class is really
 # passed into it
 class Order(DeclarativeBase):
-
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True)
@@ -70,7 +69,6 @@ class Order(DeclarativeBase):
 
 
 class UserNameAndSurname(DeclarativeBase):
-
     __tablename__ = "names_and_surnames"
 
     id = Column(Integer, primary_key=True)
@@ -88,7 +86,6 @@ class UserNameAndSurname(DeclarativeBase):
 
 
 class CachedVKUser(DeclarativeBase):
-
     __tablename__ = "vk_users"
 
     id = Column(Integer, primary_key=True)

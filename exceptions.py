@@ -1,3 +1,2 @@
 class NameCaseNotFound(BaseException):
-
     pass

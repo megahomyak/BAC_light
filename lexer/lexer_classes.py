@@ -10,7 +10,6 @@ from enums import GrammaticalCases
 
 
 class BaseArgType(ABC):
-
     """
     Interface for type of argument, does conversion from string to some type.
 
@@ -102,7 +101,6 @@ class BaseArgType(ABC):
 
 @dataclass
 class Arg:
-
     name: str
     type: BaseArgType
     description: Optional[str] = None
@@ -110,7 +108,6 @@ class Arg:
 
 @dataclass
 class Context:
-
     # noinspection GrazieInspection
     # because what's wrong with "Stores values", come on...
     """
@@ -124,7 +121,6 @@ class Context:
 
 @dataclass
 class ConstantContext:
-
     # noinspection GrazieInspection
     # because "dependencies" is the right word! I don't want to change it to
     # "dependencies'"!!!
@@ -138,7 +134,6 @@ class ConstantContext:
 
 
 class BaseMetadataElement(ABC):
-
     """
     Class for getting additional arguments to throw in the handler, which will
     help to handle a command.
@@ -160,7 +155,6 @@ class BaseMetadataElement(ABC):
 
 
 class BaseConstantMetadataElement(ABC):
-
     """
     Class for getting constant additional arguments to throw in the handler,
     which will help to handle a command.
@@ -185,14 +179,12 @@ class BaseConstantMetadataElement(ABC):
 
 @dataclass
 class ConvertedCommand:
-
     name: str
     arguments: list
 
 
 @dataclass
 class Command:
-
     names: Tuple[str, ...]
     handler: Callable
     description: Optional[str] = None
