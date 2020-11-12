@@ -28,4 +28,4 @@ Create a file `vk_secrets.ini` in the `vk` directory with the following contents
 
 # How to launch it
 
-Just run \_\_main\_\_.py file from the project's root directory.
+Just run main_logic.py file from the project's root directory.
