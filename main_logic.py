@@ -49,30 +49,35 @@ class MainLogic:
         self.commit_changes = commit_changes
         self.commands: Tuple[Command, ...] = (
             *lexer.generators.get_getter_commands_for_common_orders(
-                ("заказы",), ("orders",), "заказы", handlers.get_orders
+                ru_names=("заказы",),
+                eng_names=("orders",),
+                orders_name="заказы",
+                handler=handlers.get_orders
             ),
             *lexer.generators.get_getter_commands_for_common_orders(
-                ("отмененные",), ("canceled",),
-                "отмененные заказы", handlers.get_canceled_orders
+                ru_names=("отмененные",),
+                eng_names=("canceled",),
+                orders_name="отмененные заказы",
+                handler=handlers.get_canceled_orders
             ),
             *lexer.generators.get_getter_commands_for_common_orders(
-                ("оплаченные",), ("paid",),
-                "оплаченные заказы", handlers.get_paid_orders
+                ru_names=("оплаченные",),
+                eng_names=("paid",),
+                orders_name="оплаченные заказы",
+                handler=handlers.get_paid_orders
             ),
             Command(
-                ("заказ", "order", "заказать"),
-                handlers.create_order,
-                (
+                names=("заказ", "order", "заказать"),
+                handler=handlers.create_order,
+                description=(
                     "создает новый заказ (заказ содержит только текст, "
                     "картинки туда не попадают!)"
                 ),
-                (
+                metadata=(
                     VKPeerIDMetadataElement,
                     VKSenderIDMetadataElement,
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         "текст заказа",
                         StringArgType()
@@ -80,20 +85,18 @@ class MainLogic:
                 )
             ),
             Command(
-                ("отменить", "отмена", "cancel"),
-                handlers.cancel_orders,
-                (
+                names=("отменить", "отмена", "cancel"),
+                handler=handlers.cancel_orders,
+                description=(
                     "отменяет заказ (клиентам нельзя отменять чужие заказы; "
                     "сотрудникам нельзя отменять заказы, взятые другим "
                     "сотрудником; всем нельзя отменять оплаченные заказы)"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         "ID заказов, которые нужно отменить (через запятую)",
                         SequenceArgType(
@@ -107,54 +110,51 @@ class MainLogic:
                 )
             ),
             Command(
-                ("взятые", "взятые заказы", "taken", "taken orders"),
-                handlers.get_taken_orders,
-                (
+                names=("взятые", "взятые заказы", "taken", "taken orders"),
+                handler=handlers.get_taken_orders,
+                description=(
                     "показывает все взятые заказы, которые не отменены и не "
                     "оплачены (если спрашивает клиент - только заказы этого же "
                     "клиента)"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
             ),
             Command(
-                ("в ожидании", "waiting", "pending", "ожидающие"),
-                handlers.get_pending_orders,
-                (
+                names=("в ожидании", "waiting", "pending", "ожидающие"),
+                handler=handlers.get_pending_orders,
+                description=(
                     "показывает все заказы, которые еще не взяты и не отменены "
                     "(если спрашивает клиент - только заказы этого же "
                     "клиента)"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
             ),
             Command(
-                ("команды", "помощь", "help", "commands"),
-                handlers.get_help_message,
-                "показывает помощь по командам и их написанию",
-                (),
-                (
+                names=("команды", "помощь", "help", "commands"),
+                handler=handlers.get_help_message,
+                description="показывает помощь по командам и их написанию",
+                constant_metadata=(
                     CommandsConstantMetadataElement,
                 )
             ),
             Command(
-                ("оплачено", "оплатить", "pay", "mark as paid"),
-                handlers.mark_orders_as_paid,
-                (
+                names=("оплачено", "оплатить", "pay", "mark as paid"),
+                handler=handlers.mark_orders_as_paid,
+                description=(
                     "отмечает заказ оплаченным (это могут делать только "
                     "сотрудники, причем могут помечать оплаченными лишь те "
                     "заказы, которые взяли сами)"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         (
                             "ID заказов, которые нужно отметить оплаченными "
@@ -172,26 +172,23 @@ class MainLogic:
                 allowed_only_for_employees=True
             ),
             Command(
-                ("месячное", "monthly"),
-                handlers.get_monthly_paid_orders,
-                "показывает оплаченные заказы за месяц",
-                (
+                names=("месячное", "monthly"),
+                handler=handlers.get_monthly_paid_orders,
+                description="показывает оплаченные заказы за месяц",
+                metadata=(
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
                 ),
                 allowed_only_for_employees=True
             ),
             Command(
-                ("месячное", "monthly"),
-                handlers.get_monthly_paid_orders,
-                (
+                names=("месячное", "monthly"),
+                handler=handlers.get_monthly_paid_orders,
+                description=(
                     "показывает оплаченные заказы за указанный месяц "
                     "указанного года"
                 ),
-                (),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         "номер года",
                         IntArgType()
@@ -204,18 +201,16 @@ class MainLogic:
                 allowed_only_for_employees=True
             ),
             Command(
-                ("месячное", "monthly"),
-                handlers.get_monthly_paid_orders,
-                (
+                names=("месячное", "monthly"),
+                handler=handlers.get_monthly_paid_orders,
+                description=(
                     "показывает оплаченные заказы за указанный месяц (только "
                     "для сотрудников)"
                 ),
-                (
+                metadata=(
                     CurrentYearMetadataElement,
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         "номер месяца",
                         MonthNumberArgType()
@@ -224,18 +219,16 @@ class MainLogic:
                 allowed_only_for_employees=True
             ),
             Command(
-                ("взять", "take"),
-                handlers.take_orders,
-                (
+                names=("взять", "take"),
+                handler=handlers.take_orders,
+                description=(
                     "отмечает заказы как взятые и отсылает уведомления о "
                     "взятии клиентам"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         (
                             "ID заказов, которые нужно отметить "
@@ -249,27 +242,27 @@ class MainLogic:
                 allowed_only_for_employees=True
             ),
             Command(
-                ("активные", "active"),
-                handlers.get_active_orders,
-                (
+                names=("активные", "active"),
+                handler=handlers.get_active_orders,
+                description=(
                     "показывает все заказы, которые не отменены и не оплачены "
                     "(если спрашивает клиент - только заказы этого же клиента)"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 )
             ),
             Command(
-                ("команды", "помощь", "help", "commands"),
-                handlers.get_help_message_for_specific_commands,
-                "показывает помощь по конкретным командам и их написанию",
-                (),
-                (
+                names=("команды", "помощь", "help", "commands"),
+                handler=handlers.get_help_message_for_specific_commands,
+                description=(
+                    "показывает помощь по конкретным командам и их написанию"
+                ),
+                constant_metadata=(
                     CommandDescriptionsConstantMetadataElement,
                 ),
-                (),
-                (
+                arguments=(
                     Arg(
                         (
                             "команды, к которым нужно получить подсказку "
@@ -282,19 +275,17 @@ class MainLogic:
                 )
             ),
             Command(
-                ("инфо", "info", "information", "информация"),
-                handlers.get_order_by_id,
-                (
+                names=("инфо", "info", "information", "информация"),
+                handler=handlers.get_order_by_id,
+                description=(
                     "показывает заказы с указанными ID (для клиентов - лишь "
                     "если заказ принадлежит им)"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                     VKPeerIDMetadataElement
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         "ID заказов (через запятую)",
                         SequenceArgType(
@@ -304,23 +295,22 @@ class MainLogic:
                 )
             ),
             Command(
-                ("доход", "earnings", "income", "revenue"),
-                handlers.get_monthly_earnings,
-                "показывает доход за месяц",
-                (
+                names=("доход", "earnings", "income", "revenue"),
+                handler=handlers.get_monthly_earnings,
+                description="показывает доход за месяц",
+                metadata=(
                     CurrentYearMetadataElement,
                     CurrentMonthMetadataElement
                 ),
                 allowed_only_for_employees=True
             ),
             Command(
-                ("доход", "earnings", "income", "revenue"),
-                handlers.get_monthly_earnings,
-                "показывает доход за указанный месяц указанного года",
-                (),
-                (),
-                (),
-                (
+                names=("доход", "earnings", "income", "revenue"),
+                handler=handlers.get_monthly_earnings,
+                description=(
+                    "показывает доход за указанный месяц указанного года"
+                ),
+                arguments=(
                     Arg(
                         "номер года",
                         IntArgType()
@@ -333,15 +323,13 @@ class MainLogic:
                 allowed_only_for_employees=True
             ),
             Command(
-                ("доход", "earnings", "income", "revenue"),
-                handlers.get_monthly_earnings,
-                "показывает доход за указанный месяц",
-                (
+                names=("доход", "earnings", "income", "revenue"),
+                handler=handlers.get_monthly_earnings,
+                description="показывает доход за указанный месяц",
+                metadata=(
                     CurrentYearMetadataElement,
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         "номер месяца",
                         MonthNumberArgType()
@@ -350,21 +338,19 @@ class MainLogic:
                 allowed_only_for_employees=True
             ),
             Command(
-                ("оффлайн", "offline"),
-                handlers.create_order_offline,
-                (
+                names=("оффлайн", "offline"),
+                handler=handlers.create_order_offline,
+                description=(
                     "создает новый заказ от лица указанного клиента "
                     "(на тот случай, если клиент хочет сделать заказ оффлайн; "
                     "кроме указания VK ID клиента, от лица которого будет "
                     "сделан заказ, эта команда работает так же, как и просто "
                     "/заказ)"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                 ),
-                (),
-                (),
-                (
+                arguments=(
                     Arg(
                         "тэг или ID клиента в ВК",
                         StringArgType(),
@@ -381,25 +367,25 @@ class MainLogic:
                 allowed_only_for_employees=True
             ),
             Command(
-                (
+                names=(
                     "очистить кеш", "очистить кэш", "удалить кеш",
                     "удалить кэш", "clear cache", "delete cache", "remove cache"
                 ),
-                handlers.clear_cache,
-                (
+                handler=handlers.clear_cache,
+                description=(
                     "удаляет всю информацию, которую бот сохранил о твоей "
                     "странице ВК (заказы остаются). Может быть полезно при "
                     "смене имени, фамилии или пола в ВК, чтобы бот обновил "
                     "свою базу данных"
                 ),
-                (
+                metadata=(
                     VKSenderIDMetadataElement,
                 )
             ),
             Command(
-                ("памятка", "memo"),
-                handlers.get_memo,
-                "показывает памятку по использованию бота"
+                names=("памятка", "memo"),
+                handler=handlers.get_memo,
+                description="показывает памятку по использованию бота"
             )
         )
         commands_description: Dict[str, List[Callable]] = {}

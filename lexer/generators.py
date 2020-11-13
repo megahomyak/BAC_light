@@ -36,48 +36,44 @@ def get_getter_commands_for_common_orders(
     metadata = (VKSenderIDMetadataElement, VKPeerIDMetadataElement)
     return (
         Command(  # With default limit
-            ru_names + eng_names,
-            handler,
-            (
+            names=ru_names + eng_names,
+            handler=handler,
+            description=(
                 f"показывает {orders_name} с лимитом в "
                 f"{vk_config.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT} заказов "
                 f"(если спрашивает клиент - только заказы этого же клиента)"
             ),
-            metadata,
-            (),
-            (vk_config.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT,)  # limit=
+            metadata=metadata,
+            fillers=(vk_config.DEFAULT_BIG_ORDER_SEQUENCES_LIMIT,)  # limit=
         ),
         Command(  # Without limit
-            (
+            names=(
                 tuple(f"все {name}" for name in ru_names)
                 +
                 tuple(f"all {name}" for name in eng_names)
             ),
-            handler,
-            (
+            handler=handler,
+            description=(
                 f"показывает все {orders_name} (если спрашивает "
                 f"клиент - только заказы этого же клиента)"
             ),
-            metadata,
-            (),
-            (None,)  # limit=
+            metadata=metadata,
+            fillers=(None,)  # limit=
         ),
         Command(  # With the specified limit
-            ru_names + eng_names,
-            handler,
-            (
+            names=ru_names + eng_names,
+            handler=handler,
+            description=(
                 f"показывает {orders_name} с указанным лимитом (если "
                 f"спрашивает клиент - только заказы этого же клиента)"
             ),
-            metadata,
-            (),
-            (),
-            (
+            metadata=metadata,
+            arguments=(
                 Arg(
                     "лимит выдачи",
                     IntArgType(IntTypes.GREATER_THAN_ZERO),
                     "сколько максимум описаний заказов будет отправлено"
-                ),
-            )  # limit= (specified in argument)
+                ),  # limit= (specified by user)
+            )
         )
     )
