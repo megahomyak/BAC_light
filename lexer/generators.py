@@ -48,8 +48,7 @@ def get_getter_commands_for_common_orders(
         ),
         Command(  # Without limit
             names=(
-                tuple(f"все {name}" for name in ru_names)
-                +
+                tuple(f"все {name}" for name in ru_names) +
                 tuple(f"all {name}" for name in eng_names)
             ),
             handler=handler,

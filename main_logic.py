@@ -73,16 +73,8 @@ class MainLogic:
                     "создает новый заказ (заказ содержит только текст, "
                     "картинки туда не попадают!)"
                 ),
-                metadata=(
-                    VKPeerIDMetadataElement,
-                    VKSenderIDMetadataElement,
-                ),
-                arguments=(
-                    Arg(
-                        "текст заказа",
-                        StringArgType()
-                    ),
-                )
+                metadata=(VKPeerIDMetadataElement, VKSenderIDMetadataElement),
+                arguments=(Arg("текст заказа", StringArgType()),)
             ),
             Command(
                 names=("отменить", "отмена", "cancel"),
@@ -92,21 +84,13 @@ class MainLogic:
                     "сотрудникам нельзя отменять заказы, взятые другим "
                     "сотрудником; всем нельзя отменять оплаченные заказы)"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                ),
+                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement),
                 arguments=(
                     Arg(
                         "ID заказов, которые нужно отменить (через запятую)",
-                        SequenceArgType(
-                            IntArgType()
-                        )
+                        SequenceArgType(IntArgType())
                     ),
-                    Arg(
-                        "причина отмены",
-                        StringArgType()
-                    )
+                    Arg("причина отмены", StringArgType())
                 )
             ),
             Command(
@@ -117,10 +101,7 @@ class MainLogic:
                     "оплачены (если спрашивает клиент - только заказы этого же "
                     "клиента)"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                )
+                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement)
             ),
             Command(
                 names=("в ожидании", "waiting", "pending", "ожидающие"),
@@ -130,18 +111,13 @@ class MainLogic:
                     "(если спрашивает клиент - только заказы этого же "
                     "клиента)"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                )
+                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement)
             ),
             Command(
                 names=("команды", "помощь", "help", "commands"),
                 handler=handlers.get_help_message,
                 description="показывает помощь по командам и их написанию",
-                constant_metadata=(
-                    CommandsConstantMetadataElement,
-                )
+                constant_metadata=(CommandsConstantMetadataElement,)
             ),
             Command(
                 names=("оплачено", "оплатить", "pay", "mark as paid"),
@@ -151,18 +127,13 @@ class MainLogic:
                     "сотрудники, причем могут помечать оплаченными лишь те "
                     "заказы, которые взяли сами)"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                ),
+                metadata=(VKSenderIDMetadataElement,),
                 arguments=(
                     Arg(
                         (
                             "ID заказов, которые нужно отметить оплаченными "
                             "(через запятую)"
-                        ),
-                        SequenceArgType(
-                            IntArgType()
-                        )
+                        ), SequenceArgType(IntArgType())
                     ),
                     Arg(
                         "выручка (с каждого указанного заказа)",
@@ -189,14 +160,8 @@ class MainLogic:
                     "указанного года"
                 ),
                 arguments=(
-                    Arg(
-                        "номер года",
-                        IntArgType()
-                    ),
-                    Arg(
-                        "номер месяца",
-                        MonthNumberArgType()
-                    )
+                    Arg("номер года", IntArgType()),
+                    Arg("номер месяца", MonthNumberArgType())
                 ),
                 allowed_only_for_employees=True
             ),
@@ -207,15 +172,8 @@ class MainLogic:
                     "показывает оплаченные заказы за указанный месяц (только "
                     "для сотрудников)"
                 ),
-                metadata=(
-                    CurrentYearMetadataElement,
-                ),
-                arguments=(
-                    Arg(
-                        "номер месяца",
-                        MonthNumberArgType()
-                    ),
-                ),
+                metadata=(CurrentYearMetadataElement,),
+                arguments=(Arg("номер месяца", MonthNumberArgType()),),
                 allowed_only_for_employees=True
             ),
             Command(
@@ -225,18 +183,13 @@ class MainLogic:
                     "отмечает заказы как взятые и отсылает уведомления о "
                     "взятии клиентам"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                ),
+                metadata=(VKSenderIDMetadataElement,),
                 arguments=(
                     Arg(
                         (
                             "ID заказов, которые нужно отметить "
                             "взятыми (через запятую)"
-                        ),
-                        SequenceArgType(
-                            IntArgType()
-                        )
+                        ), SequenceArgType(IntArgType())
                     ),
                 ),
                 allowed_only_for_employees=True
@@ -248,10 +201,7 @@ class MainLogic:
                     "показывает все заказы, которые не отменены и не оплачены "
                     "(если спрашивает клиент - только заказы этого же клиента)"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                )
+                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement)
             ),
             Command(
                 names=("команды", "помощь", "help", "commands"),
@@ -259,18 +209,13 @@ class MainLogic:
                 description=(
                     "показывает помощь по конкретным командам и их написанию"
                 ),
-                constant_metadata=(
-                    CommandDescriptionsConstantMetadataElement,
-                ),
+                constant_metadata=(CommandDescriptionsConstantMetadataElement,),
                 arguments=(
                     Arg(
                         (
                             "команды, к которым нужно получить подсказку "
                             "(через запятую)"
-                        ),
-                        SequenceArgType(
-                            StringArgType()
-                        )
+                        ), SequenceArgType(StringArgType())
                     ),
                 )
             ),
@@ -281,16 +226,11 @@ class MainLogic:
                     "показывает заказы с указанными ID (для клиентов - лишь "
                     "если заказ принадлежит им)"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                    VKPeerIDMetadataElement
-                ),
+                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement),
                 arguments=(
                     Arg(
                         "ID заказов (через запятую)",
-                        SequenceArgType(
-                            IntArgType()
-                        )
+                        SequenceArgType(IntArgType())
                     ),
                 )
             ),
@@ -299,8 +239,7 @@ class MainLogic:
                 handler=handlers.get_monthly_earnings,
                 description="показывает доход за месяц",
                 metadata=(
-                    CurrentYearMetadataElement,
-                    CurrentMonthMetadataElement
+                    CurrentYearMetadataElement, CurrentMonthMetadataElement
                 ),
                 allowed_only_for_employees=True
             ),
@@ -311,14 +250,8 @@ class MainLogic:
                     "показывает доход за указанный месяц указанного года"
                 ),
                 arguments=(
-                    Arg(
-                        "номер года",
-                        IntArgType()
-                    ),
-                    Arg(
-                        "номер месяца",
-                        MonthNumberArgType()
-                    )
+                    Arg("номер года", IntArgType()),
+                    Arg("номер месяца", MonthNumberArgType())
                 ),
                 allowed_only_for_employees=True
             ),
@@ -326,15 +259,8 @@ class MainLogic:
                 names=("доход", "earnings", "income", "revenue"),
                 handler=handlers.get_monthly_earnings,
                 description="показывает доход за указанный месяц",
-                metadata=(
-                    CurrentYearMetadataElement,
-                ),
-                arguments=(
-                    Arg(
-                        "номер месяца",
-                        MonthNumberArgType()
-                    ),
-                ),
+                metadata=(CurrentYearMetadataElement,),
+                arguments=(Arg("номер месяца", MonthNumberArgType()),),
                 allowed_only_for_employees=True
             ),
             Command(
@@ -347,22 +273,16 @@ class MainLogic:
                     "сделан заказ, эта команда работает так же, как и просто "
                     "/заказ)"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                ),
+                metadata=(VKSenderIDMetadataElement,),
                 arguments=(
                     Arg(
-                        "тэг или ID клиента в ВК",
-                        StringArgType(),
+                        "тэг или ID клиента в ВК", StringArgType(),
                         (
                             "тэг или ID клиента, за которого будет сделан "
                             "заказ"
                         )
                     ),
-                    Arg(
-                        "текст заказа",
-                        StringArgType()
-                    )
+                    Arg("текст заказа", StringArgType())
                 ),
                 allowed_only_for_employees=True
             ),
@@ -378,9 +298,7 @@ class MainLogic:
                     "смене имени, фамилии или пола в ВК, чтобы бот обновил "
                     "свою базу данных"
                 ),
-                metadata=(
-                    VKSenderIDMetadataElement,
-                )
+                metadata=(VKSenderIDMetadataElement,)
             ),
             Command(
                 names=("памятка", "memo"),
