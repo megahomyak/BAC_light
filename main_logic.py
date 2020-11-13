@@ -20,8 +20,8 @@ from lexer.enums import IntTypes
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
-    SequenceArgType, IntArgType, CommandsMetadataElement,
-    CommandDescriptionsMetadataElement, CurrentYearMetadataElement,
+    SequenceArgType, IntArgType, CommandsConstantMetadataElement,
+    CommandDescriptionsConstantMetadataElement, CurrentYearMetadataElement,
     CurrentMonthMetadataElement, MonthNumberArgType
 )
 from orm import db_apis
@@ -138,7 +138,7 @@ class MainLogic:
                 "показывает помощь по командам и их написанию",
                 (),
                 (
-                    CommandsMetadataElement,
+                    CommandsConstantMetadataElement,
                 )
             ),
             Command(
@@ -266,7 +266,7 @@ class MainLogic:
                 "показывает помощь по конкретным командам и их написанию",
                 (),
                 (
-                    CommandDescriptionsMetadataElement,
+                    CommandDescriptionsConstantMetadataElement,
                 ),
                 (),
                 (

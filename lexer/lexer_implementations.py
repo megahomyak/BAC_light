@@ -176,7 +176,7 @@ class VKPeerIDMetadataElement(BaseMetadataElement):
         return context.vk_message_info["peer_id"]
 
 
-class CommandsMetadataElement(BaseConstantMetadataElement):
+class CommandsConstantMetadataElement(BaseConstantMetadataElement):
 
     @staticmethod
     def get_data_from_constant_context(
@@ -184,7 +184,7 @@ class CommandsMetadataElement(BaseConstantMetadataElement):
         return constant_context.commands
 
 
-class CommandDescriptionsMetadataElement(BaseConstantMetadataElement):
+class CommandDescriptionsConstantMetadataElement(BaseConstantMetadataElement):
 
     @staticmethod
     def get_data_from_constant_context(
