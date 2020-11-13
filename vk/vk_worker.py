@@ -63,8 +63,7 @@ class VKWorker:
                 f"{message.text}"
             )
 
-    async def multiple_reply(
-            self, *messages: Message) -> List[DoneReply]:
+    async def multiple_reply(self, messages: List[Message]) -> List[DoneReply]:
         exceptions = await asyncio.gather(
             *(self.reply(message) for message in messages),
             return_exceptions=True

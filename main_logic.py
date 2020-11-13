@@ -494,7 +494,7 @@ class MainLogic:
             self, current_chat_peer_id: int, command: str, message_info: dict,
             constant_context: ConstantContext) -> None:
         done_replies = await self.vk_worker.multiple_reply(
-            *await self.handle_command(
+            await self.handle_command(
                 current_chat_peer_id, command, message_info, constant_context
             )
         )
