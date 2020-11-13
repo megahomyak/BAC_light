@@ -440,10 +440,11 @@ class MainLogic:
                             current_chat_peer_id
                         )
                     ]
-                context = Context(vk_message_info, datetime.date.today())
                 handling_result: Union[HandlingResult, Coroutine] = (
                     command_.handler(
-                        *command_.get_converted_metadata(context),
+                        *command_.get_converted_metadata(
+                            Context(vk_message_info, datetime.date.today())
+                        ),
                         *command_.get_converted_constant_metadata(
                             constant_context
                         ),
