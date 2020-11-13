@@ -506,7 +506,7 @@ class MainLogic:
             # [^], my IDE thinks that reply.exception is None and it can't have
             # a __class__ property EVEN WHEN None HAVE A __class__ PROPERTY!!!
             if (
-                exception.__class__ is simple_avk.MethodError
+                isinstance(exception, simple_avk.MethodError)
                 # Can't send messages to user without permission
                 and exception.error_code == 901
             ):

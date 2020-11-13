@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Union
-
-import simple_avk
+from typing import Optional, List, Dict
 
 import vk.enums
 from vk import vk_config
@@ -78,5 +76,5 @@ class UserCallbackMessages:
 
 @dataclass
 class DoneReply:
-    exception: Optional[Union[BaseException, simple_avk.MethodError]]
+    exception: Optional[BaseException]
     message: Message
