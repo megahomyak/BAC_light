@@ -23,18 +23,13 @@ class Notification:
         messages = []
         if self.text_for_client is not None:
             messages.append(
-                Message(
-                    self.text_for_client,
-                    client_peer_id
-                )
+                Message(self.text_for_client, client_peer_id)
             )
         if (
             self.text_for_employees is not None
-            and
-            (
+            and (
                 client_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
-                or
-                self.text_for_client is None
+                or self.text_for_client is None
             )
         ):
             messages.append(

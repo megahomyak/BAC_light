@@ -233,13 +233,8 @@ class Command:
         return ConvertedCommand(
             name=rgx_groups[0],
             arguments=[
-                converter(group)
-                for group, converter in zip(
-                    rgx_groups[1:],
-                    [
-                        arg.type.convert
-                        for arg in self.arguments
-                    ]
+                converter(group) for group, converter in zip(
+                    rgx_groups[1:], [arg.type.convert for arg in self.arguments]
                 )
             ]
         )
@@ -279,8 +274,7 @@ class Command:
         return tuple(
             one_constant_metadata.get_data_from_constant_context(
                 constant_context
-            )
-            for one_constant_metadata in self.constant_metadata
+            ) for one_constant_metadata in self.constant_metadata
         )
 
     def get_full_description(
@@ -302,9 +296,7 @@ class Command:
         heading_str = (
             f"Описание команды '{self.names[0]}': {self.description}" + (
                 " (только для сотрудников)"  # (only for employees)
-                if self.allowed_only_for_employees else
-                ""
-            )
+            ) if self.allowed_only_for_employees else ""
         ) if include_heading else None
         aliases_str = (
             f"Псевдонимы: {', '.join(self.names[1:])}"
@@ -313,28 +305,21 @@ class Command:
         for argument in self.arguments:
             temp_desc = (
                 f" - {argument.description}"
-                if argument.description is not None else
-                ""
-            )
+            ) if argument.description is not None else ""
             if argument.type.name == argument.name:
                 temp_type_name = (
-                    f" ({argument.type.description})"
-                    if (
+                    f" ({argument.type.description})" if (
                         include_type_descriptions
-                        and
-                        argument.type.description is not None
-                    ) else
-                    ""
+                        and argument.type.description is not None
+                    ) else ""
                 )
             else:
                 temp_type_name = (
                     f" ({argument.type.name} - {argument.type.description})"
                     if (
                         include_type_descriptions
-                        and
-                        argument.type.description is not None
-                    ) else
-                    f" ({argument.type.name})"
+                        and argument.type.description is not None
+                    ) else f" ({argument.type.name})"
                 )
             args.append(
                 f"{argument.name}{temp_type_name}{temp_desc}"

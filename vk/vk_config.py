@@ -22,9 +22,7 @@ _constants_config.read("vk/config/vk_constants.ini", "utf-8")
 SYMBOLS_PER_MESSAGE = int(_constants_config["MESSAGES"]["symbols_limit"])
 _help_message_beginning = _constants_config["HELP_MESSAGE"]["beginning"]
 HELP_MESSAGE_BEGINNING = (
-    f"{_help_message_beginning}\n\n"
-    if _help_message_beginning else
-    ""
+    f"{_help_message_beginning}\n\n" if _help_message_beginning else ""
 )
 DEFAULT_BIG_ORDER_SEQUENCES_LIMIT = int(
     _constants_config["ORDERS_OUTPUT"]["default_big_order_sequences_limit"]

@@ -23,9 +23,7 @@ class HandlerHelpers:
 
     @staticmethod
     def get_tag_from_vk_user_dataclass(user_info: VKUserInfo) -> str:
-        return (
-            f"[id{user_info.id}|{user_info.name} {user_info.surname}]"
-        )
+        return f"[id{user_info.id}|{user_info.name} {user_info.surname}]"
 
     async def get_orders_as_strings(
             self, orders: List[models.Order],
@@ -49,9 +47,7 @@ class HandlerHelpers:
             )
             order_contents = [
                 f"Заказ с ID {order.id}:",
-                (
-                    f"Создан {creator_tag}."
-                )
+                f"Создан {creator_tag}."
             ]
         else:
             order_contents = [f"Заказ с ID {order.id}:"]
@@ -77,9 +73,7 @@ class HandlerHelpers:
                     )
                 )
             )
-            order_contents.append(
-                f"Взят {taker_tag}."
-            )
+            order_contents.append(f"Взят {taker_tag}.")
         if order.is_canceled:
             canceler_tag = self.get_tag_from_vk_user_dataclass(
                 await (
@@ -122,11 +116,7 @@ class HandlerHelpers:
             orders_as_strings.insert(
                 0, f"Лимит - {limit_for_header} {orders_word}."
             )
-        return Notification(
-            text_for_client="\n\n".join(
-                orders_as_strings
-            )
-        )
+        return Notification(text_for_client="\n\n".join(orders_as_strings))
 
     def get_monthly_paid_orders_by_month_and_year(
             self, month: int, year: int) -> List[models.Order]:

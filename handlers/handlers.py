@@ -30,10 +30,7 @@ class Handlers:
     async def create_order(
             self, current_chat_peer_id: int,
             client_vk_id: int, text: str) -> HandlingResult:
-        order = models.Order(
-            creator_vk_id=client_vk_id,
-            text=text
-        )
+        order = models.Order(creator_vk_id=client_vk_id, text=text)
         self.managers_container.orders_manager.add(order)
         self.managers_container.orders_manager.flush()
         if current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID:
@@ -60,9 +57,7 @@ class Handlers:
                 commit_needed=True
             )
         return HandlingResult(
-            Notification(
-                text_for_employees=f"Заказ с ID {order.id} создан!"
-            ),
+            Notification(text_for_employees=f"Заказ с ID {order.id} создан!"),
             commit_needed=True
         )
 
@@ -92,25 +87,19 @@ class Handlers:
                 already_canceled_order_ids.append(order.id)
             elif (
                 order.is_taken and not order.taker_vk_id == client_vk_id
-                and
-                order.creator_vk_id != client_vk_id
+                and order.creator_vk_id != client_vk_id
             ):
                 taken_by_other_employee_order_ids.append(order.id)
             else:
                 order.canceler_vk_id = client_vk_id
                 order.cancellation_reason = cancellation_reason
                 canceled_order_ids.append(order.id)
-                callback_str = (
-                    f"ID {order.id} (\"{order.text}\")"
-                )
+                callback_str = f"ID {order.id} (\"{order.text}\")"
                 if request_is_from_client:
-                    employees_callback.append(
-                        callback_str
-                    )
+                    employees_callback.append(callback_str)
                 else:
                     client_callback_messages.add_message(
-                        order.creator_vk_id,
-                        callback_str
+                        order.creator_vk_id, callback_str
                     )
         user_output = self.helpers.get_order_manipulation_results_as_list(
             ResultSection(
@@ -126,15 +115,13 @@ class Handlers:
                 (
                     "ID заказов, которые тебе не принадлежат, поэтому их "
                     "нельзя отменить"
-                ),
-                not_owned_by_user_order_ids
+                ), not_owned_by_user_order_ids
             ),
             ResultSection(
                 (
                     "ID заказов, которые уже взяты другим сотрудником, "
                     "поэтому их нельзя отменить"
-                ),
-                taken_by_other_employee_order_ids
+                ), taken_by_other_employee_order_ids
             ),
             ResultSection(
                 "ID успешно отмененных заказов", canceled_order_ids
@@ -145,11 +132,7 @@ class Handlers:
                 client_vk_id
             )
         )
-        canceled_word = (
-            "отменил"
-            if sender_info.sex is Sex.MALE else
-            "отменила"
-        )
+        canceled_word = "отменил" if sender_info.sex is Sex.MALE else "отменила"
         canceler_tag = (
             self.helpers.get_tag_from_vk_user_dataclass(
                 sender_info
@@ -163,9 +146,7 @@ class Handlers:
                 ),
                 separator=", ",
                 postfix="."
-            )
-            if client_callback_messages.messages else
-            ()
+            ) if client_callback_messages.messages else ()
         )
         return HandlingResult(
             Notification(
@@ -173,15 +154,9 @@ class Handlers:
                     (
                         f"Клиент {canceler_tag} {canceled_word} заказы: "
                         + "\n".join(employees_callback)
-                    )
-                    if employees_callback else
-                    None
+                    ) if employees_callback else None
                 ),
-                text_for_client=(
-                    "\n".join(user_output)
-                    if user_output else
-                    None
-                ),
+                text_for_client="\n".join(user_output) if user_output else None,
                 additional_messages=additional_messages
             ),
             commit_needed=True
@@ -321,9 +296,7 @@ class Handlers:
             )
             marked_word = (
                 "отметил"
-                if employee_info.sex == Sex.MALE else
-                "отметила"
-            )
+            ) if employee_info.sex == Sex.MALE else "отметила"
             additional_messages = client_callback_messages.to_messages(
                 prefix=(
                     f"{employee_tag} {marked_word} оплаченными твои заказы "
@@ -366,11 +339,7 @@ class Handlers:
         )
         return HandlingResult(
             Notification(
-                text_for_employees=(
-                    "\n".join(output)
-                    if output else
-                    None
-                ),
+                text_for_employees="\n".join(output) if output else None,
                 additional_messages=additional_messages
             ),
             commit_needed=True
@@ -544,11 +513,7 @@ class Handlers:
             current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
         )
         for order in found_orders.successful_rows:
-            if (
-                request_is_from_client
-                and
-                order.creator_vk_id != client_vk_id
-            ):
+            if request_is_from_client and order.creator_vk_id != client_vk_id:
                 output.append(f"Заказ с ID {order.id} тебе не принадлежит!")
             else:
                 output.append(

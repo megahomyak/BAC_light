@@ -27,8 +27,7 @@ class VKWorker:
                 message_info = event["object"]["message"]
                 if (
                     self.logger is not None
-                    and
-                    not self.log_only_user_info_getting
+                    and not self.log_only_user_info_getting
                 ):
                     self.logger.info(
                         f"Новое сообщение из чата с peer_id "
@@ -57,8 +56,7 @@ class VKWorker:
             )
         if (
             self.logger is not None
-            and
-            not self.log_only_user_info_getting
+            and not self.log_only_user_info_getting
         ):
             self.logger.info(
                 f"Отправлено сообщение в чат с peer_id {message.peer_id}: "
@@ -68,10 +66,8 @@ class VKWorker:
     async def multiple_reply(
             self, *messages: Message) -> List[DoneReply]:
         exceptions = await asyncio.gather(
-            *(
-                self.reply(message)
-                for message in messages
-            ), return_exceptions=True
+            *(self.reply(message) for message in messages),
+            return_exceptions=True
         )
         return [
             DoneReply(exception, message)

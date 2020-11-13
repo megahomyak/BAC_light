@@ -428,8 +428,7 @@ class MainLogic:
             else:
                 if (
                     command_.allowed_only_for_employees
-                    and
-                    current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
+                    and current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
                 ):
                     return [
                         Message(
@@ -470,9 +469,7 @@ class MainLogic:
             from_id = vk_message_info['from_id']
             chat_name = (
                 "чате для сотрудников"
-                if (
-                    current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID
-                ) else
+                if current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else
                 "ЛС"
             )
             if error_args_amount == 0:
@@ -510,9 +507,8 @@ class MainLogic:
             # a __class__ property EVEN WHEN None HAVE A __class__ PROPERTY!!!
             if (
                 exception.__class__ is simple_avk.MethodError
-                and
                 # Can't send messages to user without permission
-                exception.error_code == 901
+                and exception.error_code == 901
             ):
                 ids_of_people_who_blacklisted_the_bot.append(
                     reply.message.peer_id
