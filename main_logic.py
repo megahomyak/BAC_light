@@ -402,22 +402,24 @@ class MainLogic:
                 "показывает памятку по использованию бота"
             )
         )
-        self.commands_description: Dict[str, List[Callable]] = {}
+        commands_description: Dict[str, List[Callable]] = {}
         for command in self.commands:
             for name in command.names:
                 try:
-                    self.commands_description[name].append(
+                    commands_description[name].append(
                         command.get_full_description
                     )
                 except KeyError:
-                    self.commands_description[name] = [
+                    commands_description[name] = [
                         command.get_full_description
                     ]
+        self.constant_context = ConstantContext(
+            self.commands, commands_description
+        )
 
     async def handle_command(
             self, current_chat_peer_id: int, command: str,
-            vk_message_info: dict,
-            constant_context: ConstantContext) -> List[Message]:
+            vk_message_info: dict) -> List[Message]:
         error_args_amount = 0
         for command_ in self.commands:
             try:
@@ -446,7 +448,7 @@ class MainLogic:
                             Context(vk_message_info, datetime.date.today())
                         ),
                         *command_.get_converted_constant_metadata(
-                            constant_context
+                            self.constant_context
                         ),
                         *command_.fillers,
                         *converted_command.arguments
@@ -492,11 +494,11 @@ class MainLogic:
         ]
 
     async def reply_to_vk_message(
-            self, current_chat_peer_id: int, command: str, message_info: dict,
-            constant_context: ConstantContext) -> None:
+            self, current_chat_peer_id: int, command: str,
+            message_info: dict) -> None:
         done_replies = await self.vk_worker.multiple_reply(
             await self.handle_command(
-                current_chat_peer_id, command, message_info, constant_context
+                current_chat_peer_id, command, message_info
             )
         )
         ids_of_people_who_blacklisted_the_bot = []
@@ -600,10 +602,6 @@ class MainLogic:
                 )
 
     async def listen_for_vk_events(self) -> NoReturn:
-        constant_context = ConstantContext(
-            self.commands,
-            self.commands_description
-        )
         async for message_info in self.vk_worker.listen_for_messages():
             text: str = message_info["text"]
             peer_id: int = message_info["peer_id"]
@@ -611,7 +609,7 @@ class MainLogic:
                 text = text[1:]  # Cutting /
                 asyncio.create_task(
                     self.reply_to_vk_message(
-                        peer_id, text, message_info, constant_context
+                        peer_id, text, message_info
                     )
                 ).add_done_callback(
                     lambda future: asyncio.create_task(
