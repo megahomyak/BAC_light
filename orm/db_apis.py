@@ -29,7 +29,7 @@ class FoundResults:
 
 class OrdersManager:
 
-    def __init__(self, sqlalchemy_session: Session) -> None:
+    def __init__(self, sqlalchemy_session: Session):
         self.db_session = sqlalchemy_session
 
     def _get_query(self) -> Query:
@@ -78,7 +78,7 @@ class CachedVKUsersManager:
 
     def __init__(
             self, sqlalchemy_session: Session, vk_worker: VKWorker,
-            logger: Optional[simplest_logger.Logger] = None) -> None:
+            logger: Optional[simplest_logger.Logger] = None):
         self.db_session = sqlalchemy_session
         self.vk_worker = vk_worker
         self.asyncio_lock = asyncio.Lock()
@@ -214,7 +214,7 @@ class ManagersContainer:
 
     def __init__(
             self, orders_manager: OrdersManager,
-            users_manager: CachedVKUsersManager) -> None:
+            users_manager: CachedVKUsersManager):
         self.orders_manager = orders_manager
         self.users_manager = users_manager
         self.managers = (

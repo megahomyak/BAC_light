@@ -38,7 +38,7 @@ class MainLogic:
             vk_worker: VKWorker, handlers: Handlers,
             logger: Optional[simplest_logger.Logger] = None,
             log_command_parsing_errors: bool = True,
-            commit_changes: bool = True) -> None:
+            commit_changes: bool = True):
         self.managers_container = managers_container
         self.vk_worker = vk_worker
         self.logger = logger

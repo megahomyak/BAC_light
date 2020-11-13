@@ -16,7 +16,7 @@ class VKWorker:
     def __init__(
             self, simple_avk: SimpleAVK,
             logger: Optional[simplest_logger.Logger] = None,
-            log_only_user_info_getting: bool = False) -> None:
+            log_only_user_info_getting: bool = False):
         self.vk = simple_avk
         self.logger = logger
         self.log_only_user_info_getting = log_only_user_info_getting

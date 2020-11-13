@@ -18,7 +18,7 @@ class ResultSection:
 
 class HandlerHelpers:
 
-    def __init__(self, managers_container: db_apis.ManagersContainer) -> None:
+    def __init__(self, managers_container: db_apis.ManagersContainer):
         self.managers_container = managers_container
 
     @staticmethod

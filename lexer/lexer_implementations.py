@@ -11,7 +11,7 @@ from lexer.lexer_classes import (
 
 class IntArgType(BaseArgType):
 
-    def __init__(self, type_: IntTypes = IntTypes.SIGNED) -> None:
+    def __init__(self, type_: IntTypes = IntTypes.SIGNED):
         self.type = type_
 
     def _get_name(
@@ -107,7 +107,7 @@ class StringArgType(BaseArgType):
             return r".+?"
         return fr"(?:.+?){{1,{self.length_limit}}}"
 
-    def __init__(self, length_limit: int = None) -> None:
+    def __init__(self, length_limit: int = None):
         self.length_limit = length_limit
 
     def convert(self, arg: str) -> str:
@@ -151,8 +151,7 @@ class SequenceArgType(BaseArgType):
             f"разделенных через '{self.separator}' (<- регулярное выражение)"
         )
 
-    def __init__(
-            self, element_type: BaseArgType, separator: str = r" *, *") -> None:
+    def __init__(self, element_type: BaseArgType, separator: str = r" *, *"):
         self.element_type = element_type
         self.separator = separator
 
