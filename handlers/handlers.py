@@ -50,7 +50,7 @@ class Handlers:
                     text_for_client=f"Заказ с ID {order.id} создан!",
                     text_for_employees=(
                         f"Клиент {client_tag} {made_word} заказ с ID "
-                        f"{order.id}: {order.text}."
+                        f"{order.id}: \"{order.text}\"."
                     )
                 ),
                 commit_needed=True
@@ -632,8 +632,8 @@ class Handlers:
                         Message(
                             (
                                 f"От твоего лица {employee_tag} создан заказ с "
-                                f"ID {order.id} и текстом {text}! Если вы не "
-                                f"просили этого делать - напишите "
+                                f"ID {order.id} и текстом \"{text}\"! Если вы "
+                                f"не просили этого делать - напишите "
                                 f"администрации."
                             ),
                             client_vk_id
