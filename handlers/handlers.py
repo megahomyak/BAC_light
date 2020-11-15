@@ -85,7 +85,7 @@ class Handlers:
             elif order.is_canceled:
                 already_canceled_order_ids.append(order.id)
             elif (
-                order.is_taken and not order.taker_vk_id == client_vk_id
+                order.is_taken and order.taker_vk_id != client_vk_id
                 and order.creator_vk_id != client_vk_id
             ):
                 taken_by_other_employee_order_ids.append(order.id)
