@@ -213,7 +213,7 @@ class Command:
             names = '|'.join(re.escape(name) for name in self.names)
             pattern = separator.join(
                 [
-                    f"({names})", *[
+                    f"(?i)({names})", *[
                         f"({arg.type.regex})"
                         for arg in self.arguments[:args_num]
                     ]  # Something like (\d\d)
