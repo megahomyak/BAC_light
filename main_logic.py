@@ -314,9 +314,7 @@ class MainLogic:
                         command.get_full_description
                     )
                 except KeyError:
-                    commands_description[name] = [
-                        command.get_full_description
-                    ]
+                    commands_description[name] = [command.get_full_description]
         self.constant_context = ConstantContext(
             self.commands, commands_description
         )
@@ -336,16 +334,13 @@ class MainLogic:
                     command_.allowed_only_for_employees
                     and current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
                 ):
-                    return [
-                        Message(
-                            (
-                                f"Команда \"{converted_command.name}\" "
-                                f"доступна только сотрудникам (ее нужно "
-                                f"написать в чате для сотрудников)!"
-                            ),
-                            current_chat_peer_id
-                        )
-                    ]
+                    return [Message(
+                        (
+                            f"Команда \"{converted_command.name}\" "
+                            f"доступна только сотрудникам (ее нужно "
+                            f"написать в чате для сотрудников)!"
+                        ), current_chat_peer_id
+                    )]
                 handling_result: Union[HandlingResult, Coroutine] = (
                     command_.handler(
                         *command_.get_converted_metadata(
@@ -390,12 +385,7 @@ class MainLogic:
                     f"VK ID {from_id} в {chat_name} на аргументе номер "
                     f"{error_args_amount} (он неправильный или пропущен)"
                 )
-        return [
-            Message(
-                error_msg,
-                current_chat_peer_id
-            )
-        ]
+        return [Message(error_msg, current_chat_peer_id)]
 
     async def reply_to_vk_message(
             self, current_chat_peer_id: int, command: str,
@@ -433,18 +423,10 @@ class MainLogic:
                 for id_ in ids_of_people_who_blacklisted_the_bot
             ]
             tags = [
-                self.get_tag_from_vk_user_dataclass(user)
-                for user in users
+                self.get_tag_from_vk_user_dataclass(user) for user in users
             ]
             tags_str = " и ".join(
-                [
-                    i
-                    for i in (
-                        ", ".join(tags[:-1]),
-                        tags[-1]
-                    )
-                    if i
-                ]
+                [i for i in (", ".join(tags[:-1]), tags[-1]) if i]
             )
             if len(users) == 1:
                 if users[0].sex == Sex.MALE:
@@ -460,14 +442,11 @@ class MainLogic:
                 they_he_or_she_word = "они"
                 wrote_word = "писали"
             await self.vk_worker.reply(
-                Message(
-                    (
-                        f"Невозможно отправить сообщения для {tags_str}, "
-                        f"потому что {they_he_or_she_word} никогда боту не "
-                        f"{wrote_word} или бот у {them_he_or_she_word} в ЧС."
-                    ),
-                    current_chat_peer_id
-                )
+                Message((
+                    f"Невозможно отправить сообщения для {tags_str}, "
+                    f"потому что {they_he_or_she_word} никогда боту не "
+                    f"{wrote_word} или бот у {them_he_or_she_word} в ЧС."
+                ), current_chat_peer_id)
             )
 
     async def future_done_callback(
@@ -478,9 +457,7 @@ class MainLogic:
             if self.logger is not None:
                 chat_name = (
                     "чате для сотрудников"
-                    if peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else
-                    "ЛС"
-                )
+                ) if peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else "ЛС"
                 self.logger.error(
                     f"Ошибка на команде \"{text}\" в {chat_name}:\n" + "".join(
                         traceback.TracebackException.from_exception(
@@ -488,22 +465,16 @@ class MainLogic:
                         ).format()
                     )
                 )
-            await self.vk_worker.reply(
-                Message(
-                    f"Тут у юзера при обработке команды \"{text}\" произошла "
-                    f"ошибка \"{str(exc)}\", это в логах тоже есть, "
-                    f"гляньте, разберитесь...",
-                    vk_config.EMPLOYEES_CHAT_PEER_ID
-                )
-            )
+            await self.vk_worker.reply(Message(
+                f"Тут у юзера при обработке команды \"{text}\" произошла "
+                f"ошибка \"{str(exc)}\", это в логах тоже есть, "
+                f"гляньте, разберитесь...", vk_config.EMPLOYEES_CHAT_PEER_ID
+            ))
             if peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID:
-                await self.vk_worker.reply(
-                    Message(
-                        f"При обработке команды \"{text}\" произошла ошибка. "
-                        f"Она была залоггирована, админы - уведомлены.",
-                        peer_id
-                    )
-                )
+                await self.vk_worker.reply(Message(
+                    f"При обработке команды \"{text}\" произошла ошибка. "
+                    f"Она была залоггирована, админы - уведомлены.", peer_id
+                ))
 
     async def listen_for_vk_events(self) -> NoReturn:
         async for message_info in self.vk_worker.listen_for_messages():
@@ -512,16 +483,10 @@ class MainLogic:
             if text.startswith("/"):
                 text = text[1:]  # Cutting /
                 asyncio.create_task(
-                    self.reply_to_vk_message(
-                        peer_id, text, message_info
-                    )
-                ).add_done_callback(
-                    lambda future: asyncio.create_task(
-                        self.future_done_callback(
-                            peer_id, text, future
-                        )
-                    )
-                )
+                    self.reply_to_vk_message(peer_id, text, message_info)
+                ).add_done_callback(lambda future: asyncio.create_task(
+                    self.future_done_callback(peer_id, text, future)
+                ))
 
 
 async def main():

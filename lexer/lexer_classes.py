@@ -213,8 +213,7 @@ class Command:
             names = '|'.join(re.escape(name) for name in self.names)
             pattern = separator.join(
                 [
-                    f"({names})",
-                    *[
+                    f"({names})", *[
                         f"({arg.type.regex})"
                         for arg in self.arguments[:args_num]
                     ]  # Something like (\d\d)
@@ -324,12 +323,8 @@ class Command:
             args.append(
                 f"{argument.name}{temp_type_name}{temp_desc}"
             )
-        args_str = (
-            "Аргументы:\n{}".format("\n".join(args))
-        ) if args else None
-        return "\n".join(
-            filter(
-                lambda string: string is not None,
-                (heading_str, aliases_str, args_str)
-            )
-        )
+        args_str = "Аргументы:\n{}".format("\n".join(args)) if args else None
+        return "\n".join(filter(
+            lambda string: string is not None,
+            (heading_str, aliases_str, args_str)
+        ))

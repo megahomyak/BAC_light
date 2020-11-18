@@ -33,14 +33,10 @@ class Handlers:
         self.managers_container.orders_manager.add(order)
         self.managers_container.orders_manager.flush()
         if current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID:
-            client_info = (
-                await (
-                    self.managers_container.users_manager
-                    .get_user_info_by_vk_id(
-                        client_vk_id
-                    )
-                )
-            )
+            client_info = (await (
+                self.managers_container.users_manager
+                .get_user_info_by_vk_id(client_vk_id)
+            ))  # This looks ugly and not pythonic :(
             made_word = "сделал" if client_info.sex is Sex.MALE else "сделала"
             client_tag = self.helpers.get_tag_from_vk_user_dataclass(
                 client_info
@@ -52,8 +48,7 @@ class Handlers:
                         f"Клиент {client_tag} {made_word} заказ с ID "
                         f"{order.id}: \"{order.text}\"."
                     )
-                ),
-                commit_needed=True
+                ), commit_needed=True
             )
         return HandlingResult(
             Notification(text_for_employees=f"Заказ с ID {order.id} создан!"),
@@ -132,11 +127,7 @@ class Handlers:
             )
         )
         canceled_word = "отменил" if sender_info.sex is Sex.MALE else "отменила"
-        canceler_tag = (
-            self.helpers.get_tag_from_vk_user_dataclass(
-                sender_info
-            )
-        )
+        canceler_tag = self.helpers.get_tag_from_vk_user_dataclass(sender_info)
         additional_messages = (
             client_callback_messages.to_messages(
                 prefix=(
@@ -157,13 +148,11 @@ class Handlers:
                 ),
                 text_for_client="\n".join(user_output) if user_output else None,
                 additional_messages=additional_messages
-            ),
-            commit_needed=True
+            ), commit_needed=True
         )
 
     async def get_orders(
-            self, client_vk_id: int,
-            current_chat_peer_id: int,
+            self, client_vk_id: int, current_chat_peer_id: int,
             limit: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
@@ -179,8 +168,7 @@ class Handlers:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
-                not_(models.Order.is_canceled),
-                not_(models.Order.is_paid),
+                not_(models.Order.is_canceled), not_(models.Order.is_paid),
                 models.Order.is_taken
             ),
             no_orders_found_client_error="Среди твоих заказов нет взятых!",
@@ -193,8 +181,7 @@ class Handlers:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
-                not_(models.Order.is_taken),
-                not_(models.Order.is_canceled)
+                not_(models.Order.is_taken), not_(models.Order.is_canceled)
             ),
             no_orders_found_client_error="Среди твоих заказов нет ожидающих!",
             no_orders_found_employees_error=(
@@ -209,15 +196,12 @@ class Handlers:
         return HandlingResult(
             Notification(
                 text_for_client=(
-                    vk_config.HELP_MESSAGE_BEGINNING + "\n\n".join(
-                        [
-                            command.get_full_description(include_heading=True)
-                            for command in commands
-                        ]
-                    )
+                    vk_config.HELP_MESSAGE_BEGINNING + "\n\n".join([
+                        command.get_full_description(include_heading=True)
+                        for command in commands
+                    ])
                 )
-            ),
-            commit_needed=False
+            ), commit_needed=False
         )
 
     async def get_canceled_orders(
@@ -226,9 +210,7 @@ class Handlers:
             limit: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
-            filters=(
-                models.Order.is_canceled,
-            ),
+            filters=(models.Order.is_canceled,),
             no_orders_found_client_error="Среди твоих заказов нет отмененных!",
             no_orders_found_employees_error="Отмененных заказов еще нет!",
             limit=limit
@@ -240,9 +222,7 @@ class Handlers:
             limit: int) -> HandlingResult:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
-            filters=(
-                models.Order.is_paid,
-            ),
+            filters=(models.Order.is_paid,),
             no_orders_found_client_error="Среди твоих заказов нет отмененных!",
             no_orders_found_employees_error=(
                 "Оплаченных заказов еще нет! (Грустно!)"
@@ -255,9 +235,7 @@ class Handlers:
             earnings_amount: int) -> HandlingResult:
         client_callback_messages = UserCallbackMessages()
         found_orders = (
-            self.managers_container.orders_manager.get_orders_by_ids(
-                order_ids
-            )
+            self.managers_container.orders_manager.get_orders_by_ids(order_ids)
         )
         already_paid_order_ids: List[int] = []
         canceled_order_ids: List[int] = []
@@ -289,13 +267,11 @@ class Handlers:
                 )
             )
             employee_tag = (
-                self.helpers.get_tag_from_vk_user_dataclass(
-                    employee_info
-                )
+                self.helpers.get_tag_from_vk_user_dataclass(employee_info)
             )
             marked_word = (
-                "отметил"
-            ) if employee_info.sex == Sex.MALE else "отметила"
+                "отметил" if employee_info.sex == Sex.MALE else "отметила"
+            )
             additional_messages = client_callback_messages.to_messages(
                 prefix=(
                     f"{employee_tag} {marked_word} оплаченными твои заказы "
@@ -340,8 +316,7 @@ class Handlers:
             Notification(
                 text_for_employees="\n".join(output) if output else None,
                 additional_messages=additional_messages
-            ),
-            commit_needed=True
+            ), commit_needed=True
         )
 
     async def get_monthly_paid_orders(
@@ -351,21 +326,16 @@ class Handlers:
         )
         if orders:
             notification_with_orders = (
-                await self.helpers.get_notification_with_orders(
-                    orders
-                )
+                await self.helpers.get_notification_with_orders(orders)
             )
-            return HandlingResult(
-                notification_with_orders, commit_needed=True
-            )
+            return HandlingResult(notification_with_orders, commit_needed=True)
         return HandlingResult(
             Notification(
                 text_for_employees=(
                     f"За {month} месяц {year} года не оплачено еще ни "
                     f"одного заказа!"
                 )
-            ),
-            commit_needed=False
+            ), commit_needed=False
         )
 
     async def take_orders(
@@ -373,9 +343,7 @@ class Handlers:
         # Allowed only for employees
         client_callback_messages = UserCallbackMessages()
         found_orders = (
-            self.managers_container.orders_manager.get_orders_by_ids(
-                order_ids
-            )
+            self.managers_container.orders_manager.get_orders_by_ids(order_ids)
         )
         already_taken_order_ids: List[int] = []
         canceled_order_ids: List[int] = []
@@ -400,15 +368,9 @@ class Handlers:
                 )
             )
             employee_tag = (
-                self.helpers.get_tag_from_vk_user_dataclass(
-                    employee_info
-                )
+                self.helpers.get_tag_from_vk_user_dataclass(employee_info)
             )
-            taken_word = (
-                "взял"
-                if employee_info.sex == Sex.MALE else
-                "взяла"
-            )
+            taken_word = "взял" if employee_info.sex == Sex.MALE else "взяла"
             additional_messages = client_callback_messages.to_messages(
                 prefix=(
                     f"{employee_tag} {taken_word} твои заказы: "
@@ -435,14 +397,9 @@ class Handlers:
         )
         return HandlingResult(
             Notification(
-                text_for_employees=(
-                    "\n".join(output)
-                    if output else
-                    None
-                ),
+                text_for_employees="\n".join(output) if output else None,
                 additional_messages=additional_messages
-            ),
-            commit_needed=True
+            ), commit_needed=True
         )
 
     async def get_active_orders(
@@ -451,8 +408,7 @@ class Handlers:
         return await self.helpers.request_orders_as_notification(
             client_vk_id, current_chat_peer_id,
             filters=(
-                not_(models.Order.is_paid),
-                not_(models.Order.is_canceled)
+                not_(models.Order.is_paid), not_(models.Order.is_canceled)
             ),
             no_orders_found_client_error="Среди твоих заказов нет активных!",
             no_orders_found_employees_error="Активных заказов еще нет!"
@@ -492,17 +448,14 @@ class Handlers:
                         *command_descriptions_as_strings
                     )
                 )
-            ),
-            commit_needed=False
+            ), commit_needed=False
         )
 
     async def get_order_by_id(
             self, client_vk_id: int, current_chat_peer_id: int,
             order_ids: Tuple[int, ...]) -> HandlingResult:
         found_orders = (
-            self.managers_container.orders_manager.get_orders_by_ids(
-                order_ids
-            )
+            self.managers_container.orders_manager.get_orders_by_ids(order_ids)
         )
         output: List[str] = [
             f"Заказ с ID {failed_id} не найден!"
@@ -526,8 +479,7 @@ class Handlers:
         return HandlingResult(
             Notification(
                 text_for_client="\n\n".join(output)
-            ),
-            commit_needed=True
+            ), commit_needed=True
         )
 
     async def get_monthly_earnings(
@@ -549,10 +501,8 @@ class Handlers:
             for employee_vk_id, taker_earnings in earnings.items():
                 employee_info = await (
                     self.managers_container.users_manager
-                    .get_user_info_by_vk_id(
-                        employee_vk_id
-                    )
-                )  # This looks ugly and not pythonic :(
+                    .get_user_info_by_vk_id(employee_vk_id)
+                )
                 earned_word = (
                     "заработал"
                     if employee_info.sex is Sex.MALE else
@@ -572,16 +522,14 @@ class Handlers:
                             *earnings_as_strings
                         )
                     )
-                ),
-                commit_needed=True
+                ), commit_needed=True
             )
         return HandlingResult(
             Notification(
                 text_for_employees=(
                     f"За {month} месяц {year} года не заработано ни рубля!"
                 )
-            ),
-            commit_needed=False
+            ), commit_needed=False
         )
 
     async def create_order_offline(
@@ -599,8 +547,7 @@ class Handlers:
                     text_for_employees=(
                         f"Пользователя с VK ID {client_vk_id_or_tag} нет!"
                     )
-                ),
-                commit_needed=False
+                ), commit_needed=False
             )
         else:
             client_vk_id = client_info.id
@@ -639,8 +586,7 @@ class Handlers:
                             client_vk_id
                         )
                     ]
-                ),
-                commit_needed=True
+                ), commit_needed=True
             )
 
     async def clear_cache(self, user_vk_id: int) -> HandlingResult:
@@ -659,8 +605,7 @@ class Handlers:
                         f"твои имя и фамилия были скачаны временно, не "
                         f"сохранены)"
                     )
-                ),
-                commit_needed=False
+                ), commit_needed=False
             )
         return HandlingResult(
             Notification(
@@ -669,8 +614,7 @@ class Handlers:
                     f"твои имя и фамилия были скачаны временно, не "
                     f"сохранены)"
                 )
-            ),
-            commit_needed=True
+            ), commit_needed=True
         )
 
     @staticmethod
@@ -681,6 +625,5 @@ class Handlers:
                     f"Памятка по использованию бота:\n\n"
                     f"{vk_config.MEMO_FOR_USERS}"
                 )
-            ),
-            commit_needed=False
+            ), commit_needed=False
         )

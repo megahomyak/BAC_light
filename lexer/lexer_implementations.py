@@ -132,8 +132,7 @@ class SequenceArgType(BaseArgType):
                 sequence_word = "последовательностей"
         if sequence_word is not None:
             element_name = self.element_type.get_name(
-                GrammaticalCases.GENITIVE,
-                singular=False
+                GrammaticalCases.GENITIVE, singular=False
             )
             return f"{sequence_word} {element_name}"
 
