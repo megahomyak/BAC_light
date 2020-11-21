@@ -203,8 +203,7 @@ class Command:
             command:
                 user input (like "command arg1 arg2")
             separator:
-                what symbol needs to be between arguments (regex);
-                default " "
+                what symbol needs to be between arguments (regex); default " "
 
         Returns:
             tuple of some values, which are converted arguments from string
@@ -217,7 +216,7 @@ class Command:
                         f"({arg.type.regex})"
                         for arg in self.arguments[:args_num]
                     ]  # Something like (\d\d)
-                ]  # Something like (?:command) (\d\d)
+                ]  # Something like (?i)(command) (\d\d)
             ) + ("$" if args_num == len(self.arguments) else "")
             rgx_result = re.match(pattern, command)
             if rgx_result is None:
