@@ -444,9 +444,9 @@ class Handlers:
                             f"Команды с названиями "
                             f"{', '.join(quoted_not_found_commands)} "
                             f"не найдены!"
-                        ) if quoted_not_found_commands else "",
-                        *command_descriptions_as_strings
-                    )
+                        ), *command_descriptions_as_strings
+                    ) if quoted_not_found_commands else
+                    command_descriptions_as_strings
                 )
             ), commit_needed=False
         )
