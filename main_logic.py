@@ -306,17 +306,17 @@ class MainLogic:
                 description="показывает памятку по использованию бота"
             )
         )
-        commands_description: Dict[str, List[Callable]] = {}
+        command_descriptions: Dict[str, List[Callable]] = {}
         for command in self.commands:
             for name in command.names:
                 try:
-                    commands_description[name].append(
+                    command_descriptions[name].append(
                         command.get_full_description
                     )
                 except KeyError:
-                    commands_description[name] = [command.get_full_description]
+                    command_descriptions[name] = [command.get_full_description]
         self.constant_context = ConstantContext(
-            self.commands, commands_description
+            self.commands, command_descriptions
         )
 
     async def handle_command(
