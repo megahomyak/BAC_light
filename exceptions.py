@@ -1,2 +1,2 @@
-class NameCaseNotFound(BaseException):
+class NameCaseNotFound(Exception):
     pass

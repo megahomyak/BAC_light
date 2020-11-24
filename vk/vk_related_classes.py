@@ -76,5 +76,5 @@ class UserCallbackMessages:
 
 @dataclass
 class DoneReply:
-    exception: Optional[BaseException]
+    exception: Optional[Exception]
     message: Message
