@@ -64,11 +64,11 @@ class Handlers:
         found_orders = (
             self.managers_container.orders_manager.get_orders_by_ids(order_ids)
         )
-        not_owned_by_user_order_ids: List[int] = []
-        paid_order_ids: List[int] = []
-        already_canceled_order_ids: List[int] = []
-        taken_by_other_employee_order_ids: List[int] = []
-        canceled_order_ids: List[int] = []
+        not_owned_by_user_order_ids = []
+        paid_order_ids = []
+        already_canceled_order_ids = []
+        taken_by_other_employee_order_ids = []
+        canceled_order_ids = []
         request_is_from_client = (
             current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
         )
@@ -237,11 +237,11 @@ class Handlers:
         found_orders = (
             self.managers_container.orders_manager.get_orders_by_ids(order_ids)
         )
-        already_paid_order_ids: List[int] = []
-        canceled_order_ids: List[int] = []
-        not_taken_order_ids: List[int] = []
-        taken_by_other_employee_order_ids: List[int] = []
-        marked_as_paid_order_ids: List[int] = []
+        already_paid_order_ids = []
+        canceled_order_ids = []
+        not_taken_order_ids = []
+        taken_by_other_employee_order_ids = []
+        marked_as_paid_order_ids = []
         for order in found_orders.successful_rows:
             if order.is_paid:
                 already_paid_order_ids.append(order.id)
@@ -345,9 +345,9 @@ class Handlers:
         found_orders = (
             self.managers_container.orders_manager.get_orders_by_ids(order_ids)
         )
-        already_taken_order_ids: List[int] = []
-        canceled_order_ids: List[int] = []
-        taken_order_ids: List[int] = []
+        already_taken_order_ids = []
+        canceled_order_ids = []
+        taken_order_ids = []
         for order in found_orders.successful_rows:
             if order.is_taken:
                 already_taken_order_ids.append(order.id)

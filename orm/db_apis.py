@@ -55,7 +55,7 @@ class OrdersManager:
             .filter(models.Order.id.in_(order_ids))
             .all()
         )
-        failed_ids: List[int] = list(order_ids)
+        failed_ids = list(order_ids)
         for order in orders:
             failed_ids.remove(order.id)
         return FoundResults(failed_ids, orders)
