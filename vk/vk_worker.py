@@ -1,8 +1,8 @@
 import asyncio
+import logging
 import random
 from typing import AsyncGenerator, Optional, Any, Union, List
 
-import simplest_logger
 from simple_avk import SimpleAVK
 
 from enums import GrammaticalCases
@@ -15,21 +15,16 @@ class VKWorker:
 
     def __init__(
             self, simple_avk: SimpleAVK,
-            logger: Optional[simplest_logger.Logger] = None,
-            log_only_user_info_getting: bool = False):
+            logger: Optional[logging.Logger] = None):
         self.vk = simple_avk
         self.logger = logger
-        self.log_only_user_info_getting = log_only_user_info_getting
 
     async def listen_for_messages(self) -> AsyncGenerator[Any, None]:
         async for event in self.vk.listen():
             if event["type"] == "message_new":
                 message_info = event["object"]["message"]
-                if (
-                    self.logger is not None
-                    and not self.log_only_user_info_getting
-                ):
-                    self.logger.info(
+                if self.logger is not None:
+                    self.logger.debug(
                         f"Новое сообщение из чата с peer_id "
                         f"{message_info['peer_id']}: {message_info['text']}"
                     )
@@ -54,11 +49,8 @@ class VKWorker:
                     "disable_mentions": 1
                 }
             )
-        if (
-            self.logger is not None
-            and not self.log_only_user_info_getting
-        ):
-            self.logger.info(
+        if self.logger is not None:
+            self.logger.debug(
                 f"Отправлено сообщение в чат с peer_id {message.peer_id}: "
                 f"{message.text}"
             )

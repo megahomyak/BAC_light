@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import inspect
+import logging
 import traceback
 from typing import (
     NoReturn, Optional, List, Tuple, Dict, Callable, Union,
@@ -9,7 +10,6 @@ from typing import (
 
 import aiohttp
 import simple_avk
-import simplest_logger
 
 import lexer.exceptions
 import lexer.generators
@@ -36,13 +36,11 @@ class MainLogic:
     def __init__(
             self, managers_container: db_apis.ManagersContainer,
             vk_worker: VKWorker, handlers: Handlers,
-            logger: Optional[simplest_logger.Logger] = None,
-            log_command_parsing_errors: bool = True,
+            logger: Optional[logging.Logger] = None,
             commit_changes: bool = True):
         self.managers_container = managers_container
         self.vk_worker = vk_worker
         self.logger = logger
-        self.log_command_parsing_errors = log_command_parsing_errors
         self.get_tag_from_vk_user_dataclass = (
             handlers.helpers.get_tag_from_vk_user_dataclass
         )
@@ -367,7 +365,7 @@ class MainLogic:
                 f"Ошибка обработки команды на аргументе номер "
                 f"{error_args_amount} (он неправильный или пропущен)"
             )
-        if self.logger is not None and self.log_command_parsing_errors:
+        if self.logger is not None:
             from_id = vk_message_info['from_id']
             chat_name = (
                 "чате для сотрудников"
@@ -375,12 +373,12 @@ class MainLogic:
                 "ЛС"
             )
             if error_args_amount == 0:
-                self.logger.info(
+                self.logger.debug(
                     f"Ошибка обработки команды \"{command}\" от пользователя с "
                     f"VK ID {from_id} в {chat_name} на её названии!"
                 )
             else:
-                self.logger.info(
+                self.logger.debug(
                     f"Ошибка обработки команды \"{command}\" от пользователя с "
                     f"VK ID {from_id} в {chat_name} на аргументе номер "
                     f"{error_args_amount} (он неправильный или пропущен)"
@@ -495,12 +493,16 @@ async def main():
             )
         )
         db_session = db_apis.get_db_session("sqlite:///BAC_light.db")
+        logging.basicConfig(
+            level=logging.INFO,
+            format="[%(asctime)s | %(name)s | %(levelname)s] - %(message)s"
+        )
         managers_container = db_apis.ManagersContainer(
             db_apis.OrdersManager(db_session),
             db_apis.CachedVKUsersManager(
                 db_session,
                 vk_worker,
-                simplest_logger.Logger("users_caching.log")
+                logging.getLogger("users_caching_logger")
             )
         )
         main_logic = MainLogic(
@@ -511,8 +513,7 @@ async def main():
                 managers_container,
                 vk_worker
             ),
-            simplest_logger.Logger("command_errors.log"),
-            log_command_parsing_errors=False
+            logging.getLogger("command_errors")
         )
         await main_logic.listen_for_vk_events()
 

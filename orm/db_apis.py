@@ -1,8 +1,8 @@
 import asyncio
+import logging
 from dataclasses import dataclass
 from typing import Any, List, Iterable, Optional, Union
 
-import simplest_logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, Query
 from sqlalchemy.orm.exc import NoResultFound
@@ -78,7 +78,7 @@ class CachedVKUsersManager:
 
     def __init__(
             self, sqlalchemy_session: Session, vk_worker: VKWorker,
-            logger: Optional[simplest_logger.Logger] = None):
+            logger: Optional[logging.Logger] = None):
         self.db_session = sqlalchemy_session
         self.vk_worker = vk_worker
         self.asyncio_lock = asyncio.Lock()
