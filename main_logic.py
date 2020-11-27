@@ -233,7 +233,7 @@ class MainLogic:
                 )
             ),
             Command(
-                names=("доход", "earnings", "income", "revenue"),
+                names=("доход", "прибыль", "earnings", "income", "revenue"),
                 handler=handlers.get_monthly_earnings,
                 description="показывает доход за месяц",
                 metadata=(
