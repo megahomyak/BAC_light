@@ -1,11 +1,9 @@
 import asyncio
 import datetime
-import inspect
 import logging
 import traceback
 from typing import (
-    NoReturn, Optional, List, Tuple, Dict, Callable, Union,
-    Coroutine
+    NoReturn, Optional, List, Tuple, Dict, Callable
 )
 
 import aiohttp
@@ -339,20 +337,16 @@ class MainLogic:
                             f"написать в чате для сотрудников)!"
                         ), current_chat_peer_id
                     )]
-                handling_result: Union[HandlingResult, Coroutine] = (
-                    command_.handler(
-                        *command_.get_converted_metadata(
-                            Context(vk_message_info, datetime.date.today())
-                        ),
-                        *command_.get_converted_constant_metadata(
-                            self.constant_context
-                        ),
-                        *command_.fillers,
-                        *converted_command.arguments
-                    )
+                handling_result: HandlingResult = await command_.handler(
+                    *command_.get_converted_metadata(
+                        Context(vk_message_info, datetime.date.today())
+                    ),
+                    *command_.get_converted_constant_metadata(
+                        self.constant_context
+                    ),
+                    *command_.fillers,
+                    *converted_command.arguments
                 )
-                if inspect.isawaitable(handling_result):
-                    handling_result: HandlingResult = await handling_result
                 if self.commit_changes and handling_result.commit_needed:
                     self.managers_container.commit()
                 return handling_result.notification.to_messages(

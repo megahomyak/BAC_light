@@ -191,8 +191,8 @@ class Handlers:
         )
 
     @staticmethod
-    def get_help_message(
-            commands: Tuple[lexer_classes.Command, ...]) -> HandlingResult:
+    async def get_help_message(
+            commands: Tuple["lexer_classes.Command", ...]) -> HandlingResult:
         return HandlingResult(
             Notification(
                 text_for_client=(
@@ -415,7 +415,7 @@ class Handlers:
         )
 
     @staticmethod
-    def get_help_message_for_specific_commands(
+    async def get_help_message_for_specific_commands(
             command_descriptions: Dict[str, List[Callable]],
             command_names: Tuple[str, ...]) -> HandlingResult:
         command_descriptions_as_strings = []
@@ -618,7 +618,7 @@ class Handlers:
         )
 
     @staticmethod
-    def get_memo() -> HandlingResult:
+    async def get_memo() -> HandlingResult:
         return HandlingResult(
             Notification(
                 text_for_client=(
