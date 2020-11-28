@@ -2,11 +2,12 @@ import datetime
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Any, Tuple, Callable, Type, Dict, List
+from typing import Optional, Any, Tuple, Callable, Type, Dict, List, Awaitable
 
 import exceptions
 import lexer.exceptions
 from enums import GrammaticalCases
+from handlers.dataclasses import HandlingResult
 
 
 class BaseArgType(ABC):
@@ -186,7 +187,7 @@ class ConvertedCommand:
 @dataclass
 class Command:
     names: Tuple[str, ...]
-    handler: Callable
+    handler: Callable[..., Awaitable[HandlingResult]]
     description: Optional[str] = None
     metadata: Tuple[Type[BaseMetadataElement], ...] = ()
     constant_metadata: Tuple[Type[BaseConstantMetadataElement], ...] = ()

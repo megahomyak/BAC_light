@@ -1,5 +1,6 @@
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Awaitable
 
+from handlers.dataclasses import HandlingResult
 from lexer.enums import IntTypes
 from lexer.lexer_classes import Command, Arg
 from lexer.lexer_implementations import (
@@ -10,10 +11,10 @@ from vk import vk_config
 
 
 def get_getter_commands_for_common_orders(
-        ru_names: Tuple[str, ...],
-        eng_names: Tuple[str, ...],
+        ru_names: Tuple[str, ...], eng_names: Tuple[str, ...],
         orders_name: str,  # Like "оплаченные заказы" ("paid orders")
-        handler: Callable) -> Tuple[Command, Command, Command]:
+        handler: Callable[..., Awaitable[HandlingResult]]
+        ) -> Tuple[Command, Command, Command]:
     """
     Function, which will help to make repeating Commands, which are needed to
     get some orders.
