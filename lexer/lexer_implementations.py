@@ -187,7 +187,8 @@ class CommandDescriptionsConstantMetadataElement(BaseConstantMetadataElement):
 
     @staticmethod
     def get_data_from_constant_context(
-            constant_context: ConstantContext) -> Dict[str, List[Callable]]:
+            constant_context: ConstantContext
+            ) -> Dict[str, List[Callable[..., str]]]:
         return constant_context.command_descriptions
 
 

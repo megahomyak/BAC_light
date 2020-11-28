@@ -302,7 +302,7 @@ class MainLogic:
                 description="показывает памятку по использованию бота"
             )
         )
-        command_descriptions: Dict[str, List[Callable]] = {}
+        command_descriptions: Dict[str, List[Callable[..., str]]] = {}
         for command in self.commands:
             for name in command.names:
                 try:

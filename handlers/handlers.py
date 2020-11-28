@@ -416,7 +416,7 @@ class Handlers:
 
     @staticmethod
     async def get_help_message_for_specific_commands(
-            command_descriptions: Dict[str, List[Callable]],
+            command_descriptions: Dict[str, List[Callable[..., str]]],
             command_names: Tuple[str, ...]) -> HandlingResult:
         command_descriptions_as_strings = []
         quoted_not_found_commands: List[str] = []
