@@ -8,7 +8,6 @@ import orm.exceptions
 from enums import GrammaticalCases
 from handlers.dataclasses import HandlingResult
 from handlers.handler_helpers import HandlerHelpers, ResultSection
-from lexer import lexer_classes
 from orm import db_apis
 from orm import models
 from vk import vk_config
@@ -191,17 +190,10 @@ class Handlers:
         )
 
     @staticmethod
-    async def get_help_message(
-            commands: Tuple["lexer_classes.Command", ...]) -> HandlingResult:
+    async def get_help_message(commands_help_message: str) -> HandlingResult:
         return HandlingResult(
-            Notification(
-                text_for_client=(
-                    vk_config.HELP_MESSAGE_BEGINNING + "\n\n".join([
-                        command.get_full_description(include_heading=True)
-                        for command in commands
-                    ])
-                )
-            ), commit_needed=False
+            Notification(text_for_client=commands_help_message),
+            commit_needed=False
         )
 
     async def get_canceled_orders(

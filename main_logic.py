@@ -2,9 +2,7 @@ import asyncio
 import datetime
 import logging
 import traceback
-from typing import (
-    NoReturn, Optional, List, Tuple, Dict, Callable
-)
+from typing import NoReturn, Optional, List, Tuple, Dict, Callable
 
 import aiohttp
 import simple_avk
@@ -18,7 +16,7 @@ from lexer.enums import IntTypes
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
     StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
-    SequenceArgType, IntArgType, CommandsConstantMetadataElement,
+    SequenceArgType, IntArgType, CommandsHelpMessageConstantMetadataElement,
     CommandDescriptionsConstantMetadataElement, CurrentYearMetadataElement,
     CurrentMonthMetadataElement, MonthNumberArgType
 )
@@ -113,7 +111,7 @@ class MainLogic:
                 names=("команды", "помощь", "help", "commands"),
                 handler=handlers.get_help_message,
                 description="показывает помощь по командам и их написанию",
-                constant_metadata=(CommandsConstantMetadataElement,)
+                constant_metadata=(CommandsHelpMessageConstantMetadataElement,)
             ),
             Command(
                 names=("оплачено", "оплатить", "pay", "mark as paid"),
@@ -311,8 +309,12 @@ class MainLogic:
                     )
                 except KeyError:
                     command_descriptions[name] = [command.get_full_description]
+        all_commands_str = vk_config.HELP_MESSAGE_BEGINNING + "\n\n".join([
+            command.get_full_description(include_heading=True)
+            for command in self.commands
+        ])
         self.constant_context = ConstantContext(
-            self.commands, command_descriptions
+            all_commands_str, command_descriptions
         )
 
     async def handle_command(
