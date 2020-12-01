@@ -328,3 +328,15 @@ class Command:
             lambda string: string is not None,
             (heading_str, aliases_str, args_str)
         ))
+
+    def get_compact_full_description(self) -> str:
+        alt_names = (
+            f" ({', '.join([f'или {name}' for name in self.names[1:]])})"
+        ) if len(self.names) > 1 else ""
+        args_str = (
+            f" {' '.join([f'[{arg.name}]' for arg in self.arguments])}"
+        ) if self.arguments else ""
+        description_str = (
+            f" - {self.description}" if self.description is not None else ""
+        )
+        return f"/{self.names[0]}{alt_names}{args_str}{description_str}"

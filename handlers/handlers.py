@@ -415,31 +415,28 @@ class Handlers:
         for command_name in command_names:
             try:
                 command_descriptions_as_strings.extend(
-                    (
-                        # Here desc_func is a Command.get_full_description,
-                        # if I set Command.get_full_description as a type -
-                        # I wouldn't get any IDE hints anyway
-                        desc_func(include_heading=True)
-                        for desc_func in command_descriptions[command_name]
-                    )
+                    # Here desc_func is a Command.get_full_description,
+                    # if I set Command.get_full_description as a type -
+                    # I wouldn't get any IDE hints anyway
+                    desc_func()
+                    for desc_func in command_descriptions[command_name]
                 )
             except KeyError:
                 quoted_not_found_commands.append(f"\"{command_name}\"")
+        successful_output = "\n".join(command_descriptions_as_strings)
         return HandlingResult(
             Notification(
                 text_for_client="\n\n".join(
                     (
-                        (
-                            f"Команда с названием "
-                            f"{quoted_not_found_commands[0]} не найдена!"
-                            if len(quoted_not_found_commands) == 1 else
-                            f"Команды с названиями "
-                            f"{', '.join(quoted_not_found_commands)} "
-                            f"не найдены!"
-                        ), *command_descriptions_as_strings
-                    ) if quoted_not_found_commands else
-                    command_descriptions_as_strings
-                )
+                        f"Команда с названием "
+                        f"{quoted_not_found_commands[0]} не найдена!"
+                        if len(quoted_not_found_commands) == 1 else
+                        f"Команды с названиями "
+                        f"{', '.join(quoted_not_found_commands)} "
+                        f"не найдены!",
+                        successful_output
+                    )
+                ) if quoted_not_found_commands else successful_output
             ), commit_needed=False
         )
 

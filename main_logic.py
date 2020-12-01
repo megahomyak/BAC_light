@@ -305,13 +305,14 @@ class MainLogic:
             for name in command.names:
                 try:
                     command_descriptions[name].append(
-                        command.get_full_description
+                        command.get_compact_full_description
                     )
                 except KeyError:
-                    command_descriptions[name] = [command.get_full_description]
-        all_commands_str = vk_config.HELP_MESSAGE_BEGINNING + "\n\n".join([
-            command.get_full_description(include_heading=True)
-            for command in self.commands
+                    command_descriptions[name] = [
+                        command.get_compact_full_description
+                    ]
+        all_commands_str = vk_config.HELP_MESSAGE_BEGINNING + "\n".join([
+            command.get_compact_full_description() for command in self.commands
         ])
         self.constant_context = ConstantContext(
             all_commands_str, command_descriptions
