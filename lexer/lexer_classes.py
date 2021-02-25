@@ -214,13 +214,15 @@ class Command:
             names = '|'.join(re.escape(name) for name in self.names)
             pattern = separator.join(
                 [
-                    f"(?i)({names})", *[
+                    f"({names})", *[
                         f"({arg.type.regex})"
                         for arg in self.arguments[:args_num]
                     ]  # Something like (\d\d)
                 ]  # Something like (?i)(command) (\d\d)
             ) + ("$" if args_num == len(self.arguments) else "")
-            rgx_result = re.match(pattern, command)
+            rgx_result = re.match(
+                pattern, command, flags=re.DOTALL | re.IGNORECASE
+            )
             if rgx_result is None:
                 raise lexer.exceptions.ParsingError(args_num)
         # noinspection PyUnboundLocalVariable
