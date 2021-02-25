@@ -16,6 +16,7 @@ from vk.vk_related_classes import Notification, UserCallbackMessages, Message
 from vk.vk_worker import VKWorker
 
 
+# noinspection PyMethodMayBeStatic
 class Handlers:
 
     def __init__(
@@ -189,8 +190,8 @@ class Handlers:
             )                       # Should be the Lenny ^
         )
 
-    @staticmethod
-    async def get_help_message(commands_help_message: str) -> HandlingResult:
+    async def get_help_message(
+            self, commands_help_message: str) -> HandlingResult:
         return HandlingResult(
             Notification(text_for_client=commands_help_message),
             commit_needed=False
@@ -406,9 +407,8 @@ class Handlers:
             no_orders_found_employees_error="Активных заказов еще нет!"
         )
 
-    @staticmethod
     async def get_help_message_for_specific_commands(
-            command_descriptions: Dict[str, List[Callable[..., str]]],
+            self, command_descriptions: Dict[str, List[Callable[..., str]]],
             command_names: Tuple[str, ...]) -> HandlingResult:
         command_descriptions_as_strings = []
         quoted_not_found_commands: List[str] = []
@@ -606,8 +606,7 @@ class Handlers:
             ), commit_needed=True
         )
 
-    @staticmethod
-    async def get_memo() -> HandlingResult:
+    async def get_memo(self) -> HandlingResult:
         return HandlingResult(
             Notification(
                 text_for_client=(
