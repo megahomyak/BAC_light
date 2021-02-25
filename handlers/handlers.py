@@ -142,7 +142,8 @@ class Handlers:
             Notification(
                 text_for_employees=(
                     (
-                        f"Клиент {canceler_tag} {canceled_word} заказы: "
+                        f"Клиент {canceler_tag} {canceled_word} заказы "
+                        f"по причине \"{cancellation_reason}\": "
                         + "\n".join(employees_callback)
                     ) if employees_callback else None
                 ),
