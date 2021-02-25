@@ -1,35 +1,47 @@
-import configparser
+from dataclasses import dataclass
+from typing import List, TextIO
 
 
-# Unpacking vk_secrets.ini
-
-_secret_config = configparser.ConfigParser()
-_secret_config.read("vk/config/vk_secrets.ini", "utf-8")
-# vk_secrets.ini is not in the git, so you need to create it
-
-TOKEN = _secret_config["SECRETS"]["token"]
-GROUP_ID = int(_secret_config["SECRETS"]["group_id"])
-EMPLOYEES_CHAT_PEER_ID = int(
-    _secret_config["EMPLOYEES"]["employees_chat_peer_id"]
-)
+@dataclass
+class VkConfig:
+    TOKEN: str
+    GROUP_ID: int
+    EMPLOYEES_CHAT_PEER_ID: int
+    SYMBOLS_PER_MESSAGE: int
+    HELP_MESSAGE_BEGINNING: str
+    DEFAULT_BIG_ORDER_SEQUENCES_LIMIT: int
+    MEMO_FOR_USERS: str
 
 
-# Unpacking vk_constants.ini
-
-_constants_config = configparser.ConfigParser()
-_constants_config.read("vk/config/vk_constants.ini", "utf-8")
-
-SYMBOLS_PER_MESSAGE = int(_constants_config["MESSAGES"]["symbols_limit"])
-_help_message_beginning = _constants_config["HELP_MESSAGE"]["beginning"]
-HELP_MESSAGE_BEGINNING = (
-    f"{_help_message_beginning}\n\n" if _help_message_beginning else ""
-)
-DEFAULT_BIG_ORDER_SEQUENCES_LIMIT = int(
-    _constants_config["ORDERS_OUTPUT"]["default_big_order_sequences_limit"]
-)
+SPECIAL_FIELDS = {
+    "help_message_beginning": (
+        lambda string: f"{string}\n\n" if string else string
+    )
+}
 
 
-# Unpacking memo_for_users.txt
-
-with open("vk/config/memo_for_users.txt", "r", encoding="utf-8") as f:
-    MEMO_FOR_USERS = f.read()
+def make_vk_config_from_files(
+        files_with_config: List[TextIO], file_with_memo: TextIO) -> VkConfig:
+    """
+    WARNING: All files will be read
+    """
+    config_values = {}
+    for file in files_with_config:
+        for line in file:
+            if line.endswith("\n"):
+                line = line[:-1]
+            if line and line[0] != ";":  # Comments start with ; in .ini files
+                divided_line = line.split("=")  # "a = b" -> ["a ", " b"]
+                variable_name = divided_line[0].rstrip()  # "a " -> "a"
+                variable_value_as_str = divided_line[1].lstrip()  # " b" -> "b"
+                middleware = SPECIAL_FIELDS.get(variable_name)
+                if middleware:
+                    variable_value_as_str = middleware(variable_value_as_str)
+                field_name = variable_name.upper()
+                config_values[field_name] = (
+                    # __annotations__ looks like {field_name: annotation_class}
+                    VkConfig.__annotations__[
+                        field_name
+                    ](variable_value_as_str)  # Calling class's constructor
+                )
+    return VkConfig(**config_values, MEMO_FOR_USERS=file_with_memo.read())

@@ -6,7 +6,7 @@ from sqlalchemy import extract
 from enums import GrammaticalCases
 from handlers.dataclasses import HandlingResult
 from orm import models, db_apis
-from vk import vk_config
+from vk.vk_config import VkConfig
 from vk.vk_related_classes import VKUserInfo, Notification
 
 
@@ -18,8 +18,11 @@ class ResultSection:
 
 class HandlerHelpers:
 
-    def __init__(self, managers_container: db_apis.ManagersContainer):
+    def __init__(
+            self, managers_container: db_apis.ManagersContainer,
+            vk_config: VkConfig):
         self.managers_container = managers_container
+        self.vk_config = vk_config
 
     @staticmethod
     def get_tag_from_vk_user_dataclass(user_info: VKUserInfo) -> str:
@@ -132,7 +135,7 @@ class HandlerHelpers:
             no_orders_found_employees_error: str,
             limit: Optional[int] = None) -> HandlingResult:
         request_is_from_employee = (
-            current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID
+            current_chat_peer_id == self.vk_config.EMPLOYEES_CHAT_PEER_ID
         )
         filters = (
             filters

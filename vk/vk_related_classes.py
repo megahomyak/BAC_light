@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 
 import vk.enums
-from vk import vk_config
 
 
 @dataclass
@@ -17,7 +16,9 @@ class Notification:
     text_for_client: Optional[str] = None
     additional_messages: List[Message] = field(default_factory=list)
 
-    def to_messages(self, client_peer_id: int) -> List[Message]:
+    def to_messages(
+            self, client_peer_id: int,
+            employees_chat_peer_id: int) -> List[Message]:
         messages = []
         if self.text_for_client is not None:
             messages.append(
@@ -26,15 +27,12 @@ class Notification:
         if (
             self.text_for_employees is not None
             and (
-                client_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
+                client_peer_id != employees_chat_peer_id
                 or self.text_for_client is None
             )
         ):
             messages.append(
-                Message(
-                    self.text_for_employees,
-                    vk_config.EMPLOYEES_CHAT_PEER_ID
-                )
+                Message(self.text_for_employees, employees_chat_peer_id)
             )
         if self.additional_messages is not None:
             messages.extend(self.additional_messages)

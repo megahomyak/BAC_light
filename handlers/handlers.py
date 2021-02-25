@@ -10,8 +10,8 @@ from handlers.dataclasses import HandlingResult
 from handlers.handler_helpers import HandlerHelpers, ResultSection
 from orm import db_apis
 from orm import models
-from vk import vk_config
 from vk.enums import Sex
+from vk.vk_config import VkConfig
 from vk.vk_related_classes import Notification, UserCallbackMessages, Message
 from vk.vk_worker import VKWorker
 
@@ -21,10 +21,12 @@ class Handlers:
 
     def __init__(
             self, handler_helpers: HandlerHelpers,
-            managers_container: db_apis.ManagersContainer, vk_worker: VKWorker):
+            managers_container: db_apis.ManagersContainer, vk_worker: VKWorker,
+            vk_config: VkConfig):
         self.helpers = handler_helpers
         self.managers_container = managers_container
         self.vk_worker = vk_worker
+        self.vk_config = vk_config
 
     async def create_order(
             self, current_chat_peer_id: int,
@@ -32,7 +34,7 @@ class Handlers:
         order = models.Order(creator_vk_id=client_vk_id, text=text)
         self.managers_container.orders_manager.add(order)
         self.managers_container.orders_manager.flush()
-        if current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID:
+        if current_chat_peer_id != self.vk_config.EMPLOYEES_CHAT_PEER_ID:
             client_info = (await (
                 self.managers_container.users_manager
                 .get_user_info_by_vk_id(client_vk_id)
@@ -70,7 +72,7 @@ class Handlers:
         taken_by_other_employee_order_ids = []
         canceled_order_ids = []
         request_is_from_client = (
-            current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
+            current_chat_peer_id != self.vk_config.EMPLOYEES_CHAT_PEER_ID
         )
         for order in found_orders.successful_rows:
             if request_is_from_client and order.creator_vk_id != client_vk_id:
@@ -198,8 +200,8 @@ class Handlers:
         return HandlingResult(
             Notification(text_for_client=(
                 full_commands_help_message
-                if current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else
-                commands_only_for_clients_message
+                if current_chat_peer_id == self.vk_config.EMPLOYEES_CHAT_PEER_ID
+                else commands_only_for_clients_message
             )), commit_needed=False
         )
 
@@ -457,7 +459,7 @@ class Handlers:
             for failed_id in found_orders.failed_ids
         ]
         request_is_from_client = (
-            current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
+            current_chat_peer_id != self.vk_config.EMPLOYEES_CHAT_PEER_ID
         )
         for order in found_orders.successful_rows:
             if request_is_from_client and order.creator_vk_id != client_vk_id:
@@ -617,7 +619,7 @@ class Handlers:
             Notification(
                 text_for_client=(
                     f"Памятка по использованию бота:\n\n"
-                    f"{vk_config.MEMO_FOR_USERS}"
+                    f"{self.vk_config.MEMO_FOR_USERS}"
                 )
             ), commit_needed=False
         )

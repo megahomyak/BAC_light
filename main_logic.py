@@ -23,8 +23,8 @@ from lexer.lexer_implementations import (
     CommandsOnlyForClientsHelpMessageGetter
 )
 from orm import db_apis
-from vk import vk_config
 from vk.enums import Sex
+from vk.vk_config import VkConfig, make_vk_config_from_files
 from vk.vk_related_classes import Message
 from vk.vk_worker import VKWorker
 
@@ -34,8 +34,11 @@ class MainLogic:
     def __init__(
             self, managers_container: db_apis.ManagersContainer,
             vk_worker: VKWorker, handlers: Handlers,
+            vk_config: VkConfig,
+            commands_generator: lexer.generators.CommandsGenerator,
             logger: Optional[logging.Logger] = None,
             commit_changes: bool = True):
+        self.vk_config = vk_config
         self.managers_container = managers_container
         self.vk_worker = vk_worker
         self.logger = logger
@@ -44,19 +47,19 @@ class MainLogic:
         )
         self.commit_changes = commit_changes
         self.commands: Tuple[Command, ...] = (
-            *lexer.generators.get_getter_commands_for_common_orders(
+            *commands_generator.get_getter_commands_for_common_orders(
                 ru_names=("заказы",),
                 eng_names=("orders",),
                 orders_name="заказы",
                 handler=handlers.get_orders
             ),
-            *lexer.generators.get_getter_commands_for_common_orders(
+            *commands_generator.get_getter_commands_for_common_orders(
                 ru_names=("отмененные",),
                 eng_names=("canceled",),
                 orders_name="отмененные заказы",
                 handler=handlers.get_canceled_orders
             ),
-            *lexer.generators.get_getter_commands_for_common_orders(
+            *commands_generator.get_getter_commands_for_common_orders(
                 ru_names=("оплаченные",),
                 eng_names=("paid",),
                 orders_name="оплаченные заказы",
@@ -346,7 +349,10 @@ class MainLogic:
             else:
                 if (
                     command_.allowed_only_for_employees
-                    and current_chat_peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID
+                    and (
+                        current_chat_peer_id
+                        != self.vk_config.EMPLOYEES_CHAT_PEER_ID
+                    )
                 ):
                     return [Message(
                         (
@@ -368,7 +374,8 @@ class MainLogic:
                 if self.commit_changes and handling_result.commit_needed:
                     self.managers_container.commit()
                 return handling_result.notification.to_messages(
-                    client_peer_id=current_chat_peer_id
+                    client_peer_id=current_chat_peer_id,
+                    employees_chat_peer_id=self.vk_config.EMPLOYEES_CHAT_PEER_ID
                 )
         if error_args_amount == 0:
             error_msg = "Ошибка обработки команды на её названии!"
@@ -381,8 +388,8 @@ class MainLogic:
             from_id = vk_message_info['from_id']
             chat_name = (
                 "чате для сотрудников"
-                if current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else
-                "ЛС"
+                if current_chat_peer_id == self.vk_config.EMPLOYEES_CHAT_PEER_ID
+                else "ЛС"
             )
             if error_args_amount == 0:
                 self.logger.debug(
@@ -463,7 +470,7 @@ class MainLogic:
             if self.logger is not None:
                 chat_name = (
                     "чате для сотрудников"
-                ) if peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else "ЛС"
+                ) if peer_id == self.vk_config.EMPLOYEES_CHAT_PEER_ID else "ЛС"
                 self.logger.error(
                     f"Ошибка на команде \"{text}\" в {chat_name}:\n" + "".join(
                         traceback.TracebackException.from_exception(
@@ -474,9 +481,10 @@ class MainLogic:
             await self.vk_worker.reply(Message(
                 f"Тут у юзера при обработке команды \"{text}\" произошла "
                 f"ошибка \"{str(exc)}\", это в логах тоже есть, "
-                f"гляньте, разберитесь...", vk_config.EMPLOYEES_CHAT_PEER_ID
+                f"гляньте, разберитесь...",
+                self.vk_config.EMPLOYEES_CHAT_PEER_ID
             ))
-            if peer_id != vk_config.EMPLOYEES_CHAT_PEER_ID:
+            if peer_id != self.vk_config.EMPLOYEES_CHAT_PEER_ID:
                 await self.vk_worker.reply(Message(
                     f"При обработке команды \"{text}\" произошла ошибка. "
                     f"Она была залоггирована, админы - уведомлены.", peer_id
@@ -507,12 +515,27 @@ class MainLogic:
 
 async def main(debug: bool = False):
     async with aiohttp.ClientSession() as aiohttp_session:
+        files_with_config = [
+            open(path, "r", encoding="utf-8") for path in [
+                "vk/config/vk_constants.ini", "vk/config/vk_secrets.ini"
+            ]
+        ]
+        with open(
+            "vk/config/memo_for_users.txt", "r", encoding="utf-8"
+        ) as file_with_memo:
+            vk_config = make_vk_config_from_files(
+                files_with_config=files_with_config,
+                file_with_memo=file_with_memo
+            )
+        for file in files_with_config:
+            file.close()
         vk_worker = VKWorker(
             simple_avk.SimpleAVK(
                 aiohttp_session,
                 vk_config.TOKEN,
                 vk_config.GROUP_ID
-            )
+            ),
+            vk_config
         )
         db_session = db_apis.get_db_session("sqlite:///BAC_light.db")
         logging.basicConfig(
@@ -531,10 +554,13 @@ async def main(debug: bool = False):
             managers_container,
             vk_worker,
             Handlers(
-                HandlerHelpers(managers_container),
+                HandlerHelpers(managers_container, vk_config),
                 managers_container,
-                vk_worker
+                vk_worker,
+                vk_config
             ),
+            vk_config,
+            lexer.generators.CommandsGenerator(vk_config),
             logging.getLogger("command_errors")
         )
         if debug:

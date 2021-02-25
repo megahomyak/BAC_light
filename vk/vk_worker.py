@@ -6,18 +6,20 @@ from typing import AsyncGenerator, Optional, Any, Union, List
 from simple_avk import SimpleAVK
 
 from enums import GrammaticalCases
-from vk import vk_config, vk_related_classes
+from vk import vk_related_classes
 from vk.enums import Sex
+from vk.vk_config import VkConfig
 from vk.vk_related_classes import Message, DoneReply
 
 
 class VKWorker:
 
     def __init__(
-            self, simple_avk: SimpleAVK,
+            self, simple_avk: SimpleAVK, vk_config: VkConfig,
             logger: Optional[logging.Logger] = None):
         self.vk = simple_avk
         self.logger = logger
+        self.vk_config = vk_config
 
     async def listen_for_messages(self) -> AsyncGenerator[Any, None]:
         async for event in self.vk.listen():
@@ -32,11 +34,11 @@ class VKWorker:
 
     async def reply(self, message: Message) -> None:
         text_parts = (
-            message.text[i:i + vk_config.SYMBOLS_PER_MESSAGE]
+            message.text[i:i + self.vk_config.SYMBOLS_PER_MESSAGE]
             for i in range(
                 0,
                 len(message.text),
-                vk_config.SYMBOLS_PER_MESSAGE
+                self.vk_config.SYMBOLS_PER_MESSAGE
             )
         )
         for part in text_parts:
