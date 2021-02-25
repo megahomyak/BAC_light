@@ -161,29 +161,37 @@ class SequenceArgType(BaseArgType):
         )
 
 
-class VKSenderIDMetadataElement(BaseMetadataElement):
+class VKSenderIDGetter(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> int:
         return context.vk_message_info["from_id"]
 
 
-class VKPeerIDMetadataElement(BaseMetadataElement):
+class VKPeerIDGetter(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> int:
         return context.vk_message_info["peer_id"]
 
 
-class CommandsHelpMessageConstantMetadataElement(BaseConstantMetadataElement):
+class FullCommandsHelpMessageGetter(BaseConstantMetadataElement):
 
     @staticmethod
     def get_data_from_constant_context(
             constant_context: ConstantContext) -> str:
-        return constant_context.commands_help_message
+        return constant_context.full_commands_help_message
 
 
-class CommandDescriptionsConstantMetadataElement(BaseConstantMetadataElement):
+class CommandsOnlyForClientsHelpMessageGetter(BaseConstantMetadataElement):
+
+    @staticmethod
+    def get_data_from_constant_context(
+            constant_context: ConstantContext) -> str:
+        return constant_context.commands_only_for_clients_message
+
+
+class CommandDescriptionsGetter(BaseConstantMetadataElement):
 
     @staticmethod
     def get_data_from_constant_context(
@@ -192,14 +200,14 @@ class CommandDescriptionsConstantMetadataElement(BaseConstantMetadataElement):
         return constant_context.command_descriptions
 
 
-class CurrentYearMetadataElement(BaseMetadataElement):
+class CurrentYearGetter(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> int:
         return context.current_datetime.year
 
 
-class CurrentMonthMetadataElement(BaseMetadataElement):
+class CurrentMonthGetter(BaseMetadataElement):
 
     @staticmethod
     def get_data_from_context(context: Context) -> int:

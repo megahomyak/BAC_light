@@ -130,7 +130,8 @@ class ConstantContext:
     constant metadata to work. Solves the circular dependencies problem.
     """
 
-    commands_help_message: str
+    full_commands_help_message: str
+    commands_only_for_clients_message: str
     command_descriptions: Dict[str, List[Callable[..., str]]]
 
 

@@ -4,8 +4,8 @@ from handlers.dataclasses import HandlingResult
 from lexer.enums import IntTypes
 from lexer.lexer_classes import Command, Arg
 from lexer.lexer_implementations import (
-    VKPeerIDMetadataElement,
-    VKSenderIDMetadataElement, IntArgType
+    VKPeerIDGetter,
+    VKSenderIDGetter, IntArgType
 )
 from vk import vk_config
 
@@ -34,7 +34,7 @@ def get_getter_commands_for_common_orders(
         three Commands. First with default limit, second without limit and third
         with the specified limit.
     """
-    metadata = (VKSenderIDMetadataElement, VKPeerIDMetadataElement)
+    metadata = (VKSenderIDGetter, VKPeerIDGetter)
     return (
         Command(  # With default limit
             names=ru_names + eng_names,

@@ -191,10 +191,15 @@ class Handlers:
         )
 
     async def get_help_message(
-            self, commands_help_message: str) -> HandlingResult:
+            self, current_chat_peer_id: int,
+            full_commands_help_message: str,
+            commands_only_for_clients_message: str) -> HandlingResult:
         return HandlingResult(
-            Notification(text_for_client=commands_help_message),
-            commit_needed=False
+            Notification(text_for_client=(
+                full_commands_help_message
+                if current_chat_peer_id == vk_config.EMPLOYEES_CHAT_PEER_ID else
+                commands_only_for_clients_message
+            )), commit_needed=False
         )
 
     async def get_canceled_orders(

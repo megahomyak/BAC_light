@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import logging
+import sys
 import traceback
 from typing import NoReturn, Optional, List, Tuple, Dict, Callable
 
@@ -15,10 +16,11 @@ from handlers.handlers import Handlers, HandlingResult
 from lexer.enums import IntTypes
 from lexer.lexer_classes import Command, Arg, Context, ConstantContext
 from lexer.lexer_implementations import (
-    StringArgType, VKSenderIDMetadataElement, VKPeerIDMetadataElement,
-    SequenceArgType, IntArgType, CommandsHelpMessageConstantMetadataElement,
-    CommandDescriptionsConstantMetadataElement, CurrentYearMetadataElement,
-    CurrentMonthMetadataElement, MonthNumberArgType
+    StringArgType, VKSenderIDGetter, VKPeerIDGetter,
+    SequenceArgType, IntArgType, FullCommandsHelpMessageGetter,
+    CommandDescriptionsGetter, CurrentYearGetter,
+    CurrentMonthGetter, MonthNumberArgType,
+    CommandsOnlyForClientsHelpMessageGetter
 )
 from orm import db_apis
 from vk import vk_config
@@ -67,7 +69,7 @@ class MainLogic:
                     "создает новый заказ (заказ содержит только текст, "
                     "картинки туда не попадают!)"
                 ),
-                metadata=(VKPeerIDMetadataElement, VKSenderIDMetadataElement),
+                metadata=(VKPeerIDGetter, VKSenderIDGetter),
                 arguments=(Arg("текст заказа", StringArgType()),)
             ),
             Command(
@@ -78,7 +80,7 @@ class MainLogic:
                     "сотрудникам нельзя отменять заказы, взятые другим "
                     "сотрудником; всем нельзя отменять оплаченные заказы)"
                 ),
-                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement),
+                metadata=(VKSenderIDGetter, VKPeerIDGetter),
                 arguments=(
                     Arg(
                         "ID заказов, которые нужно отменить (через запятую)",
@@ -95,7 +97,7 @@ class MainLogic:
                     "оплачены (если спрашивает клиент - только заказы этого же "
                     "клиента)"
                 ),
-                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement)
+                metadata=(VKSenderIDGetter, VKPeerIDGetter)
             ),
             Command(
                 names=("в ожидании", "waiting", "pending", "ожидающие"),
@@ -105,13 +107,17 @@ class MainLogic:
                     "(если спрашивает клиент - только заказы этого же "
                     "клиента)"
                 ),
-                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement)
+                metadata=(VKSenderIDGetter, VKPeerIDGetter)
             ),
             Command(
                 names=("команды", "помощь", "help", "commands"),
                 handler=handlers.get_help_message,
                 description="показывает помощь по командам и их написанию",
-                constant_metadata=(CommandsHelpMessageConstantMetadataElement,)
+                metadata=(VKPeerIDGetter,),
+                constant_metadata=(
+                    FullCommandsHelpMessageGetter,
+                    CommandsOnlyForClientsHelpMessageGetter
+                )
             ),
             Command(
                 names=("оплачено", "оплатить", "pay", "mark as paid"),
@@ -121,7 +127,7 @@ class MainLogic:
                     "сотрудники, причем могут помечать оплаченными лишь те "
                     "заказы, которые взяли сами)"
                 ),
-                metadata=(VKSenderIDMetadataElement,),
+                metadata=(VKSenderIDGetter,),
                 arguments=(
                     Arg(
                         (
@@ -141,8 +147,8 @@ class MainLogic:
                 handler=handlers.get_monthly_paid_orders,
                 description="показывает оплаченные заказы за месяц",
                 metadata=(
-                    CurrentYearMetadataElement,
-                    CurrentMonthMetadataElement
+                    CurrentYearGetter,
+                    CurrentMonthGetter
                 ),
                 allowed_only_for_employees=True
             ),
@@ -166,7 +172,7 @@ class MainLogic:
                     "показывает оплаченные заказы за указанный месяц (только "
                     "для сотрудников)"
                 ),
-                metadata=(CurrentYearMetadataElement,),
+                metadata=(CurrentYearGetter,),
                 arguments=(Arg("номер месяца", MonthNumberArgType()),),
                 allowed_only_for_employees=True
             ),
@@ -177,7 +183,7 @@ class MainLogic:
                     "отмечает заказы как взятые и отсылает уведомления о "
                     "взятии клиентам"
                 ),
-                metadata=(VKSenderIDMetadataElement,),
+                metadata=(VKSenderIDGetter,),
                 arguments=(
                     Arg(
                         (
@@ -195,7 +201,7 @@ class MainLogic:
                     "показывает все заказы, которые не отменены и не оплачены "
                     "(если спрашивает клиент - только заказы этого же клиента)"
                 ),
-                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement)
+                metadata=(VKSenderIDGetter, VKPeerIDGetter)
             ),
             Command(
                 names=("команды", "помощь", "help", "commands"),
@@ -203,7 +209,7 @@ class MainLogic:
                 description=(
                     "показывает помощь по конкретным командам и их написанию"
                 ),
-                constant_metadata=(CommandDescriptionsConstantMetadataElement,),
+                constant_metadata=(CommandDescriptionsGetter,),
                 arguments=(
                     Arg(
                         (
@@ -220,7 +226,7 @@ class MainLogic:
                     "показывает заказы с указанными ID (для клиентов - лишь "
                     "если заказ принадлежит им)"
                 ),
-                metadata=(VKSenderIDMetadataElement, VKPeerIDMetadataElement),
+                metadata=(VKSenderIDGetter, VKPeerIDGetter),
                 arguments=(
                     Arg(
                         "ID заказов (через запятую)",
@@ -233,7 +239,7 @@ class MainLogic:
                 handler=handlers.get_monthly_earnings,
                 description="показывает доход за месяц",
                 metadata=(
-                    CurrentYearMetadataElement, CurrentMonthMetadataElement
+                    CurrentYearGetter, CurrentMonthGetter
                 ),
                 allowed_only_for_employees=True
             ),
@@ -253,7 +259,7 @@ class MainLogic:
                 names=("доход", "earnings", "income", "revenue"),
                 handler=handlers.get_monthly_earnings,
                 description="показывает доход за указанный месяц",
-                metadata=(CurrentYearMetadataElement,),
+                metadata=(CurrentYearGetter,),
                 arguments=(Arg("номер месяца", MonthNumberArgType()),),
                 allowed_only_for_employees=True
             ),
@@ -267,7 +273,7 @@ class MainLogic:
                     "сделан заказ, эта команда работает так же, как и просто "
                     "/заказ)"
                 ),
-                metadata=(VKSenderIDMetadataElement,),
+                metadata=(VKSenderIDGetter,),
                 arguments=(
                     Arg(
                         "тэг или ID клиента в ВК", StringArgType(),
@@ -292,7 +298,7 @@ class MainLogic:
                     "смене имени, фамилии или пола в ВК, чтобы бот обновил "
                     "свою базу данных"
                 ),
-                metadata=(VKSenderIDMetadataElement,)
+                metadata=(VKSenderIDGetter,)
             ),
             Command(
                 names=("памятка", "memo"),
@@ -311,11 +317,20 @@ class MainLogic:
                     command_descriptions[name] = [
                         command.get_compact_full_description
                     ]
-        all_commands_str = vk_config.HELP_MESSAGE_BEGINNING + "\n".join([
-            command.get_compact_full_description() for command in self.commands
-        ])
+        first_command_desc = self.commands[0].get_compact_full_description()
+        commands_for_clients_str = (
+            vk_config.HELP_MESSAGE_BEGINNING + first_command_desc
+        )
+        all_commands_str = vk_config.HELP_MESSAGE_BEGINNING + first_command_desc
+        for command in self.commands[1:]:
+            description = command.get_compact_full_description()
+            all_commands_str += f"\n{description}"
+            if not command.allowed_only_for_employees:
+                commands_for_clients_str += f"\n{description}"
         self.constant_context = ConstantContext(
-            all_commands_str, command_descriptions
+            full_commands_help_message=all_commands_str,
+            commands_only_for_clients_message=commands_for_clients_str,
+            command_descriptions=command_descriptions
         )
 
     async def handle_command(
@@ -479,8 +494,18 @@ class MainLogic:
                     self.future_done_callback(peer_id, text, future)
                 ))
 
+    async def send_commands_from_stdin(self) -> NoReturn:
+        while True:
+            message_text = input("Enter the command: ")
+            output = await self.handle_command(
+                # Fake peer_id and vk_message_info
+                123, message_text, {"peer_id": 123, "from_id": 456}
+            )
+            for message in output:
+                print(message.text)
 
-async def main():
+
+async def main(debug: bool = False):
     async with aiohttp.ClientSession() as aiohttp_session:
         vk_worker = VKWorker(
             simple_avk.SimpleAVK(
@@ -512,9 +537,12 @@ async def main():
             ),
             logging.getLogger("command_errors")
         )
-        await main_logic.listen_for_vk_events()
+        if debug:
+            await main_logic.send_commands_from_stdin()
+        else:
+            await main_logic.listen_for_vk_events()
 
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    loop.run_until_complete(main(debug="--local" in sys.argv))
